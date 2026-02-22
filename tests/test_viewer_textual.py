@@ -64,12 +64,13 @@ class TestViewerTextualReport(unittest.TestCase):
 
         rows = build_group_diff_report_rows(chunks)
         kinds = [row.row_type for row in rows]
-        self.assertIn("file", kinds)
+        self.assertIn("file_border", kinds)
         self.assertIn("chunk", kinds)
         self.assertIn("add", kinds)
         self.assertIn("delete", kinds)
-        self.assertTrue(any("=== a.ts (src) ===" in row.old_text for row in rows))
-        self.assertTrue(any("=== b.ts (src) ===" in row.old_text for row in rows))
+        self.assertTrue(any(row.row_type == "file_border" and "a.ts (src)" in row.old_text for row in rows))
+        self.assertTrue(any(row.row_type == "file_border" and "b.ts (src)" in row.old_text for row in rows))
+        self.assertTrue(any(row.row_type == "file_border" and "──" in row.old_text for row in rows))
 
     def test_build_group_diff_report_rows_truncates_long_chunks(self):
         lines = [{"kind": "add", "text": f"line-{idx}", "oldLine": None, "newLine": idx} for idx in range(1, 8)]
@@ -265,6 +266,109 @@ class TestViewerTextualReport(unittest.TestCase):
         app.diff_old_ratio = app.MAX_DIFF_OLD_RATIO
         app.action_move_diff_split_right()
         self.assertAlmostEqual(app.diff_old_ratio, app.MAX_DIFF_OLD_RATIO)
+
+    def test_add_left_border_prefixes_non_spacer_rows(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        self.assertEqual(app._add_left_border("hello", "context"), "│ hello")
+        self.assertEqual(app._add_left_border("", "context"), "│")
+        self.assertEqual(app._add_left_border("", "spacer"), "")
+
+    def test_sync_selection_from_report_row_key_updates_chunk_selection(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c1"
+        app._group_report_row_chunk_by_key = {"r-1": "c2"}
+        selected_rows: list[str] = []
+        refreshed_with: list[str] = []
+        app._select_chunk_row = lambda cid: selected_rows.append(cid)  # type: ignore[method-assign]
+        app._show_current_group_report = lambda target_chunk_id=None: refreshed_with.append(str(target_chunk_id))  # type: ignore[method-assign]
+
+        changed = app._sync_selection_from_report_row_key("r-1")
+
+        self.assertTrue(changed)
+        self.assertEqual(app.selected_chunk_id, "c2")
+        self.assertEqual(selected_rows, ["c2"])
+        self.assertEqual(refreshed_with, ["c2"])
+
+    def test_sync_selection_from_report_row_key_ignores_non_chunk_row(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c1"
+        app._group_report_row_chunk_by_key = {}
+        app._select_chunk_row = lambda *_args, **_kwargs: self.fail("should not select")  # type: ignore[method-assign]
+        app._show_current_group_report = lambda *_args, **_kwargs: self.fail("should not refresh")  # type: ignore[method-assign]
+
+        changed = app._sync_selection_from_report_row_key("r-0")
+
+        self.assertFalse(changed)
+        self.assertEqual(app.selected_chunk_id, "c1")
+
+    def test_sync_selection_from_report_row_key_skips_same_chunk_for_stability(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c2"
+        app._group_report_row_chunk_by_key = {"r-1": "c2"}
+        app._select_chunk_row = lambda *_args, **_kwargs: self.fail("should not move cursor")  # type: ignore[method-assign]
+        app._show_current_group_report = lambda *_args, **_kwargs: self.fail("should not refresh")  # type: ignore[method-assign]
+
+        changed = app._sync_selection_from_report_row_key("r-1")
+
+        self.assertFalse(changed)
+        self.assertEqual(app.selected_chunk_id, "c2")
+
+    def test_select_chunk_row_restores_suppression_flag(self):
+        class StubRowKey:
+            def __init__(self, value: str) -> None:
+                self.value = value
+
+        class StubTable:
+            def __init__(self) -> None:
+                self.rows = {StubRowKey("c1"): None, StubRowKey("c2"): None}
+                self.cursor_coordinate: tuple[int, int] | None = None
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        table = StubTable()
+        app.query_one = lambda *_args, **_kwargs: table  # type: ignore[method-assign]
+
+        app._select_chunk_row("c2")
+
+        self.assertEqual(app._suppress_chunk_table_events, False)
+        self.assertEqual(table.cursor_coordinate, (1, 0))
 
 
 if __name__ == "__main__":

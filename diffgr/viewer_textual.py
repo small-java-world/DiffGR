@@ -90,21 +90,39 @@ def build_group_diff_report_rows(
             )
         ]
 
+    def _build_file_border(label: str) -> str:
+        prefix = f"── {label} "
+        line_len = 240
+        if len(prefix) >= line_len:
+            return prefix
+        return prefix + ("─" * (line_len - len(prefix)))
+
     current_file = ""
+    plain_border = "─" * 240
     for chunk in chunks:
         file_path = str(chunk.get("filePath", "-"))
         file_label = format_file_label(file_path)
         if file_path != current_file:
             if rows:
+                rows.append(
+                    GroupReportRow(
+                        row_type="file_border",
+                        old_line="",
+                        old_text=plain_border,
+                        new_line="",
+                        new_text=plain_border,
+                    )
+                )
                 rows.append(GroupReportRow(row_type="spacer", old_line="", old_text="", new_line="", new_text=""))
             current_file = file_path
+            file_border = _build_file_border(file_label)
             rows.append(
                 GroupReportRow(
-                    row_type="file",
+                    row_type="file_border",
                     old_line="",
-                    old_text=f"=== {file_label} ===",
+                    old_text=file_border,
                     new_line="",
-                    new_text=f"path: {file_path}",
+                    new_text=file_border,
                 )
             )
 
@@ -302,6 +320,8 @@ class DiffgrTextualApp(App[None]):
         self._lines_table_mode: str | None = None
         self.left_pane_pct = 52
         self.diff_old_ratio = 0.50
+        self._group_report_row_chunk_by_key: dict[str, str] = {}
+        self._suppress_chunk_table_events = False
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -442,6 +462,8 @@ class DiffgrTextualApp(App[None]):
     def _render_report_text(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
             return Text(value, style="bold #13231a on #aef2be")
+        if row_type == "file_border":
+            return Text(value, style="bold #8fb4ff on #11213a")
         if row_type == "file":
             return Text(value, style="bold #09111d on #8fb4ff")
         if row_type == "chunk":
@@ -465,6 +487,13 @@ class DiffgrTextualApp(App[None]):
         if row_type == "info":
             return Text(value, style="italic #9db0c8")
         return Text(value, style="#c7d4e8")
+
+    def _add_left_border(self, value: str, row_type: str) -> str:
+        if row_type == "spacer":
+            return ""
+        if not value:
+            return "│"
+        return f"│ {value}"
 
     async def action_new_group(self) -> None:
         result = await self.push_screen_wait(NameModal("New Group (Japanese name OK)", "例: 認証周り / UI調整 / PR3…"))
@@ -596,6 +625,8 @@ class DiffgrTextualApp(App[None]):
             self._apply_chunk_filter()
             return
         if event.data_table.id == "chunks":
+            if self._suppress_chunk_table_events:
+                return
             if event.row_key.value is None:
                 return
             chunk_id = str(event.row_key.value)
@@ -605,9 +636,16 @@ class DiffgrTextualApp(App[None]):
             else:
                 self._show_chunk(chunk_id)
             return
+        if event.data_table.id == "lines" and self.group_report_mode:
+            if event.row_key.value is None:
+                return
+            self._sync_selection_from_report_row_key(str(event.row_key.value))
+            return
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         if event.data_table.id != "chunks":
+            return
+        if self._suppress_chunk_table_events:
             return
         if event.row_key.value is None:
             return
@@ -827,19 +865,26 @@ class DiffgrTextualApp(App[None]):
 
         lines_table = self._switch_lines_table_mode("group_report")
         rows = build_group_diff_report_rows(chunks_for_view)
+        self._group_report_row_chunk_by_key = {}
         target_row_index: int | None = None
         for row_index, row in enumerate(rows):
+            row_key = f"r-{row_index}"
+            if row.chunk_id:
+                self._group_report_row_chunk_by_key[row_key] = row.chunk_id
             is_selected = bool(target_chunk_id and row.chunk_id == target_chunk_id and row.row_type == "chunk")
             old_text = row.old_text
             new_text = row.new_text
             if is_selected:
                 old_text = f">> {old_text}"
                 new_text = f">> {new_text}" if new_text else ">>"
+            old_text = self._add_left_border(old_text, row.row_type)
+            new_text = self._add_left_border(new_text, row.row_type)
             lines_table.add_row(
                 self._render_report_number(row.old_line, row.row_type, "old", selected=is_selected),
                 self._render_report_text(old_text, row.row_type, "old", selected=is_selected),
                 self._render_report_number(row.new_line, row.row_type, "new", selected=is_selected),
                 self._render_report_text(new_text, row.row_type, "new", selected=is_selected),
+                key=row_key,
             )
             if (
                 target_row_index is None
@@ -857,15 +902,30 @@ class DiffgrTextualApp(App[None]):
             except Exception:
                 pass
 
+    def _sync_selection_from_report_row_key(self, row_key_value: str, *, refresh_report: bool = True) -> bool:
+        chunk_id = self._group_report_row_chunk_by_key.get(row_key_value)
+        if not chunk_id:
+            return False
+        if chunk_id == self.selected_chunk_id:
+            return False
+        self.selected_chunk_id = chunk_id
+        self._select_chunk_row(chunk_id)
+        if refresh_report and self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=chunk_id)
+        return True
+
     def _select_chunk_row(self, chunk_id: str) -> None:
         chunk_table = self.query_one("#chunks", DataTable)
         try:
+            self._suppress_chunk_table_events = True
             for row_index, row_key in enumerate(chunk_table.rows.keys()):
                 if str(row_key.value) == chunk_id:
                     chunk_table.cursor_coordinate = (row_index, 0)
                     break
         except Exception:
             pass
+        finally:
+            self._suppress_chunk_table_events = False
 
     def _show_chunk(self, chunk_id: str) -> None:
         chunk = self.chunk_map.get(chunk_id)
