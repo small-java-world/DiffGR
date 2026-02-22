@@ -100,7 +100,9 @@ def main(argv: list[str]) -> int:
                 "最後に、合意した分割案を slice patch（rename/move）JSONとして出力できる状態にしてください。"
             )
             code = start_interactive_session(repo=repo, config=config, initial_prompt=initial_prompt)
-            if code != 0:
+            # Many CLIs exit with 130 when the user presses Ctrl+C to leave the interactive session.
+            # Treat that as a normal, user-driven exit so we can still resume and emit the final patch JSON.
+            if code not in (0, 130):
                 return code
             finalize_prompt = (
                 "これまでの会話内容に基づいて、最終的な slice patch JSON（rename/move）を出力してください。\n"
