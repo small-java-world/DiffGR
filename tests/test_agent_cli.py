@@ -54,7 +54,7 @@ class TestAgentCli(unittest.TestCase):
             patch_obj = run_agent_cli_from_last_session(
                 repo=repo,
                 config=config,
-                prompt_markdown="# prompt",
+                prompt_text="# prompt",
                 schema_path=schema_path,
                 timeout_s=3,
             )

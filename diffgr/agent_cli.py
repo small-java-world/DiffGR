@@ -166,7 +166,7 @@ def run_agent_cli_from_last_session(
     *,
     repo: Path,
     config: AgentCliConfig,
-    prompt_markdown: str,
+    prompt_text: str,
     schema_path: Path,
     timeout_s: int = 180,
 ) -> dict[str, Any]:
@@ -183,7 +183,7 @@ def run_agent_cli_from_last_session(
         result = subprocess.run(
             cmd,
             cwd=str(repo),
-            input=prompt_markdown,
+            input=prompt_text,
             text=True,
             capture_output=True,
             timeout=timeout_s,
@@ -207,7 +207,7 @@ def run_agent_cli_from_last_session(
     result = subprocess.run(
         cmd,
         cwd=str(repo),
-        input=prompt_markdown,
+        input=prompt_text,
         text=True,
         capture_output=True,
         timeout=timeout_s,

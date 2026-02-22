@@ -44,7 +44,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--interactive",
         action="store_true",
-        help="Start an interactive CLI session first, then continue the last session in print mode to emit the JSON patch.",
+        help="Start an interactive CLI session first. You provide info via chat, then exit; the tool resumes the last session to emit the JSON patch.",
+    )
+    parser.add_argument(
+        "--copy-prompt",
+        action="store_true",
+        help="Copy the prompt markdown to clipboard before starting interactive session (Windows PowerShell).",
+    )
+    parser.add_argument(
+        "--no-copy-prompt",
+        action="store_true",
+        help="Do not copy the prompt to clipboard (overrides --copy-prompt).",
     )
     return parser.parse_args(argv)
 
@@ -70,19 +80,36 @@ def main(argv: list[str]) -> int:
         config = load_agent_cli_config(config_path)
         prompt_markdown = prompt_path.read_text(encoding="utf-8")
         if args.interactive:
+            do_copy = bool(args.copy_prompt) and not bool(args.no_copy_prompt)
+            if do_copy and sys.platform.startswith("win"):
+                import subprocess
+
+                subprocess.run(
+                    ["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
+                    input=prompt_markdown,
+                    text=True,
+                    capture_output=True,
+                )
+                print(f"Copied prompt to clipboard: {prompt_path}")
+            print("Starting interactive session. Paste the prompt markdown and discuss the slicing.")
+            print("When done, exit the session; then this tool will resume the last session to output JSON patch.")
+
             initial_prompt = (
                 "DiffGRの仮想PR分割（グループ）のブラッシュアップを会話で決めます。\n"
-                f"まず `{prompt_path}` を読み、rename/move の方針を相談してください。\n"
-                "会話が終わったらセッションを終了してください。終了後に、このツールが直近セッションを継続して\n"
-                "JSONスキーマに合う slice patch（rename/move）を生成して `slice_patch.json` に保存します。"
+                "これから私が差分要約（Markdown）を貼るので、それを元に質問しながら分割案を詰めてください。\n"
+                "最後に、合意した分割案を slice patch（rename/move）JSONとして出力できる状態にしてください。"
             )
             code = start_interactive_session(repo=repo, config=config, initial_prompt=initial_prompt)
             if code != 0:
                 return code
+            finalize_prompt = (
+                "これまでの会話内容に基づいて、最終的な slice patch JSON（rename/move）を出力してください。\n"
+                "出力はJSONオブジェクトのみで、説明文やMarkdownは不要です。"
+            )
             patch = run_agent_cli_from_last_session(
                 repo=repo,
                 config=config,
-                prompt_markdown=prompt_markdown,
+                prompt_text=finalize_prompt,
                 schema_path=schema_path,
                 timeout_s=args.timeout,
             )
