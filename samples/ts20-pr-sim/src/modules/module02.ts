@@ -16,12 +16,13 @@ export function format02(value: number): string {
 }
 
 export function makeStat02(): ModuleStat {
-  const tags = ["base", "module-02"];
+  const tags = ["base", "module-02", "pr4"];
   return {
     module: "m02",
     tags
   };
 }
+
 
 
 
