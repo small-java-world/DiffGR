@@ -122,6 +122,9 @@ def build_ai_refine_prompt_markdown(doc: dict[str, Any], max_chunks_per_group: i
     lines.append("- 全チャンクを必ずどれか1つのグループに割り当てる")
     lines.append("- グループ名は日本語（短く、目的が伝わる）")
     lines.append("- 各グループはレビュー可能な粒度（大きすぎたら分割、小さすぎたら統合）")
+    lines.append("分割方針（最優先）:")
+    lines.append("- 分割軸は『機能の塊』を最優先にする（コミット境界や件数均等は補助）")
+    lines.append("- 空グループは原則残さず、近い機能グループへ再配置するか削除する")
     lines.append("")
     lines.append("出力フォーマット（必須）: 次のJSONだけを返してください。")
     lines.append("```json")
@@ -157,4 +160,3 @@ def build_ai_refine_prompt_markdown(doc: dict[str, Any], max_chunks_per_group: i
 
     lines.append("")
     return "\n".join(lines)
-

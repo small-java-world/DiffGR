@@ -3,6 +3,7 @@
   "title": "DiffGR Slice Patch",
   "type": "object",
   "additionalProperties": false,
+  "required": ["rename", "move"],
   "properties": {
     "rename": {
       "type": "object",
@@ -27,4 +28,3 @@
     }
   }
 }
-
