@@ -8,7 +8,7 @@ export function compute10(input: number): number {
 }
 
 export function normalize10(value: string): string {
-  return value.trim();
+  return value.trim().toLowerCase();
 }
 
 export function format10(value: number): string {
@@ -22,4 +22,5 @@ export function makeStat10(): ModuleStat {
     tags
   };
 }
+
 
