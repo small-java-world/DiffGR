@@ -26,3 +26,8 @@ export function makeStat18(): ModuleStat {
 
 
 
+
+export function isModule18Ready(input: number): boolean {
+  return input >= 0;
+}
+
