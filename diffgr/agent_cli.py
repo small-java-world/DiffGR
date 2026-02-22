@@ -78,7 +78,8 @@ def run_codex_cli(
     args: tuple[str, ...],
     timeout_s: int,
 ) -> dict[str, Any]:
-    cmd = [command, *args, "--output-schema", str(schema_path)]
+    # Use "-" to force stdin prompt mode (avoids any ambiguity about prompt sources).
+    cmd = [command, *args, "--output-schema", str(schema_path), "-"]
     result = subprocess.run(
         cmd,
         cwd=str(repo),
@@ -102,7 +103,8 @@ def run_claude_cli(
     query: str,
     timeout_s: int,
 ) -> dict[str, Any]:
-    cmd = [command, *args, "--json-schema", schema_text, query]
+    # Feed the main prompt via stdin; use an appended system prompt for the "return JSON only" contract.
+    cmd = [command, *args, "--json-schema", schema_text, "--append-system-prompt", query]
     result = subprocess.run(
         cmd,
         cwd=str(repo),
@@ -143,4 +145,3 @@ def run_agent_cli(
         query=config.claude_query,
         timeout_s=timeout_s,
     )
-

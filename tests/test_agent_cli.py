@@ -28,5 +28,5 @@ class TestAgentCli(unittest.TestCase):
             self.assertEqual(patch_obj["move"], [])
             args, kwargs = run.call_args
             self.assertIn("--output-schema", args[0])
+            self.assertIn("-", args[0])
             self.assertEqual(kwargs["input"], prompt)
-

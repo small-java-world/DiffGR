@@ -9,5 +9,4 @@ args = ["exec", "--sandbox", "read-only", "--ask-for-approval", "never"]
 command = "claude"
 # Print mode; disable tools by default for deterministic "just return JSON".
 args = ["-p", "--output-format", "text", "--tools", ""]
-query = "Use the markdown from stdin. Return ONLY the JSON object that matches the provided JSON schema."
-
+query = "Use the markdown from stdin. Return ONLY the JSON object that matches the provided JSON schema. Do not wrap it in markdown."
