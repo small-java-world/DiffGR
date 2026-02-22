@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import sys
 from dataclasses import replace
@@ -61,6 +62,83 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _as_fenced_markdown_block(markdown_text: str) -> str:
+    # Pick an outer fence longer than any fence already present in the text.
+    matches = re.findall(r"`+", markdown_text)
+    max_run = max((len(run) for run in matches), default=0)
+    fence = "`" * max(3, max_run + 1)
+    return f"{fence}markdown\n{markdown_text.strip()}\n{fence}\n"
+
+
+def _has_split_marker_in_name(group_name: str) -> bool:
+    text = group_name.lower()
+    if re.search(r"(前半|後半|前編|後編)", group_name):
+        return True
+    if re.search(r"\bpart\s*\d+\b", text):
+        return True
+    return bool(re.search(r"第\s*[0-9一二三四五六七八九十]+\s*部", group_name))
+
+
+def _normalize_group_name_for_split_guard(group_name: str) -> str:
+    normalized = re.sub(r"[ 　]+", "", group_name)
+    normalized = re.sub(
+        r"[\(\（][^\)\）]*(前半|後半|前編|後編|part\s*\d+|第\s*[0-9一二三四五六七八九十]+\s*部)[^\)\）]*[\)\）]",
+        "",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    normalized = re.sub(
+        r"(前半|後半|前編|後編|part\s*\d+|第\s*[0-9一二三四五六七八九十]+\s*部)$",
+        "",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    return normalized
+
+
+def _find_split_name_conflicts(rename: dict[str, str]) -> list[str]:
+    by_base: dict[str, list[tuple[str, str]]] = {}
+    for group_id, group_name in rename.items():
+        if not isinstance(group_name, str):
+            continue
+        base = _normalize_group_name_for_split_guard(group_name)
+        if not base:
+            continue
+        by_base.setdefault(base, []).append((group_id, group_name))
+
+    problems: list[str] = []
+    for base, entries in by_base.items():
+        if len(entries) < 2:
+            continue
+        if not any(_has_split_marker_in_name(name) for _gid, name in entries):
+            continue
+        joined = ", ".join(f"{gid}:{name}" for gid, name in entries)
+        problems.append(f"{base} -> {joined}")
+    return problems
+
+
+def _build_split_policy_retry_prompt(conflicts: list[str]) -> str:
+    conflict_lines = "\n".join(f"- {line}" for line in conflicts)
+    return (
+        "直前のJSONは方針違反です。次を修正してJSONを再出力してください。\n"
+        "違反内容:\n"
+        f"{conflict_lines}\n"
+        "修正ルール:\n"
+        "- 同一機能を前半/後半などに分割しない\n"
+        "- 必要最小のグループ数へ統合する\n"
+        "- move先グループは必ず存在させる\n"
+        "- 出力は最終的なJSONオブジェクトのみ"
+    )
+
+
+def _extract_split_conflicts(patch: dict[str, object]) -> list[str]:
+    rename = patch.get("rename")
+    if not isinstance(rename, dict):
+        return []
+    rename_map = {str(key): str(value) for key, value in rename.items() if isinstance(value, str)}
+    return _find_split_name_conflicts(rename_map)
+
+
 def _write_interactive_session_note(
     *, repo: Path, prompt_path: Path, schema_path: Path, prompt_markdown: str
 ) -> Path:
@@ -87,10 +165,13 @@ def _write_interactive_session_note(
         "- グループ数（4/6など）は事前に固定しない\n"
         "- 空グループは最終成果物に残さない\n"
         "- 1グループの粒度目安は 10-25 chunks\n"
+        "- 10-25 chunksは目安。機能塊維持のためなら下回ってよい\n"
+        "- 同一機能を前半/後半などに分割しない（必要最小のグループ数を優先）\n"
         "- order は機能依存順を維持する\n"
         "- 上記方針の是非は議論しない\n\n"
         "## 方針\n"
         "- 分割軸は機能の塊を優先\n"
+        "- 同じ機能に属する変更は1グループへ統合する\n"
         "- 空グループは残さない\n"
         "- rename/move のJSONに収束する\n"
         "- 最後に標準ファイル化/パッチ整合へ反映する前提で決める\n"
@@ -102,9 +183,7 @@ def _write_interactive_session_note(
         "- 必ず最終的な rename/move JSON を返す\n"
         "- 先に暫定案を提示し、承認確認1問を行ってから最終JSONへ進む\n"
         "\n## 入力Markdown全文\n"
-        "```markdown\n"
-        f"{prompt_markdown.strip()}\n"
-        "```\n"
+        f"{_as_fenced_markdown_block(prompt_markdown)}"
     )
     note_path.write_text(note, encoding="utf-8")
     return note_path
@@ -122,11 +201,43 @@ def _build_interactive_initial_prompt(*, repo: Path, note_path: Path) -> str:
         f"- 入力バンドル: `{display_note_path}`\n"
         "固定事項: 分割方針はレビュー意図起点で確定。ここは議論しません。\n"
         "固定事項: グループ数（4/6など）は事前に固定しません。方針に従って結果として決めます。\n"
+        "固定事項: 同一機能を前半/後半などに分割しません。機能塊を優先して必要最小のグループ数にします。\n"
         "必須: 最後の反映（標準ファイル化/パッチ整合）まで見据えて、適用可能な構成にしてください。\n"
         "禁止: 追加データ要求、既存情報の再掲要求、リポジトリ探索コマンド実行。\n"
         "必須: 最初に暫定案を提示し、承認確認を1問だけ行ってユーザー回答を待ってください。\n"
         "この入力バンドルだけで最終案まで出してください。\n"
         "読み込み後、固定事項を復唱してから分割案の改善に入ってください。"
+    )
+
+
+def _build_finalize_prompt() -> str:
+    return (
+        "これまでの会話内容に基づいて、最終的な slice patch JSON（rename/move）を出力してください。\n"
+        "固定事項: 分割方針はレビュー意図起点で確定。ここは議論不要です。\n"
+        "固定事項: グループ数（4/6など）は事前に固定しません。方針に従って最終構成を決めてください。\n"
+        "固定事項: 同一機能を前半/後半に分割しないでください。機能塊優先で必要最小のグループ数に統合してください。\n"
+        "分割は『機能の塊ベース』を優先し、空グループは残さない方針を維持してください。\n"
+        "補足: 1グループ10-25chunksは目安であり厳密制約ではありません。機能塊維持を優先してください。\n"
+        "必須: 最後に標準ファイル化/パッチ整合へ反映するので、適用可能で整合の取れた rename/move のみを返してください。\n"
+        "整合条件: move先グループは必ず存在し、空グループを最終成果物に残さないこと。\n"
+        "禁止: 追加データ要求、既存情報の再掲要求、リポジトリ探索コマンド実行、要件整理だけの返答。\n"
+        "会話内でユーザー承認済みの案をJSON化してください。\n"
+        "必ず最終JSONを返してください。\n"
+        "出力はJSONオブジェクトのみで、説明文やMarkdownは不要です。"
+    )
+
+
+def _retry_noninteractive_prompt_for_split_policy(original_prompt: str, conflicts: list[str]) -> str:
+    conflict_lines = "\n".join(f"- {line}" for line in conflicts)
+    return (
+        f"{original_prompt.rstrip()}\n\n"
+        "## 追加固定事項（厳守）\n"
+        "- 同一機能を前半/後半などに分割しない\n"
+        "- 必要最小のグループ数に統合する\n"
+        "- 10-25 chunksは目安であり厳密制約ではない\n"
+        "\n"
+        "## 直前案の違反内容\n"
+        f"{conflict_lines}\n"
     )
 
 
@@ -206,18 +317,7 @@ def main(argv: list[str]) -> int:
             # Treat that as a normal, user-driven exit so we can still resume and emit the final patch JSON.
             if code not in (0, 130):
                 return code
-            finalize_prompt = (
-                "これまでの会話内容に基づいて、最終的な slice patch JSON（rename/move）を出力してください。\n"
-                "固定事項: 分割方針はレビュー意図起点で確定。ここは議論不要です。\n"
-                "固定事項: グループ数（4/6など）は事前に固定しません。方針に従って最終構成を決めてください。\n"
-                "分割は『機能の塊ベース』を優先し、空グループは残さない方針を維持してください。\n"
-                "必須: 最後に標準ファイル化/パッチ整合へ反映するので、適用可能で整合の取れた rename/move のみを返してください。\n"
-                "整合条件: move先グループは必ず存在し、空グループを最終成果物に残さないこと。\n"
-                "禁止: 追加データ要求、既存情報の再掲要求、リポジトリ探索コマンド実行、要件整理だけの返答。\n"
-                "会話内でユーザー承認済みの案をJSON化してください。\n"
-                "必ず最終JSONを返してください。\n"
-                "出力はJSONオブジェクトのみで、説明文やMarkdownは不要です。"
-            )
+            finalize_prompt = _build_finalize_prompt()
             patch = run_agent_cli_from_last_session(
                 repo=repo,
                 config=config,
@@ -225,6 +325,25 @@ def main(argv: list[str]) -> int:
                 schema_path=schema_path,
                 timeout_s=args.timeout,
             )
+            split_conflicts = _extract_split_conflicts(patch)
+            if split_conflicts:
+                print(
+                    "[warn] Detected split-name conflict in patch; retrying once with stricter consolidation rules.",
+                    file=sys.stderr,
+                )
+                patch = run_agent_cli_from_last_session(
+                    repo=repo,
+                    config=config,
+                    prompt_text=_build_split_policy_retry_prompt(split_conflicts),
+                    schema_path=schema_path,
+                    timeout_s=args.timeout,
+                )
+                split_conflicts = _extract_split_conflicts(patch)
+                if split_conflicts:
+                    raise RuntimeError(
+                        "Patch policy violation: same function is still split across groups: "
+                        + "; ".join(split_conflicts)
+                    )
         else:
             patch = run_agent_cli(
                 repo=repo,
@@ -233,6 +352,26 @@ def main(argv: list[str]) -> int:
                 schema_path=schema_path,
                 timeout_s=args.timeout,
             )
+            split_conflicts = _extract_split_conflicts(patch)
+            if split_conflicts:
+                print(
+                    "[warn] Detected split-name conflict in patch; retrying once with stricter consolidation rules.",
+                    file=sys.stderr,
+                )
+                retry_prompt = _retry_noninteractive_prompt_for_split_policy(prompt_markdown, split_conflicts)
+                patch = run_agent_cli(
+                    repo=repo,
+                    config=config,
+                    prompt_markdown=retry_prompt,
+                    schema_path=schema_path,
+                    timeout_s=args.timeout,
+                )
+                split_conflicts = _extract_split_conflicts(patch)
+                if split_conflicts:
+                    raise RuntimeError(
+                        "Patch policy violation: same function is still split across groups: "
+                        + "; ".join(split_conflicts)
+                    )
         output_path.write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     except FileNotFoundError as error:
         missing = error.filename or str(error)

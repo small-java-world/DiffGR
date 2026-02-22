@@ -125,6 +125,8 @@ def build_ai_refine_prompt_markdown(doc: dict[str, Any], max_chunks_per_group: i
     lines.append("分割方針（最優先）:")
     lines.append("- 分割軸は『機能の塊』を最優先にする（コミット境界や件数均等は補助）")
     lines.append("- 空グループは原則残さず、近い機能グループへ再配置するか削除する")
+    lines.append("- 同一機能を前半/後半などに機械分割しない（必要最小のグループ数を優先）")
+    lines.append("- 1グループ10-25 chunksは目安であり、機能塊維持を優先する")
     lines.append("")
     lines.append("出力フォーマット（必須）: 次のJSONだけを返してください。")
     lines.append("```json")
