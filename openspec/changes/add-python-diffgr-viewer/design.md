@@ -11,7 +11,7 @@
 
 - Python 単体で `DiffGR v1` を読み込み、内容を人間可読表示できる。
 - まずは CUI（テキスト出力）で、レビュー運用に必要な情報を最短で確認できる。
-- `sample/ts20-base` と `sample/ts20-feature-5pr` 由来の生成ファイルを問題なく表示できる。
+- `samples/ts20-base` と `samples/ts20-feature-5pr`（または `samples/ts20-feature`）由来の生成ファイルを問題なく表示できる。
 
 ## Non-Goals
 

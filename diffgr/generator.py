@@ -286,11 +286,11 @@ def write_document(document: dict[str, Any], output: Path) -> None:
 def parse_generate_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate a DiffGR v1 JSON document from two git refs.")
     parser.add_argument("--repo", default=".", help="Path to git repository (default: current directory).")
-    parser.add_argument("--base", default="sample/ts20-base", help="Base ref (default: sample/ts20-base).")
+    parser.add_argument("--base", default="samples/ts20-base", help="Base ref (default: samples/ts20-base).")
     parser.add_argument(
         "--feature",
-        default="sample/ts20-feature-5pr-pure",
-        help="Feature ref (default: sample/ts20-feature-5pr-pure).",
+        default="samples/ts20-feature-5pr",
+        help="Feature ref (default: samples/ts20-feature-5pr).",
     )
     parser.add_argument(
         "--output",
@@ -299,7 +299,7 @@ def parse_generate_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--title",
-        default="DiffGR sample from sample/ts20-base...sample/ts20-feature-5pr-pure",
+        default="DiffGR sample from samples/ts20-base...samples/ts20-feature-5pr",
         help="meta.title value.",
     )
     parser.add_argument("--no-patch", action="store_true", help="Do not include optional patch field.")
