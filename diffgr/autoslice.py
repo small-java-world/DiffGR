@@ -89,9 +89,10 @@ def split_chunk_by_change_blocks(chunk: dict[str, Any], context_lines: int = 3) 
 
     file_path = chunk.get("filePath", "UNKNOWN")
     header = chunk.get("header")
+    parent_chunk_id = chunk.get("id")
 
     result: list[dict[str, Any]] = []
-    for start, end in blocks:
+    for block_index, (start, end) in enumerate(blocks, start=1):
         segment_lines = _slice_segment(lines, start, end, context_lines=context_lines)
         old_start = next((ln["oldLine"] for ln in segment_lines if ln.get("oldLine") is not None), 0)
         new_start = next((ln["newLine"] for ln in segment_lines if ln.get("newLine") is not None), 0)
@@ -104,6 +105,13 @@ def split_chunk_by_change_blocks(chunk: dict[str, Any], context_lines: int = 3) 
                 new_range={"start": int(new_start), "count": int(new_count)},
                 header=str(header) if header is not None else None,
                 lines=segment_lines,
+                extra_meta={
+                    "parentChunkId": parent_chunk_id,
+                    "changeBlockIndex": block_index,
+                    "changeBlockCount": len(blocks),
+                }
+                if parent_chunk_id
+                else {"changeBlockIndex": block_index, "changeBlockCount": len(blocks)},
             )
         )
     return result
