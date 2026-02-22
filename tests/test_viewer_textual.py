@@ -212,6 +212,60 @@ class TestViewerTextualReport(unittest.TestCase):
         app.action_move_split_right()
         self.assertEqual(app.left_pane_pct, app.MAX_LEFT_PANE_PCT)
 
+    def test_clamp_diff_old_ratio_respects_min_max(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        self.assertEqual(app._clamp_diff_old_ratio(-1.0), app.MIN_DIFF_OLD_RATIO)
+        self.assertEqual(app._clamp_diff_old_ratio(2.0), app.MAX_DIFF_OLD_RATIO)
+        self.assertEqual(app._clamp_diff_old_ratio(0.5), 0.5)
+
+    def test_group_report_text_widths_follow_ratio(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.left_pane_pct = 52
+        app.diff_old_ratio = 0.70
+
+        old_width, new_width = app._group_report_text_widths(total_width=140)
+
+        self.assertGreater(old_width, new_width)
+        self.assertGreaterEqual(old_width, 12)
+        self.assertGreaterEqual(new_width, 12)
+
+    def test_move_diff_split_actions_adjust_ratio_within_bounds(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_old_ratio = 0.50
+        app._show_current_group_report = lambda *_, **__: None  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+
+        app.action_move_diff_split_right()
+        self.assertAlmostEqual(app.diff_old_ratio, 0.55)
+
+        app.action_move_diff_split_left()
+        self.assertAlmostEqual(app.diff_old_ratio, 0.50)
+
+        app.diff_old_ratio = app.MAX_DIFF_OLD_RATIO
+        app.action_move_diff_split_right()
+        self.assertAlmostEqual(app.diff_old_ratio, app.MAX_DIFF_OLD_RATIO)
+
 
 if __name__ == "__main__":
     unittest.main()

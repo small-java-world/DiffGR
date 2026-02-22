@@ -235,6 +235,9 @@ class DiffgrTextualApp(App[None]):
     MIN_LEFT_PANE_PCT = 28
     MAX_LEFT_PANE_PCT = 72
     SPLIT_STEP_PCT = 4
+    MIN_DIFF_OLD_RATIO = 0.25
+    MAX_DIFF_OLD_RATIO = 0.75
+    DIFF_RATIO_STEP = 0.05
 
     CSS = """
     Screen { layout: vertical; }
@@ -268,6 +271,8 @@ class DiffgrTextualApp(App[None]):
         Binding("]", "move_split_right", "Split ->"),
         Binding("ctrl+left", "move_split_left", "Split <-"),
         Binding("ctrl+right", "move_split_right", "Split ->"),
+        Binding("alt+left", "move_diff_split_left", "Diff <-"),
+        Binding("alt+right", "move_diff_split_right", "Diff ->"),
         Binding("s", "save", "Save"),
         Binding("h", "export_html", "Export HTML"),
     ]
@@ -296,6 +301,7 @@ class DiffgrTextualApp(App[None]):
         self.group_report_mode = False
         self._lines_table_mode: str | None = None
         self.left_pane_pct = 52
+        self.diff_old_ratio = 0.50
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -353,6 +359,12 @@ class DiffgrTextualApp(App[None]):
     def action_move_split_right(self) -> None:
         self._nudge_main_split(self.SPLIT_STEP_PCT)
 
+    def action_move_diff_split_left(self) -> None:
+        self._nudge_diff_split(-self.DIFF_RATIO_STEP)
+
+    def action_move_diff_split_right(self) -> None:
+        self._nudge_diff_split(self.DIFF_RATIO_STEP)
+
     def _clamp_left_pane_pct(self, value: int) -> int:
         return max(self.MIN_LEFT_PANE_PCT, min(self.MAX_LEFT_PANE_PCT, value))
 
@@ -370,7 +382,33 @@ class DiffgrTextualApp(App[None]):
             return
         self.left_pane_pct = next_pct
         self._apply_main_split_widths()
+        if self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
         self._refresh_topbar()
+
+    def _clamp_diff_old_ratio(self, value: float) -> float:
+        return max(self.MIN_DIFF_OLD_RATIO, min(self.MAX_DIFF_OLD_RATIO, value))
+
+    def _nudge_diff_split(self, delta: float) -> None:
+        next_ratio = self._clamp_diff_old_ratio(self.diff_old_ratio + delta)
+        if abs(next_ratio - self.diff_old_ratio) < 1e-9:
+            return
+        self.diff_old_ratio = next_ratio
+        if self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+        self._refresh_topbar()
+
+    def _group_report_text_widths(self, total_width: int | None = None) -> tuple[int, int]:
+        if total_width is None:
+            total_width = int(self.size.width)
+        total_width = max(80, total_width)
+        right_pane_pct = max(1, 100 - self.left_pane_pct)
+        right_width = max(36, int(total_width * (right_pane_pct / 100.0)))
+        available = max(28, right_width - 16)
+        old_width = int(round(available * self.diff_old_ratio))
+        old_width = max(12, min(available - 12, old_width))
+        new_width = max(12, available - old_width)
+        return old_width, new_width
 
     def _switch_lines_table_mode(self, mode: str) -> DataTable:
         lines_table = self.query_one("#lines", DataTable)
@@ -379,7 +417,11 @@ class DiffgrTextualApp(App[None]):
         if self._lines_table_mode != mode or not has_expected_columns:
             lines_table.clear(columns=True)
             if mode == "group_report":
-                lines_table.add_columns("old#", "old", "new#", "new")
+                old_width, new_width = self._group_report_text_widths()
+                lines_table.add_column("old#", width=5)
+                lines_table.add_column("old", width=old_width)
+                lines_table.add_column("new#", width=5)
+                lines_table.add_column("new", width=new_width)
             else:
                 lines_table.add_columns("old", "new", "kind", "content")
             self._lines_table_mode = mode
@@ -656,9 +698,10 @@ class DiffgrTextualApp(App[None]):
             f"cur(total={m_cur['total']} pending={m_cur['pending']} reviewed={m_cur['reviewed']})  "
             f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']})  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
+            f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
             f"view={'group-diff' if self.group_report_mode else 'chunk'}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, d=report, h=html, 1-4=status, [ ]/Ctrl+Arrows=split, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, d=report, h=html, 1-4=status, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
