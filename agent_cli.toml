@@ -3,7 +3,7 @@ provider = "codex" # or "claude"
 [codex]
 command = "codex"
 # Recommended: keep it non-destructive. Adjust as needed.
-args = ["exec", "--sandbox", "read-only", "--ask-for-approval", "never"]
+args = ["--ask-for-approval", "never", "exec", "--sandbox", "read-only"]
 interactive_args = ["--sandbox", "read-only", "--ask-for-approval", "on-request"]
 
 [claude]
