@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -78,14 +79,23 @@ def main(argv: list[str]) -> int:
 
     try:
         config = load_agent_cli_config(config_path)
+        cli_command = config.codex_command if config.provider == "codex" else config.claude_command
+        if shutil.which(cli_command) is None:
+            print(
+                f"[error] CLI command not found in PATH: {cli_command}. "
+                f"Edit `agent_cli.toml` to set a full path or install the CLI.",
+                file=sys.stderr,
+            )
+            return 1
         prompt_markdown = prompt_path.read_text(encoding="utf-8")
         if args.interactive:
             do_copy = bool(args.copy_prompt) and not bool(args.no_copy_prompt)
             if do_copy and sys.platform.startswith("win"):
                 import subprocess
 
+                shell = "powershell" if shutil.which("powershell") else "pwsh"
                 subprocess.run(
-                    ["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
+                    [shell, "-NoProfile", "-Command", "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
                     input=prompt_markdown,
                     text=True,
                     capture_output=True,
@@ -125,7 +135,8 @@ def main(argv: list[str]) -> int:
             )
         output_path.write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     except FileNotFoundError as error:
-        print(f"[error] File not found: {error.filename}", file=sys.stderr)
+        missing = error.filename or str(error)
+        print(f"[error] File not found: {missing}", file=sys.stderr)
         return 1
     except Exception as error:  # noqa: BLE001
         print(f"[error] {error}", file=sys.stderr)
