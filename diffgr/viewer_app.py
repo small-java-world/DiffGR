@@ -14,6 +14,7 @@ from .viewer_core import (
     compute_metrics,
     filter_chunks,
     load_json,
+    resolve_input_path,
     validate_document,
 )
 from .viewer_render import (
@@ -186,7 +187,7 @@ def run_app(argv: list[str]) -> int:
         return 2
 
     console = Console()
-    path = Path(args.path)
+    path = resolve_input_path(Path(args.path), search_roots=[Path(__file__).resolve().parents[1]])
     try:
         doc = load_json(path)
         warnings = validate_document(doc)

@@ -7,6 +7,19 @@ from typing import Any
 VALID_STATUSES = {"unreviewed", "reviewed", "ignored", "needsReReview"}
 
 
+def resolve_input_path(path: Path, search_roots: list[Path] | None = None) -> Path:
+    if path.is_absolute():
+        return path
+    primary = (Path.cwd() / path).resolve()
+    if primary.exists():
+        return primary
+    for root in search_roots or []:
+        candidate = (root / path).resolve()
+        if candidate.exists():
+            return candidate
+    return primary
+
+
 def load_json(path: Path) -> dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))

@@ -1,5 +1,6 @@
 import json
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -67,6 +68,18 @@ class TestViewDiffgrApp(unittest.TestCase):
             with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
                 code = view_diffgr_app.run_app([str(file_path), "--once", "--page-size", "0", "--ui", "prompt"])
             self.assertEqual(code, 2)
+
+    def test_run_once_resolves_path_with_repo_root_fallback(self):
+        old_cwd = Path.cwd()
+        try:
+            os.chdir(ROOT / "scripts")
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = view_diffgr_app.run_app(
+                    ["samples/diffgr/ts20-5pr.named.diffgr.json", "--once", "--page-size", "5", "--ui", "prompt"]
+                )
+        finally:
+            os.chdir(old_cwd)
+        self.assertEqual(code, 0)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ from .viewer_core import (
     compute_metrics,
     filter_chunks,
     load_json,
+    resolve_input_path,
     validate_document,
 )
 from .viewer_render import (
@@ -39,7 +40,7 @@ def parse_view_args(argv: list[str]) -> argparse.Namespace:
 
 def run_view(argv: list[str]) -> int:
     args = parse_view_args(argv)
-    path = Path(args.path)
+    path = resolve_input_path(Path(args.path), search_roots=[Path(__file__).resolve().parents[1]])
     console = Console()
     try:
         doc = load_json(path)

@@ -4,7 +4,7 @@ import datetime as dt
 import json
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from textual.app import App, ComposeResult
@@ -13,6 +13,8 @@ from textual.containers import Horizontal, Vertical
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Footer, Header, Input, Static
+from rich.text import Text
+from .html_report import render_group_diff_html
 
 
 PSEUDO_ALL = "__all__"
@@ -32,10 +34,151 @@ def safe_group_id(value: str) -> str:
     return f"g-{slug}"
 
 
+def safe_slug(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9\\-]+", "-", value.strip().lower())
+    slug = re.sub(r"-{2,}", "-", slug).strip("-")
+    return slug or "report"
+
+
+def format_file_label(file_path: str) -> str:
+    normalized = str(file_path).replace("\\", "/").strip()
+    if not normalized:
+        return "-"
+    path_obj = PurePosixPath(normalized)
+    name = path_obj.name or normalized
+    parent = str(path_obj.parent)
+    if parent in {"", "."}:
+        return name
+    parent_parts = [part for part in parent.split("/") if part and part != "."]
+    if len(parent_parts) > 2:
+        parent_display = f".../{'/'.join(parent_parts[-2:])}"
+    else:
+        parent_display = "/".join(parent_parts)
+    return f"{name} ({parent_display})"
+
+
 @dataclass(frozen=True)
 class GroupRow:
     group_id: str
     name: str
+
+
+@dataclass(frozen=True)
+class GroupReportRow:
+    row_type: str
+    old_line: str
+    old_text: str
+    new_line: str
+    new_text: str
+    chunk_id: str = ""
+
+
+def build_group_diff_report_rows(
+    chunks: list[dict[str, Any]],
+    *,
+    max_lines_per_chunk: int = 120,
+) -> list[GroupReportRow]:
+    rows: list[GroupReportRow] = []
+    if not chunks:
+        return [
+            GroupReportRow(
+                row_type="info",
+                old_line="",
+                old_text="(no chunks in current group/filter)",
+                new_line="",
+                new_text="",
+            )
+        ]
+
+    current_file = ""
+    for chunk in chunks:
+        file_path = str(chunk.get("filePath", "-"))
+        file_label = format_file_label(file_path)
+        if file_path != current_file:
+            if rows:
+                rows.append(GroupReportRow(row_type="spacer", old_line="", old_text="", new_line="", new_text=""))
+            current_file = file_path
+            rows.append(
+                GroupReportRow(
+                    row_type="file",
+                    old_line="",
+                    old_text=f"=== {file_label} ===",
+                    new_line="",
+                    new_text=f"path: {file_path}",
+                )
+            )
+
+        chunk_id = str(chunk.get("id", ""))
+        old = chunk.get("old", {}) or {}
+        new = chunk.get("new", {}) or {}
+        header = str(chunk.get("header", ""))
+        assigned_groups = [str(name) for name in (chunk.get("_assignedGroups") or []) if str(name)]
+        group_hint = f" groups={','.join(assigned_groups)}" if assigned_groups else ""
+        rows.append(
+            GroupReportRow(
+                row_type="chunk",
+                old_line="",
+                old_text=(
+                    f"[{chunk_id[:12]}] {file_label} "
+                    f"old {old.get('start', '?')},{old.get('count', '?')} -> "
+                    f"new {new.get('start', '?')},{new.get('count', '?')}{group_hint}"
+                ),
+                new_line="",
+                new_text=header if header else "(no header)",
+                chunk_id=chunk_id,
+            )
+        )
+
+        lines = list(chunk.get("lines") or [])
+        if not lines:
+            rows.append(GroupReportRow(row_type="meta", old_line="", old_text="(no lines)", new_line="", new_text="", chunk_id=chunk_id))
+            continue
+
+        for line in lines[:max_lines_per_chunk]:
+            kind = str(line.get("kind", ""))
+            text = str(line.get("text", ""))
+
+            if kind == "add":
+                old_text = ""
+                new_text = f"+ {text}"
+                row_type = "add"
+            elif kind == "delete":
+                old_text = f"- {text}"
+                new_text = ""
+                row_type = "delete"
+            elif kind == "context":
+                old_text = f"  {text}"
+                new_text = f"  {text}"
+                row_type = "context"
+            else:
+                old_text = text
+                new_text = text
+                row_type = "meta"
+
+            rows.append(
+                GroupReportRow(
+                    row_type=row_type,
+                    old_line="" if line.get("oldLine") is None else str(line.get("oldLine")),
+                    old_text=old_text,
+                    new_line="" if line.get("newLine") is None else str(line.get("newLine")),
+                    new_text=new_text,
+                    chunk_id=chunk_id,
+                )
+            )
+
+        hidden = len(lines) - max_lines_per_chunk
+        if hidden > 0:
+            rows.append(
+                GroupReportRow(
+                    row_type="meta",
+                    old_line="",
+                    old_text=f"... {hidden} more lines",
+                    new_line="",
+                    new_text="",
+                    chunk_id=chunk_id,
+                )
+            )
+    return rows
 
 
 class NameModal(ModalScreen[str | None]):
@@ -89,6 +232,10 @@ class NameModal(ModalScreen[str | None]):
 
 
 class DiffgrTextualApp(App[None]):
+    MIN_LEFT_PANE_PCT = 28
+    MAX_LEFT_PANE_PCT = 72
+    SPLIT_STEP_PCT = 4
+
     CSS = """
     Screen { layout: vertical; }
     #topbar { height: 3; border: round #3a86ff; padding: 0 1; }
@@ -112,11 +259,17 @@ class DiffgrTextualApp(App[None]):
         Binding("e", "rename_group", "Rename Group"),
         Binding("a", "assign_chunk", "Assign"),
         Binding("u", "unassign_chunk", "Unassign"),
+        Binding("d", "toggle_group_report", "Diff Report"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
         Binding("2", "set_status('reviewed')", "Reviewed"),
         Binding("3", "set_status('needsReReview')", "ReReview"),
         Binding("4", "set_status('ignored')", "Ignored"),
+        Binding("[", "move_split_left", "Split <-"),
+        Binding("]", "move_split_right", "Split ->"),
+        Binding("ctrl+left", "move_split_left", "Split <-"),
+        Binding("ctrl+right", "move_split_right", "Split ->"),
         Binding("s", "save", "Save"),
+        Binding("h", "export_html", "Export HTML"),
     ]
 
     def __init__(
@@ -140,6 +293,9 @@ class DiffgrTextualApp(App[None]):
         self.current_group_id = PSEUDO_ALL
         self.filtered_chunk_ids: list[str] = []
         self.selected_chunk_id: str | None = None
+        self.group_report_mode = False
+        self._lines_table_mode: str | None = None
+        self.left_pane_pct = 52
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -158,9 +314,9 @@ class DiffgrTextualApp(App[None]):
         group_table = self.query_one("#groups", DataTable)
         group_table.add_columns("name", "total", "pending", "reviewed", "ignored")
         chunk_table = self.query_one("#chunks", DataTable)
-        chunk_table.add_columns("status", "chunk", "filePath", "old", "new", "header")
-        lines_table = self.query_one("#lines", DataTable)
-        lines_table.add_columns("old", "new", "kind", "content")
+        chunk_table.add_columns("status", "chunk", "file", "old", "new", "header")
+        self._switch_lines_table_mode("chunk")
+        self._apply_main_split_widths()
 
         self._refresh_groups()
         self._apply_chunk_filter()
@@ -179,6 +335,94 @@ class DiffgrTextualApp(App[None]):
 
     def action_focus_chunks(self) -> None:
         self.query_one("#chunks", DataTable).focus()
+
+    def action_toggle_group_report(self) -> None:
+        self.group_report_mode = not self.group_report_mode
+        if self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+            self.notify("Group diff report: ON", timeout=1.2)
+        else:
+            if self.selected_chunk_id:
+                self._show_chunk(self.selected_chunk_id)
+            self.notify("Group diff report: OFF", timeout=1.2)
+        self._refresh_topbar()
+
+    def action_move_split_left(self) -> None:
+        self._nudge_main_split(-self.SPLIT_STEP_PCT)
+
+    def action_move_split_right(self) -> None:
+        self._nudge_main_split(self.SPLIT_STEP_PCT)
+
+    def _clamp_left_pane_pct(self, value: int) -> int:
+        return max(self.MIN_LEFT_PANE_PCT, min(self.MAX_LEFT_PANE_PCT, value))
+
+    def _apply_main_split_widths(self) -> None:
+        self.left_pane_pct = self._clamp_left_pane_pct(self.left_pane_pct)
+        right_pane_pct = 100 - self.left_pane_pct
+        left_pane = self.query_one("#left", Vertical)
+        right_pane = self.query_one("#right", Vertical)
+        left_pane.styles.width = f"{self.left_pane_pct}%"
+        right_pane.styles.width = f"{right_pane_pct}%"
+
+    def _nudge_main_split(self, delta_pct: int) -> None:
+        next_pct = self._clamp_left_pane_pct(self.left_pane_pct + delta_pct)
+        if next_pct == self.left_pane_pct:
+            return
+        self.left_pane_pct = next_pct
+        self._apply_main_split_widths()
+        self._refresh_topbar()
+
+    def _switch_lines_table_mode(self, mode: str) -> DataTable:
+        lines_table = self.query_one("#lines", DataTable)
+        expected_column_count = 4
+        has_expected_columns = len(lines_table.ordered_columns) == expected_column_count
+        if self._lines_table_mode != mode or not has_expected_columns:
+            lines_table.clear(columns=True)
+            if mode == "group_report":
+                lines_table.add_columns("old#", "old", "new#", "new")
+            else:
+                lines_table.add_columns("old", "new", "kind", "content")
+            self._lines_table_mode = mode
+        else:
+            lines_table.clear(columns=False)
+        return lines_table
+
+    def _render_report_number(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
+        if selected:
+            return Text(value, style="bold #13231a on #aef2be")
+        style = "dim #91a2bb"
+        if row_type == "add" and side == "new":
+            style = "bold #1f8f49"
+        elif row_type == "delete" and side == "old":
+            style = "bold #c63e51"
+        return Text(value, style=style)
+
+    def _render_report_text(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
+        if selected:
+            return Text(value, style="bold #13231a on #aef2be")
+        if row_type == "file":
+            return Text(value, style="bold #09111d on #8fb4ff")
+        if row_type == "chunk":
+            if side == "new":
+                return Text(value, style="bold #cddfff on #1a2f54")
+            return Text(value, style="bold #bcd7ff on #1a2f54")
+        if row_type == "add":
+            if side == "new":
+                return Text(value, style="bold #02170c on #92f2ae")
+            return Text(value, style="dim #47715a")
+        if row_type == "delete":
+            if side == "old":
+                return Text(value, style="bold #200307 on #ffb3bb")
+            return Text(value, style="dim #84575c")
+        if row_type == "context":
+            return Text(value, style="#c7d4e8")
+        if row_type == "meta":
+            return Text(value, style="italic #9db0c8")
+        if row_type == "spacer":
+            return Text("", style="#0b0f16")
+        if row_type == "info":
+            return Text(value, style="italic #9db0c8")
+        return Text(value, style="#c7d4e8")
 
     async def action_new_group(self) -> None:
         result = await self.push_screen_wait(NameModal("New Group (Japanese name OK)", "例: 認証周り / UI調整 / PR3…"))
@@ -273,6 +517,30 @@ class DiffgrTextualApp(App[None]):
         except Exception as error:  # noqa: BLE001
             self.notify(f"Save failed: {error}", severity="error", timeout=3.0)
 
+    def action_export_html(self) -> None:
+        try:
+            if self.current_group_id == PSEUDO_ALL:
+                selector = "all"
+                group_label = "all"
+            elif self.current_group_id == PSEUDO_UNASSIGNED:
+                selector = "unassigned"
+                group_label = "unassigned"
+            else:
+                selector = self.current_group_id
+                group_label = safe_slug(self._group_display_name(self.current_group_id))
+
+            timestamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+            output_dir = Path.cwd() / "out" / "reports"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            file_stem = safe_slug(self.source_path.stem)
+            output_path = output_dir / f"{file_stem}-{group_label}-{timestamp}.html"
+
+            html = render_group_diff_html(self.doc, group_selector=selector, report_title=None)
+            output_path.write_text(html, encoding="utf-8")
+            self.notify(f"HTML exported: {output_path}", timeout=2.8)
+        except Exception as error:  # noqa: BLE001
+            self.notify(f"HTML export failed: {error}", severity="error", timeout=3.2)
+
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id != "filter":
             return
@@ -286,10 +554,29 @@ class DiffgrTextualApp(App[None]):
             self._apply_chunk_filter()
             return
         if event.data_table.id == "chunks":
+            if event.row_key.value is None:
+                return
             chunk_id = str(event.row_key.value)
             self.selected_chunk_id = chunk_id
-            self._show_chunk(chunk_id)
+            if self.group_report_mode:
+                self._show_current_group_report(target_chunk_id=chunk_id)
+            else:
+                self._show_chunk(chunk_id)
             return
+
+    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        if event.data_table.id != "chunks":
+            return
+        if event.row_key.value is None:
+            return
+        chunk_id = str(event.row_key.value)
+        if chunk_id == self.selected_chunk_id:
+            return
+        self.selected_chunk_id = chunk_id
+        if self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=chunk_id)
+        else:
+            self._show_chunk(chunk_id)
 
     def _compute_group_metrics(self, group_id: str) -> dict[str, int]:
         if group_id == PSEUDO_ALL:
@@ -368,8 +655,10 @@ class DiffgrTextualApp(App[None]):
             f"group={group_name}  "
             f"cur(total={m_cur['total']} pending={m_cur['pending']} reviewed={m_cur['reviewed']})  "
             f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']})  "
+            f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
+            f"view={'group-diff' if self.group_report_mode else 'chunk'}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=a group, a/u=assign, 1-4=status, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, d=report, h=html, 1-4=status, [ ]/Ctrl+Arrows=split, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
@@ -422,7 +711,7 @@ class DiffgrTextualApp(App[None]):
             chunk_table.add_row(
                 status,
                 chunk_id[:12],
-                chunk.get("filePath", "-"),
+                format_file_label(str(chunk.get("filePath", "-"))),
                 f"{chunk.get('old', {}).get('start', '?')},{chunk.get('old', {}).get('count', '?')}",
                 f"{chunk.get('new', {}).get('start', '?')},{chunk.get('new', {}).get('count', '?')}",
                 str(chunk.get("header", "")),
@@ -430,6 +719,13 @@ class DiffgrTextualApp(App[None]):
             )
 
         self._refresh_topbar()
+
+        if self.group_report_mode:
+            if self.filtered_chunk_ids and (self.selected_chunk_id not in self.filtered_chunk_ids):
+                self.selected_chunk_id = self.filtered_chunk_ids[0]
+                self._select_chunk_row(self.selected_chunk_id)
+            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+            return
 
         if keep_selection and self.selected_chunk_id in self.filtered_chunk_ids:
             self._select_chunk_row(self.selected_chunk_id)
@@ -443,6 +739,80 @@ class DiffgrTextualApp(App[None]):
             self.selected_chunk_id = None
             self.query_one("#meta", Static).update("No chunks match current selection/filter.")
             self.query_one("#lines", DataTable).clear(columns=False)
+
+    def _visible_chunks_for_report(self) -> list[dict[str, Any]]:
+        return [self.chunk_map[cid] for cid in self.filtered_chunk_ids if cid in self.chunk_map]
+
+    def _groups_for_chunk(self, chunk_id: str) -> list[str]:
+        labels: list[str] = []
+        assignments = self.doc.get("assignments", {})
+        if isinstance(assignments, dict):
+            for group_id, chunk_ids in assignments.items():
+                if isinstance(chunk_ids, list) and chunk_id in chunk_ids:
+                    labels.append(self._group_display_name(str(group_id)))
+        return sorted(set(labels))
+
+    def _show_current_group_report(self, target_chunk_id: str | None = None) -> None:
+        group_name = self._group_display_name(self.current_group_id)
+        chunks = self._visible_chunks_for_report()
+        chunks_for_view: list[dict[str, Any]] = []
+        for chunk in chunks:
+            chunk_view = dict(chunk)
+            chunk_view["_assignedGroups"] = self._groups_for_chunk(str(chunk.get("id", "")))
+            chunks_for_view.append(chunk_view)
+        file_count = len({str(chunk.get("filePath", "")) for chunk in chunks})
+        selected_summary = "-"
+        if target_chunk_id and target_chunk_id in self.chunk_map:
+            selected_chunk = self.chunk_map[target_chunk_id]
+            selected_summary = (
+                f"{target_chunk_id[:12]} "
+                f"{format_file_label(str(selected_chunk.get('filePath', '-')))}"
+            )
+        self.query_one("#meta", Static).update(
+            "\n".join(
+                [
+                    f"[b]group[/b] {group_name}",
+                    f"[b]mode[/b] group diff report",
+                    f"[b]chunks[/b] {len(chunks)}",
+                    f"[b]files[/b] {file_count}",
+                    f"[b]selected chunk[/b] {selected_summary}",
+                    f"[b]scope[/b] chunk-level assignment (line-level ownership is not tracked)",
+                    "[dim]Press [b]d[/b] to return to single-chunk view.[/dim]",
+                ]
+            )
+        )
+
+        lines_table = self._switch_lines_table_mode("group_report")
+        rows = build_group_diff_report_rows(chunks_for_view)
+        target_row_index: int | None = None
+        for row_index, row in enumerate(rows):
+            is_selected = bool(target_chunk_id and row.chunk_id == target_chunk_id and row.row_type == "chunk")
+            old_text = row.old_text
+            new_text = row.new_text
+            if is_selected:
+                old_text = f">> {old_text}"
+                new_text = f">> {new_text}" if new_text else ">>"
+            lines_table.add_row(
+                self._render_report_number(row.old_line, row.row_type, "old", selected=is_selected),
+                self._render_report_text(old_text, row.row_type, "old", selected=is_selected),
+                self._render_report_number(row.new_line, row.row_type, "new", selected=is_selected),
+                self._render_report_text(new_text, row.row_type, "new", selected=is_selected),
+            )
+            if (
+                target_row_index is None
+                and target_chunk_id
+                and row.row_type == "chunk"
+                and row.chunk_id == target_chunk_id
+            ):
+                target_row_index = row_index
+        if target_row_index is not None:
+            try:
+                viewport_height = max(1, int(lines_table.scrollable_content_region.height))
+                target_scroll_y = max(0, target_row_index - (viewport_height // 2))
+                lines_table.scroll_to(y=target_scroll_y, animate=False, force=True, immediate=True)
+                lines_table.move_cursor(row=target_row_index, column=0, animate=False, scroll=False)
+            except Exception:
+                pass
 
     def _select_chunk_row(self, chunk_id: str) -> None:
         chunk_table = self.query_one("#chunks", DataTable)
@@ -460,19 +830,23 @@ class DiffgrTextualApp(App[None]):
             return
         status = self.status_map.get(chunk_id, "unreviewed")
         group_name = self._group_display_name(self.current_group_id)
+        assigned_groups = self._groups_for_chunk(chunk_id)
+        file_path = str(chunk.get("filePath", "-"))
         meta_lines = [
             f"[b]group[/b] {group_name}",
             f"[b]chunk[/b] {chunk_id}",
             f"[b]status[/b] {status}",
-            f"[b]file[/b] {chunk.get('filePath', '-')}",
+            f"[b]file[/b] {format_file_label(file_path)}",
+            f"[b]path[/b] {file_path}",
             f"[b]old[/b] {chunk.get('old', {})}",
             f"[b]new[/b] {chunk.get('new', {})}",
             f"[b]header[/b] {chunk.get('header', '')}",
+            f"[b]assigned groups[/b] {', '.join(assigned_groups) if assigned_groups else '(none)'}",
+            f"[b]scope[/b] chunk-level assignment (line-level ownership is not tracked)",
         ]
         self.query_one("#meta", Static).update("\n".join(meta_lines))
 
-        lines_table = self.query_one("#lines", DataTable)
-        lines_table.clear(columns=False)
+        lines_table = self._switch_lines_table_mode("chunk")
         for line in chunk.get("lines", [])[: max(200, self.page_size * 30)]:
             kind = line.get("kind", "")
             prefix = {"context": " ", "add": "+", "delete": "-", "meta": "\\"}.get(kind, "?")

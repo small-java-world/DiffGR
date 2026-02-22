@@ -1,4 +1,6 @@
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -110,6 +112,24 @@ class TestViewDiffgr(unittest.TestCase):
                 status_filter=None,
                 file_contains=None,
             )
+
+    def test_resolve_input_path_falls_back_to_search_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp) / "repo"
+            repo_root.mkdir(parents=True, exist_ok=True)
+            nested = repo_root / "nested"
+            nested.mkdir(parents=True, exist_ok=True)
+            target = repo_root / "doc.diffgr.json"
+            target.write_text("{}", encoding="utf-8")
+
+            old_cwd = Path.cwd()
+            try:
+                os.chdir(nested)
+                resolved = view_diffgr.resolve_input_path(Path("doc.diffgr.json"), search_roots=[repo_root])
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual(resolved, target.resolve())
 
 
 if __name__ == "__main__":
