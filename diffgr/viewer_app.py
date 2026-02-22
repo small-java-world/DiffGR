@@ -54,6 +54,9 @@ def render_chunks_page(
 
 def run_app(argv: list[str]) -> int:
     args = parse_app_args(argv)
+    if args.page_size < 1:
+        print("[error] --page-size must be >= 1", file=sys.stderr)
+        return 2
     console = Console()
     path = Path(args.path)
     try:

@@ -1,7 +1,9 @@
 import json
+import io
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,12 +51,22 @@ class TestViewDiffgrApp(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             file_path = Path(tmp) / "doc.diffgr.json"
             file_path.write_text(json.dumps(make_doc(), ensure_ascii=False), encoding="utf-8")
-            code = view_diffgr_app.run_app([str(file_path), "--once", "--page-size", "5"])
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = view_diffgr_app.run_app([str(file_path), "--once", "--page-size", "5"])
             self.assertEqual(code, 0)
 
     def test_run_with_missing_file_returns_error(self):
-        code = view_diffgr_app.run_app(["not-found.diffgr.json", "--once"])
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            code = view_diffgr_app.run_app(["not-found.diffgr.json", "--once"])
         self.assertEqual(code, 1)
+
+    def test_run_with_invalid_page_size_returns_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            file_path = Path(tmp) / "doc.diffgr.json"
+            file_path.write_text(json.dumps(make_doc(), ensure_ascii=False), encoding="utf-8")
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = view_diffgr_app.run_app([str(file_path), "--once", "--page-size", "0"])
+            self.assertEqual(code, 2)
 
 
 if __name__ == "__main__":
