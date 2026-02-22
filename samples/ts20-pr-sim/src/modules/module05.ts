@@ -3,7 +3,8 @@ import { ModuleStat } from "../types";
 export const MODULE_05_OFFSET = 105;
 
 export function compute05(input: number): number {
-  return input + MODULE_05_OFFSET;
+  const base = input + MODULE_05_OFFSET;
+  return base * 2;
 }
 
 export function normalize05(value: string): string {
@@ -21,3 +22,4 @@ export function makeStat05(): ModuleStat {
     tags
   };
 }
+
