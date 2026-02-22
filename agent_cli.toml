@@ -4,9 +4,11 @@ provider = "codex" # or "claude"
 command = "codex"
 # Recommended: keep it non-destructive. Adjust as needed.
 args = ["exec", "--sandbox", "read-only", "--ask-for-approval", "never"]
+interactive_args = ["--sandbox", "read-only", "--ask-for-approval", "on-request"]
 
 [claude]
 command = "claude"
 # Print mode; disable tools by default for deterministic "just return JSON".
 args = ["-p", "--output-format", "text", "--tools", ""]
+interactive_args = []
 query = "Use the markdown from stdin. Return ONLY the JSON object that matches the provided JSON schema. Do not wrap it in markdown."

@@ -2,7 +2,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from diffgr.agent_cli import AgentCliConfig, extract_first_json_object, run_agent_cli
+from diffgr.agent_cli import (
+    AgentCliConfig,
+    extract_first_json_object,
+    run_agent_cli,
+    run_agent_cli_from_last_session,
+    start_interactive_session,
+)
 
 
 class TestAgentCli(unittest.TestCase):
@@ -30,3 +36,32 @@ class TestAgentCli(unittest.TestCase):
             self.assertIn("--output-schema", args[0])
             self.assertIn("-", args[0])
             self.assertEqual(kwargs["input"], prompt)
+
+    def test_interactive_then_resume_builds_commands(self):
+        repo = Path(".").resolve()
+        schema_path = repo / "diffgr" / "slice_patch.schema.json"
+        config = AgentCliConfig(provider="codex", codex_command="codex", codex_args=("exec",), codex_interactive_args=("--sandbox", "read-only"))
+
+        with patch("subprocess.run") as run:
+            run.side_effect = [
+                # interactive
+                type("R", (), {"returncode": 0})(),
+                # resume
+                type("R", (), {"returncode": 0, "stdout": '{"rename": {}, "move": []}', "stderr": ""})(),
+            ]
+            code = start_interactive_session(repo=repo, config=config, initial_prompt="hi")
+            self.assertEqual(code, 0)
+            patch_obj = run_agent_cli_from_last_session(
+                repo=repo,
+                config=config,
+                prompt_markdown="# prompt",
+                schema_path=schema_path,
+                timeout_s=3,
+            )
+            self.assertEqual(patch_obj["rename"], {})
+            # second call should be codex exec resume --last
+            resume_args, resume_kwargs = run.call_args
+            self.assertIn("resume", resume_args[0])
+            self.assertIn("--last", resume_args[0])
+            self.assertIn("--output-schema", resume_args[0])
+            self.assertEqual(resume_kwargs["input"], "# prompt")
