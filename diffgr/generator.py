@@ -289,8 +289,8 @@ def parse_generate_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--base", default="sample/ts20-base", help="Base ref (default: sample/ts20-base).")
     parser.add_argument(
         "--feature",
-        default="sample/ts20-feature-5pr",
-        help="Feature ref (default: sample/ts20-feature-5pr).",
+        default="sample/ts20-feature-5pr-pure",
+        help="Feature ref (default: sample/ts20-feature-5pr-pure).",
     )
     parser.add_argument(
         "--output",
@@ -299,7 +299,7 @@ def parse_generate_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--title",
-        default="DiffGR sample from sample/ts20-base...sample/ts20-feature-5pr",
+        default="DiffGR sample from sample/ts20-base...sample/ts20-feature-5pr-pure",
         help="meta.title value.",
     )
     parser.add_argument("--no-patch", action="store_true", help="Do not include optional patch field.")
