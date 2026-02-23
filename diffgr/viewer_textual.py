@@ -547,6 +547,8 @@ class DiffgrTextualApp(App[None]):
     }
     """
 
+    CONTEXT_LINE_BG = "#0f1724"
+
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("/", "focus_filter", "Filter"),
@@ -1090,7 +1092,7 @@ class DiffgrTextualApp(App[None]):
             else:
                 rendered = Text(value, style="dim #8a6a6f")
         elif row_type == "context":
-            rendered = Text(value, style="#b7c5da")
+            rendered = Text(value, style=f"#d3deee on {self.CONTEXT_LINE_BG}")
         elif row_type == "comment":
             if side == "new":
                 rendered = Text(value, style="bold #fff3cc on #3a2b08")
@@ -1198,7 +1200,8 @@ class DiffgrTextualApp(App[None]):
             "line-comment": "! ",
         }.get(kind, "? ")
         prefix_style = {
-            "context": "dim #91a2bb",
+            # Context lines should remain readable; avoid dimming the gutter too much.
+            "context": "#9db0c8",
             "add": "bold #52d38a",
             "delete": "bold #ff6b7d",
             "meta": "italic #9db0c8",
@@ -1214,7 +1217,7 @@ class DiffgrTextualApp(App[None]):
             rendered.append(self._syntax_highlight_line(text, lexer=lexer))
         else:
             base_style = {
-                "context": "#c7d4e8",
+                "context": "#d3deee",
                 "add": "bold #c4f8d1",
                 "delete": "bold #ffd3d7",
                 "meta": "italic #9db0c8",
@@ -1222,6 +1225,9 @@ class DiffgrTextualApp(App[None]):
                 "line-comment": "bold #f3e6b3",
             }.get(kind, "#c7d4e8")
             rendered = Text(prefix + text, style=base_style)
+        if kind == "context":
+            # Give unchanged lines a subtle background so they don't visually merge with add/delete rows.
+            rendered.stylize(f"on {self.CONTEXT_LINE_BG}")
         if kind not in {"add", "delete"} or pair_text is None:
             return rendered
 
