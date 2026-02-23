@@ -20,9 +20,23 @@ from textual.containers import Horizontal, Vertical
 from textual import events
 from textual.message import Message
 from textual.screen import ModalScreen
-from textual.widgets import Button, DataTable, Footer, Header, Input, Static
+from textual.widgets import Button, DataTable, Footer, Header, Input, Static, Rule
 from rich.text import Text
+from rich.syntax import Syntax
 from .html_report import render_group_diff_html
+
+
+def normalize_diff_syntax_theme(value: Any, *, fallback: str = "github-dark") -> str:
+    name = str(value or "").strip()
+    if not name:
+        return fallback
+    try:
+        from pygments.styles import get_style_by_name
+
+        get_style_by_name(name)
+        return name
+    except Exception:
+        return fallback
 
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
@@ -409,17 +423,20 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
     }
     """
 
-    def __init__(self, editor_mode: str, custom_editor_command: str) -> None:
+    def __init__(self, editor_mode: str, custom_editor_command: str, diff_syntax: bool, diff_syntax_theme: str) -> None:
         super().__init__()
         self.editor_mode = normalize_editor_mode(editor_mode)
         self.custom_editor_command = str(custom_editor_command)
+        self.diff_syntax = bool(diff_syntax)
+        self.diff_syntax_theme = normalize_diff_syntax_theme(diff_syntax_theme)
 
     def compose(self) -> ComposeResult:
         with Vertical(id="settings-dialog"):
             yield Static("[b]Viewer Settings[/b]")
             yield Static(
                 "editor mode: auto / vscode / cursor / default-app / custom\n"
-                "custom command supports placeholders: {path} and optional {line}",
+                "custom command supports placeholders: {path} and optional {line}\n"
+                "diff syntax: on/off (rich Syntax / Pygments)",
                 id="settings-hint",
             )
             yield Input(value=self.editor_mode, placeholder="editor mode", id="editor_mode")
@@ -427,6 +444,16 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 value=self.custom_editor_command,
                 placeholder="custom command (used only when mode=custom)",
                 id="editor_command",
+            )
+            yield Input(
+                value="on" if self.diff_syntax else "off",
+                placeholder="diff syntax (on/off)",
+                id="diff_syntax",
+            )
+            yield Input(
+                value=self.diff_syntax_theme,
+                placeholder="diff syntax theme (e.g. github-dark / one-dark / nord)",
+                id="diff_syntax_theme",
             )
             with Horizontal(id="settings-buttons"):
                 yield Button("Cancel", id="cancel")
@@ -443,6 +470,8 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
             {
                 "editor_mode": self.query_one("#editor_mode", Input).value.strip(),
                 "custom_editor_command": self.query_one("#editor_command", Input).value.strip(),
+                "diff_syntax": self.query_one("#diff_syntax", Input).value.strip(),
+                "diff_syntax_theme": self.query_one("#diff_syntax_theme", Input).value.strip(),
             }
         )
 
@@ -493,21 +522,26 @@ class DiffgrTextualApp(App[None]):
     #topbar { height: 3; border: round #3a86ff; padding: 0 1; }
     #main { height: 1fr; }
     #left { width: 52%; border: round #4cc9f0; }
-    #right { width: 48%; border: round #f72585; }
+    #right { width: 48%; border: round #f72585; padding: 0 1; }
     #groups { height: 10; }
     #filter { height: 3; border: round #2ec4b6; margin: 1 1; }
     #chunks { height: 1fr; }
-    #meta { height: 10; border: round #8338ec; padding: 0 1; }
+    #meta { height: 10; border: none; padding: 0 1; background: #0b0f19; }
+    #right_sep { color: #1a2232; }
     #lines { height: 1fr; }
-    #lines > .datatable--cursor {
+    #lines .datatable--cursor {
         background: transparent;
         text-style: bold underline;
     }
-    #lines:focus > .datatable--cursor {
+    #lines:focus .datatable--cursor {
         background: transparent;
         text-style: bold underline;
     }
-    #lines > .datatable--fixed-cursor {
+    #lines .datatable--fixed-cursor {
+        background: transparent;
+        text-style: bold underline;
+    }
+    #lines .datatable--header-cursor {
         background: transparent;
         text-style: bold underline;
     }
@@ -529,6 +563,7 @@ class DiffgrTextualApp(App[None]):
         Binding("t", "open_settings", "Settings"),
         Binding("d", "toggle_group_report", "Diff Report"),
         Binding("v", "toggle_chunk_detail_view", "Detail View"),
+        Binding("z", "toggle_context_lines", "Focus Changes"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
         Binding("2", "set_status('reviewed')", "Reviewed"),
         Binding("3", "set_status('needsReReview')", "ReReview"),
@@ -575,6 +610,7 @@ class DiffgrTextualApp(App[None]):
         self._chunk_selection_anchor_index: int | None = None
         self.chunk_detail_view_mode = "compact"
         self.group_report_mode = False
+        self.show_context_lines = True
         self._lines_table_mode: str | None = None
         self.left_pane_pct = 52
         self.diff_old_ratio = 0.50
@@ -587,6 +623,9 @@ class DiffgrTextualApp(App[None]):
         self._last_save_kind = "-"
         self.editor_mode = EDITOR_MODE_AUTO
         self.custom_editor_command = ""
+        self.diff_syntax = True
+        self.diff_syntax_theme = "github-dark"
+        self._syntax_by_lexer: dict[str, Syntax] = {}
         self.settings_path = self._viewer_settings_path()
         self._settings_load_error: str | None = None
         self._dmp_engine = diff_match_patch() if diff_match_patch is not None else None
@@ -604,7 +643,14 @@ class DiffgrTextualApp(App[None]):
                 yield ChunkTable(id="chunks", cursor_type="row")
             with Vertical(id="right"):
                 yield Static("Select a chunk from the left.", id="meta")
-                yield DataTable(id="lines", cursor_type="row")
+                yield Rule(id="right_sep")
+                yield DataTable(
+                    id="lines",
+                    cursor_type="row",
+                    # Keep syntax colors while still allowing CSS to remove cursor background fill.
+                    cursor_foreground_priority="renderable",
+                    cursor_background_priority="css",
+                )
         yield Footer()
 
     def on_mount(self) -> None:
@@ -631,6 +677,8 @@ class DiffgrTextualApp(App[None]):
     def _load_viewer_settings(self) -> None:
         self.editor_mode = EDITOR_MODE_AUTO
         self.custom_editor_command = ""
+        self.diff_syntax = True
+        self.diff_syntax_theme = "github-dark"
         path = self.settings_path
         if not path.exists():
             return
@@ -640,6 +688,10 @@ class DiffgrTextualApp(App[None]):
                 return
             self.editor_mode = normalize_editor_mode(payload.get("editorMode"))
             self.custom_editor_command = str(payload.get("customEditorCommand", "")).strip()
+            if "diffSyntax" in payload:
+                self.diff_syntax = bool(payload.get("diffSyntax"))
+            if isinstance(payload.get("diffSyntaxTheme"), str) and str(payload.get("diffSyntaxTheme")).strip():
+                self.diff_syntax_theme = normalize_diff_syntax_theme(payload.get("diffSyntaxTheme"))
         except Exception as error:  # noqa: BLE001
             self._settings_load_error = str(error)
 
@@ -648,6 +700,8 @@ class DiffgrTextualApp(App[None]):
             payload = {
                 "editorMode": normalize_editor_mode(self.editor_mode),
                 "customEditorCommand": str(self.custom_editor_command).strip(),
+                "diffSyntax": bool(self.diff_syntax),
+                "diffSyntaxTheme": normalize_diff_syntax_theme(self.diff_syntax_theme),
             }
             self.settings_path.parent.mkdir(parents=True, exist_ok=True)
             self.settings_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -667,17 +721,61 @@ class DiffgrTextualApp(App[None]):
                 return
             next_mode = normalize_editor_mode(value.get("editor_mode"))
             next_custom = str(value.get("custom_editor_command", "")).strip()
+            next_diff_syntax_raw = str(value.get("diff_syntax", "")).strip().lower()
+            next_diff_syntax = self.diff_syntax
+            if next_diff_syntax_raw in {"on", "true", "1", "yes", "y"}:
+                next_diff_syntax = True
+            elif next_diff_syntax_raw in {"off", "false", "0", "no", "n"}:
+                next_diff_syntax = False
+            next_theme = normalize_diff_syntax_theme(value.get("diff_syntax_theme"), fallback=self.diff_syntax_theme)
             if next_mode == EDITOR_MODE_CUSTOM and not next_custom:
                 self.notify("custom mode requires command template", severity="warning", timeout=2.0)
                 return
-            changed = next_mode != self.editor_mode or next_custom != self.custom_editor_command
+            changed = (
+                next_mode != self.editor_mode
+                or next_custom != self.custom_editor_command
+                or next_diff_syntax != self.diff_syntax
+                or next_theme != self.diff_syntax_theme
+            )
             self.editor_mode = next_mode
             self.custom_editor_command = next_custom
+            self.diff_syntax = next_diff_syntax
+            self.diff_syntax_theme = next_theme
+            self._syntax_by_lexer = {}
             if changed and self._save_viewer_settings():
                 self.notify(f"Settings saved: editor={self._editor_setting_label()}", timeout=1.5)
             self._refresh_topbar()
 
-        self.push_screen(SettingsModal(self.editor_mode, self.custom_editor_command), callback=_on_dismiss)
+        self.push_screen(
+            SettingsModal(self.editor_mode, self.custom_editor_command, self.diff_syntax, self.diff_syntax_theme),
+            callback=_on_dismiss,
+        )
+
+    def _syntax_lexer_for_file(self, file_path: str, code_hint: str | None = None) -> str | None:
+        raw = str(file_path or "").strip()
+        if not raw:
+            return None
+        try:
+            lexer = Syntax.guess_lexer(raw, code_hint)
+            return str(lexer).strip() if lexer else None
+        except Exception:
+            return None
+
+    def _syntax_highlight_line(self, text: str, *, lexer: str) -> Text:
+        cached = self._syntax_by_lexer.get(lexer)
+        if cached is None:
+            cached = Syntax(
+                "",
+                lexer,
+                theme=self.diff_syntax_theme,
+                line_numbers=False,
+                word_wrap=False,
+                # Use terminal default background so DataTable cursor/selection doesn't create
+                # hard-to-read color blocks behind tokens.
+                background_color="default",
+            )
+            self._syntax_by_lexer[lexer] = cached
+        return cached.highlight(text)
 
     def action_focus_filter(self) -> None:
         self.query_one("#filter", Input).focus()
@@ -719,6 +817,16 @@ class DiffgrTextualApp(App[None]):
             f"Detail view: {'old/new side-by-side' if self.chunk_detail_view_mode == 'side_by_side' else 'compact'}",
             timeout=1.0,
         )
+        self._refresh_topbar()
+
+    def action_toggle_context_lines(self) -> None:
+        """Toggle showing unchanged (context) lines in chunk detail view."""
+        if self.group_report_mode:
+            return
+        self.show_context_lines = not bool(self.show_context_lines)
+        if self.selected_chunk_id:
+            self._show_chunk(self.selected_chunk_id)
+        self.notify(f"Context lines: {'ON' if self.show_context_lines else 'OFF'}", timeout=1.0)
         self._refresh_topbar()
 
     def _resolve_chunk_file_path(self, raw_path: str) -> Path | None:
@@ -895,12 +1003,23 @@ class DiffgrTextualApp(App[None]):
         self._refresh_topbar()
 
     def _group_report_text_widths(self, total_width: int | None = None) -> tuple[int, int]:
-        if total_width is None:
-            total_width = int(self.size.width)
-        total_width = max(80, total_width)
-        right_pane_pct = max(1, 100 - self.left_pane_pct)
-        right_width = max(36, int(total_width * (right_pane_pct / 100.0)))
-        available = max(28, right_width - 16)
+        # Derive widths from the actual widget size to avoid header/body separator drift.
+        # `total_width` is kept for fallback/testing.
+        right_width = None
+        try:
+            right_width = int(self.query_one("#lines", DataTable).size.width)
+        except Exception:
+            right_width = None
+        if right_width is None or right_width <= 0:
+            if total_width is None:
+                total_width = int(self.size.width)
+            total_width = max(80, total_width)
+            right_pane_pct = max(1, 100 - self.left_pane_pct)
+            right_width = max(36, int(total_width * (right_pane_pct / 100.0)))
+
+        # 4 columns: old#(5), old(text), new#(5), new(text). Account for separators/padding.
+        reserved = 5 + 5 + 6  # numbers + spacing/separators
+        available = max(28, int(right_width) - reserved)
         old_width = int(round(available * self.diff_old_ratio))
         old_width = max(12, min(available - 12, old_width))
         new_width = max(12, available - old_width)
@@ -935,48 +1054,57 @@ class DiffgrTextualApp(App[None]):
 
     def _render_report_number(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
+            # Selection should not add any background fill; keep it readable on add/delete rows.
             return Text(value, style="bold underline #ffe5a6")
         style = "dim #91a2bb"
         if row_type == "add" and side == "new":
-            style = "bold #1f8f49"
+            style = "bold #52d38a"
         elif row_type == "delete" and side == "old":
-            style = "bold #c63e51"
+            style = "bold #ff6b7d"
         elif row_type == "comment":
             style = "bold #c8b75b"
         return Text(value, style=style)
 
     def _render_report_text(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
+            # Selection should not add any background fill; keep it readable on add/delete rows.
             return Text(value, style="bold underline #ffe5a6")
         if row_type == "file_border":
-            return Text(value, style="bold #8fb4ff on #11213a")
-        if row_type == "file":
-            return Text(value, style="bold #09111d on #8fb4ff")
-        if row_type == "chunk":
+            rendered = Text(value, style="bold #8fb4ff on #11213a")
+        elif row_type == "file":
+            rendered = Text(value, style="bold #09111d on #8fb4ff")
+        elif row_type == "chunk":
             if side == "new":
-                return Text(value, style="bold #cddfff on #1a2f54")
-            return Text(value, style="bold #bcd7ff on #1a2f54")
-        if row_type == "add":
+                rendered = Text(value, style="bold #cddfff on #1a2f54")
+            else:
+                rendered = Text(value, style="bold #bcd7ff on #1a2f54")
+        elif row_type == "add":
             if side == "new":
-                return Text(value, style="bold #02170c on #92f2ae")
-            return Text(value, style="dim #47715a")
-        if row_type == "delete":
+                # Softer than neon green; easier to read with selection underline.
+                rendered = Text(value, style="bold #eafff0 on #103a26")
+            else:
+                rendered = Text(value, style="dim #5b7d6c")
+        elif row_type == "delete":
             if side == "old":
-                return Text(value, style="bold #200307 on #ffb3bb")
-            return Text(value, style="dim #84575c")
-        if row_type == "context":
-            return Text(value, style="#c7d4e8")
-        if row_type == "comment":
+                rendered = Text(value, style="bold #ffe7ea on #3a131b")
+            else:
+                rendered = Text(value, style="dim #8a6a6f")
+        elif row_type == "context":
+            rendered = Text(value, style="#b7c5da")
+        elif row_type == "comment":
             if side == "new":
-                return Text(value, style="bold #1e1a06 on #ffe7a1")
-            return Text(value, style="dim #7a7360")
-        if row_type == "meta":
-            return Text(value, style="italic #9db0c8")
-        if row_type == "spacer":
-            return Text("", style="#0b0f16")
-        if row_type == "info":
-            return Text(value, style="italic #9db0c8")
-        return Text(value, style="#c7d4e8")
+                rendered = Text(value, style="bold #fff3cc on #3a2b08")
+            else:
+                rendered = Text(value, style="dim #7a7360")
+        elif row_type == "meta":
+            rendered = Text(value, style="italic #9db0c8")
+        elif row_type == "spacer":
+            rendered = Text("", style="#0b0f16")
+        elif row_type == "info":
+            rendered = Text(value, style="italic #9db0c8")
+        else:
+            rendered = Text(value, style="#c7d4e8")
+        return rendered
 
     def _line_similarity_score(self, left: str, right: str) -> float:
         if not left and not right:
@@ -1045,15 +1173,22 @@ class DiffgrTextualApp(App[None]):
         }.get(kind, str(kind).upper())
         style = {
             "context": "bold #d3deee on #24334e",
-            "add": "bold #072010 on #92f2ae",
-            "delete": "bold #2a030a on #ffb3bb",
+            "add": "bold #eafff0 on #103a26",
+            "delete": "bold #ffe7ea on #3a131b",
             "meta": "bold #d6e0f2 on #33405a",
-            "comment": "bold #2d2004 on #ffe7a1",
-            "line-comment": "bold #2d2004 on #ffe7a1",
+            "comment": "bold #fff3cc on #3a2b08",
+            "line-comment": "bold #fff3cc on #3a2b08",
         }.get(kind, "bold #d3deee on #2d3e5c")
         return Text(f" {label} ", style=style)
 
-    def _render_chunk_content_text(self, kind: str, text: str, *, pair_text: str | None = None) -> Text:
+    def _render_chunk_content_text(
+        self,
+        kind: str,
+        text: str,
+        *,
+        pair_text: str | None = None,
+        file_path: str = "",
+    ) -> Text:
         prefix = {
             "context": "  ",
             "add": "+ ",
@@ -1062,15 +1197,31 @@ class DiffgrTextualApp(App[None]):
             "comment": "! ",
             "line-comment": "! ",
         }.get(kind, "? ")
-        base_style = {
-            "context": "#c7d4e8",
-            "add": "bold #c4f8d1",
-            "delete": "bold #ffd3d7",
+        prefix_style = {
+            "context": "dim #91a2bb",
+            "add": "bold #52d38a",
+            "delete": "bold #ff6b7d",
             "meta": "italic #9db0c8",
             "comment": "bold #f3e6b3",
             "line-comment": "bold #f3e6b3",
         }.get(kind, "#c7d4e8")
-        rendered = Text(prefix + text, style=base_style)
+
+        lexer = None
+        if self.diff_syntax and kind in {"context", "add", "delete"}:
+            lexer = self._syntax_lexer_for_file(file_path, code_hint=text)
+        if lexer:
+            rendered = Text(prefix, style=prefix_style)
+            rendered.append(self._syntax_highlight_line(text, lexer=lexer))
+        else:
+            base_style = {
+                "context": "#c7d4e8",
+                "add": "bold #c4f8d1",
+                "delete": "bold #ffd3d7",
+                "meta": "italic #9db0c8",
+                "comment": "bold #f3e6b3",
+                "line-comment": "bold #f3e6b3",
+            }.get(kind, "#c7d4e8")
+            rendered = Text(prefix + text, style=base_style)
         if kind not in {"add", "delete"} or pair_text is None:
             return rendered
 
@@ -1093,13 +1244,13 @@ class DiffgrTextualApp(App[None]):
                     continue
                 if op < 0:
                     if kind == "delete":
-                        rendered.stylize("bold #300008 on #ff93a0", prefix_len + old_pos, prefix_len + old_pos + seg_len)
+                        rendered.stylize("bold underline #ff93a0", prefix_len + old_pos, prefix_len + old_pos + seg_len)
                         applied_by_dmp = True
                     old_pos += seg_len
                     continue
                 if op > 0:
                     if kind == "add":
-                        rendered.stylize("bold #01150a on #69d28f", prefix_len + new_pos, prefix_len + new_pos + seg_len)
+                        rendered.stylize("bold underline #69d28f", prefix_len + new_pos, prefix_len + new_pos + seg_len)
                         applied_by_dmp = True
                     new_pos += seg_len
                     continue
@@ -1112,10 +1263,10 @@ class DiffgrTextualApp(App[None]):
                 continue
             if kind == "add":
                 if new_end > new_start:
-                    rendered.stylize("bold #01150a on #69d28f", prefix_len + new_start, prefix_len + new_end)
+                    rendered.stylize("bold underline #69d28f", prefix_len + new_start, prefix_len + new_end)
             else:
                 if old_end > old_start:
-                    rendered.stylize("bold #300008 on #ff93a0", prefix_len + old_start, prefix_len + old_end)
+                    rendered.stylize("bold underline #ff93a0", prefix_len + old_start, prefix_len + old_end)
         return rendered
 
     def _add_left_border(self, value: str, row_type: str) -> str:
@@ -2161,7 +2312,7 @@ class DiffgrTextualApp(App[None]):
                         "",
                         Text(""),
                         "",
-                        self._render_chunk_content_text("comment", text),
+                        self._render_chunk_content_text("comment", text, file_path=str(chunk.get("filePath", ""))),
                         key=f"chunk-comment-{index}",
                     )
                 else:
@@ -2169,7 +2320,7 @@ class DiffgrTextualApp(App[None]):
                         "",
                         "",
                         self._render_chunk_kind_badge("comment"),
-                        self._render_chunk_content_text("comment", text),
+                        self._render_chunk_content_text("comment", text, file_path=str(chunk.get("filePath", ""))),
                         key=f"chunk-comment-{index}",
                     )
             if side_by_side:
@@ -2177,13 +2328,34 @@ class DiffgrTextualApp(App[None]):
             else:
                 lines_table.add_row("", "", self._render_chunk_kind_badge("meta"), Text(""), key="chunk-comment-sep")
 
+        if not self.show_context_lines:
+            hint = "Context lines are hidden (press 'z' to show)."
+            if side_by_side:
+                lines_table.add_row(
+                    "",
+                    Text(""),
+                    "",
+                    self._render_chunk_content_text("meta", hint, file_path=str(chunk.get("filePath", ""))),
+                    key="ctx-hidden-hint",
+                )
+            else:
+                lines_table.add_row(
+                    "",
+                    "",
+                    self._render_chunk_kind_badge("meta"),
+                    self._render_chunk_content_text("meta", hint, file_path=str(chunk.get("filePath", ""))),
+                    key="ctx-hidden-hint",
+                )
+
         line_comment_map = self._line_comment_map_for_chunk(chunk_id)
         lines = list(chunk.get("lines", [])[: max(200, self.page_size * 30)])
         pair_map = self._build_intraline_pair_map(lines)
         selected_row_key: str | None = None
         first_line_row_key: str | None = None
         for line_index, line in enumerate(lines):
-            kind = line.get("kind", "")
+            kind = str(line.get("kind", ""))
+            if not self.show_context_lines and kind == "context":
+                continue
             old_line = normalize_line_number(line.get("oldLine"))
             new_line = normalize_line_number(line.get("newLine"))
             anchor_key = line_anchor_key(old_line, new_line, str(kind))
@@ -2197,25 +2369,26 @@ class DiffgrTextualApp(App[None]):
                 "lineType": str(kind),
             }
             content = self._render_chunk_content_text(
-                str(kind),
+                kind,
                 str(line.get("text", "")),
                 pair_text=pair_map.get(line_index),
+                file_path=str(chunk.get("filePath", "")),
             )
             old_number = "" if line.get("oldLine") is None else str(line.get("oldLine"))
             new_number = "" if line.get("newLine") is None else str(line.get("newLine"))
             if side_by_side:
-                if str(kind) == "add":
+                if kind == "add":
                     old_cell = Text("", style="dim #47715a")
                     new_cell = content
-                elif str(kind) == "delete":
+                elif kind == "delete":
                     old_cell = content
                     new_cell = Text("", style="dim #47715a")
-                elif str(kind) == "context":
-                    old_cell = self._render_chunk_content_text("context", str(line.get("text", "")))
-                    new_cell = self._render_chunk_content_text("context", str(line.get("text", "")))
+                elif kind == "context":
+                    old_cell = self._render_chunk_content_text("context", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
+                    new_cell = self._render_chunk_content_text("context", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
                 else:
-                    old_cell = self._render_chunk_content_text("meta", str(line.get("text", "")))
-                    new_cell = self._render_chunk_content_text("meta", str(line.get("text", "")))
+                    old_cell = self._render_chunk_content_text("meta", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
+                    new_cell = self._render_chunk_content_text("meta", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
                 lines_table.add_row(
                     old_number,
                     old_cell,
@@ -2227,7 +2400,7 @@ class DiffgrTextualApp(App[None]):
                 lines_table.add_row(
                     old_number,
                     new_number,
-                    self._render_chunk_kind_badge(str(kind)),
+                    self._render_chunk_kind_badge(kind),
                     content,
                     key=row_key_value,
                 )
@@ -2248,7 +2421,7 @@ class DiffgrTextualApp(App[None]):
                             "",
                             Text(""),
                             "",
-                            self._render_chunk_content_text("line-comment", comment_text),
+                            self._render_chunk_content_text("line-comment", comment_text, file_path=str(chunk.get("filePath", ""))),
                             key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
                         )
                     else:
@@ -2256,7 +2429,7 @@ class DiffgrTextualApp(App[None]):
                             "",
                             "",
                             self._render_chunk_kind_badge("line-comment"),
-                            self._render_chunk_content_text("line-comment", comment_text),
+                            self._render_chunk_content_text("line-comment", comment_text, file_path=str(chunk.get("filePath", ""))),
                             key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
                         )
 

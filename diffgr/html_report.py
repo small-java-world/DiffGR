@@ -1230,6 +1230,12 @@ def render_group_diff_html(
     .diff-row.match td.code {{
       box-shadow: inset 0 0 0 1px #7fb4ff66;
     }}
+    .diff-row:target td.code {{
+      box-shadow: inset 0 0 0 2px #7fb4ffcc;
+    }}
+    .diff-row:target td.num {{
+      box-shadow: inset 0 0 0 2px #7fb4ff66;
+    }}
     .chunk.hidden-by-filter {{
       display: none !important;
     }}
