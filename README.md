@@ -135,17 +135,26 @@ python scripts\view_diffgr_app.py <path-to.diffgr.json> --ui textual
 - `Backspace` または `1`: undone（`unreviewed`）
 - `m`: コメント編集（行選択時は行コメント）
 - `o`: 実ファイルを外部エディタで開く
-- `t`: 設定画面（`editor mode` 設定）
+- `t`: 設定画面（`editor mode` / `diff syntax` / `ui density`）
 - `d`: グループ差分レポート表示切替
 - `v`: チャンク詳細表示切替（compact / side-by-side）
+- `z`: Focus Changes（未変更行＝context を隠して「変更点だけ」に集中）
+- `=` / `-`: 表示のズーム相当（ui density 切替: compact/normal/comfortable）
 - `s`: 保存
 - `h`: HTML エクスポート
 
 `o` のエディタ設定:
 
 - `editor mode`: `auto` / `vscode` / `cursor` / `default-app` / `custom`
-- 設定保存先: `~/.diffgr/viewer_settings.json`  
-  もしくは環境変数 `DIFFGR_VIEWER_SETTINGS` で指定したパス
+- `diff syntax`: `on` / `off`（rich Syntax / Pygments による色分け）
+- `diff syntax theme`: `github-dark` など（Pygments のスタイル名）
+- `ui density`: `compact` / `normal` / `comfortable`
+- 設定保存先: `~/.diffgr/viewer_settings.json`（環境変数 `DIFFGR_VIEWER_SETTINGS` で変更可）
+
+補足:
+
+- Textual UI の「フォントサイズ」自体は **端末側の設定**です（アプリからは変更できません）。  
+  代わりに `ui density`（セル余白）で見た目の密度を調整できます。
 
 ## 8. HTML レポート
 
@@ -169,6 +178,10 @@ python scripts\serve_diffgr_report.py `
 ```
 
 この方式では、HTML の `Save to App` で `reviews` が元 JSON に直接保存されます。
+
+HTML レポートの見やすさ調整:
+
+- ツールバーの `A-` / `A+` / `A0` で diff 本文のフォントサイズを変更できます（ブラウザの `localStorage` に保存）。
 
 ## 9. 主な CLI 一覧
 

@@ -1451,7 +1451,7 @@ def render_group_diff_html(
           {inbox_items_html}
         </ol>
       </section>
-      <p class="main-help">Shortcuts: <code>/</code> search content, <code>f</code> file filter, <code>i</code> inbox, <code>k</code> jump top actionable, <code>c</code> hide context, <code>m</code> comments only, <code>w</code> wrap, <code>j</code> compact, click <code>確認済み</code> to mark reviewed, click <code>Comment</code>/<code>C</code> to post, <a href="#top">Back to top</a></p>
+      <p class="main-help">Shortcuts: <code>/</code> search content, <code>f</code> file filter, <code>i</code> inbox, <code>k</code> jump top actionable, <code>c</code> hide context, <code>m</code> comments only, <code>w</code> wrap, <code>j</code> compact, <code>A-</code>/<code>A+</code> font size, click <code>確認済み</code> to mark reviewed, click <code>Comment</code>/<code>C</code> to post, <a href="#top">Back to top</a></p>
       {file_sections}
     </main>
     <aside class="comment-pane">
