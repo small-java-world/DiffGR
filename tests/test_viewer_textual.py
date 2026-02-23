@@ -435,6 +435,172 @@ class TestViewerTextualReport(unittest.TestCase):
 
         self.assertEqual(calls, ["rerender"])
 
+    def test_toggle_context_lines_toggles_and_rerenders_chunk(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        show_calls: list[str] = []
+        notices: list[str] = []
+        refresh_calls: list[bool] = []
+        app._show_chunk = lambda cid: show_calls.append(cid)  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: refresh_calls.append(True)  # type: ignore[method-assign]
+
+        self.assertTrue(app.show_context_lines)
+        app.action_toggle_context_lines()
+        self.assertFalse(app.show_context_lines)
+        self.assertEqual(show_calls, ["c1"])
+        self.assertEqual(refresh_calls, [True])
+        self.assertTrue(any("Context lines: OFF" in item for item in notices))
+
+        app.action_toggle_context_lines()
+        self.assertTrue(app.show_context_lines)
+        self.assertEqual(show_calls, ["c1", "c1"])
+        self.assertEqual(refresh_calls, [True, True])
+        self.assertTrue(any("Context lines: ON" in item for item in notices))
+
+    def test_toggle_context_lines_noop_in_group_report_mode(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c1"
+        app._show_chunk = lambda *_args, **_kwargs: self.fail("must not rerender in group mode")  # type: ignore[method-assign]
+        app.notify = lambda *_args, **_kwargs: self.fail("must not notify in group mode")  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: self.fail("must not refresh in group mode")  # type: ignore[method-assign]
+        before = app.show_context_lines
+
+        app.action_toggle_context_lines()
+
+        self.assertEqual(app.show_context_lines, before)
+
+    def test_zoom_in_and_out_clamps_density(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        notices: list[str] = []
+        app._apply_ui_density = lambda: None  # type: ignore[method-assign]
+        app._rerender_lines_if_width_sensitive = lambda: None  # type: ignore[method-assign]
+        app._save_viewer_settings = lambda: True  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+
+        app.ui_density = "comfortable"
+        app.action_zoom_in()
+        self.assertEqual(app.ui_density, "comfortable")
+
+        app.ui_density = "compact"
+        app.action_zoom_out()
+        self.assertEqual(app.ui_density, "compact")
+        self.assertTrue(any("UI density:" in item for item in notices))
+
+    def test_cycle_diff_syntax_theme_cycles_and_rerenders_chunk(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        app.diff_syntax_theme = "github-dark"
+        app._syntax_by_lexer = {"python": mock.Mock()}  # type: ignore[assignment]
+        show_calls: list[str] = []
+        notices: list[str] = []
+        refresh_calls: list[bool] = []
+        app._show_chunk = lambda cid: show_calls.append(cid)  # type: ignore[method-assign]
+        app._save_viewer_settings = lambda: True  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: refresh_calls.append(True)  # type: ignore[method-assign]
+
+        with mock.patch("diffgr.viewer_textual._preferred_pygments_themes", return_value=["github-dark", "nord", "dracula"]):
+            app.action_cycle_diff_syntax_theme()
+            self.assertEqual(app.diff_syntax_theme, "nord")
+            self.assertEqual(show_calls, ["c1"])
+            self.assertEqual(app._syntax_by_lexer, {})
+            app.action_cycle_diff_syntax_theme()
+            self.assertEqual(app.diff_syntax_theme, "dracula")
+
+        self.assertEqual(len(refresh_calls), 2)
+        self.assertTrue(any("Syntax theme:" in item for item in notices))
+
+    def test_cycle_diff_syntax_theme_handles_no_theme_list(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        notices: list[str] = []
+        app._save_viewer_settings = lambda: self.fail("must not save when no themes")  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+        before = app.diff_syntax_theme
+
+        with mock.patch("diffgr.viewer_textual._preferred_pygments_themes", return_value=[]):
+            app.action_cycle_diff_syntax_theme()
+
+        self.assertEqual(app.diff_syntax_theme, before)
+        self.assertTrue(any("No syntax themes available" in item for item in notices))
+
+    def test_rerender_lines_if_width_sensitive_routes_by_mode(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        report_calls: list[str | None] = []
+        chunk_calls: list[str] = []
+        app._show_current_group_report = lambda target_chunk_id=None: report_calls.append(target_chunk_id)  # type: ignore[method-assign]
+        app._show_chunk = lambda chunk_id: chunk_calls.append(chunk_id)  # type: ignore[method-assign]
+
+        app.group_report_mode = True
+        app._rerender_lines_if_width_sensitive()
+        self.assertEqual(report_calls, ["c1"])
+        self.assertEqual(chunk_calls, [])
+
+        app.group_report_mode = False
+        app.chunk_detail_view_mode = "side_by_side"
+        app._rerender_lines_if_width_sensitive()
+        self.assertEqual(chunk_calls, ["c1"])
+
+    def test_rerender_lines_if_width_sensitive_swallows_render_errors(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c1"
+        app._show_current_group_report = lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("boom"))  # type: ignore[method-assign]
+
+        app._rerender_lines_if_width_sensitive()
+
     def test_toggle_chunk_detail_view_toggles_and_rerenders_chunk(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),
