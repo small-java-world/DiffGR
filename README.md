@@ -54,6 +54,14 @@ python scripts\serve_diffgr_report.py `
   --open
 ```
 
+### 4.1 追加サンプル（より実践的なファイル名/差分）
+
+`ts20-*` は学習用に規則的な差分が多いため、より実践的な混在差分サンプルも同梱しています。
+
+```powershell
+python scripts\view_diffgr_app.py samples/diffgr/realistic-acme-tasks.diffgr.json --ui textual
+```
+
 ## 5. 標準ワークフロー
 
 ### 5.1 DiffGR を生成
