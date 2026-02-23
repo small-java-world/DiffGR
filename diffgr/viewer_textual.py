@@ -1970,6 +1970,7 @@ class DiffgrTextualApp(App[None]):
         warnings_text = f"warnings={len(self.warnings)}"
         filter_display = self.filter_text if self.filter_text else "none"
         editor_label = self._editor_setting_label()
+        ctx_label = "all" if self.show_context_lines else "changes"
         text = (
             f"[b]{title}[/b]  "
             f"group={group_name}  "
@@ -1982,9 +1983,9 @@ class DiffgrTextualApp(App[None]):
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
-            f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  "
+            f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  ctx={ctx_label}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, z=focus-changes, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
@@ -2328,8 +2329,24 @@ class DiffgrTextualApp(App[None]):
             else:
                 lines_table.add_row("", "", self._render_chunk_kind_badge("meta"), Text(""), key="chunk-comment-sep")
 
+        line_comment_map = self._line_comment_map_for_chunk(chunk_id)
+        lines = list(chunk.get("lines", [])[: max(200, self.page_size * 30)])
+
         if not self.show_context_lines:
-            hint = "Context lines are hidden (press 'z' to show)."
+            hidden_ctx = 0
+            kept_ctx = 0
+            for line in lines:
+                kind = str(line.get("kind", ""))
+                if kind != "context":
+                    continue
+                old_line = normalize_line_number(line.get("oldLine"))
+                new_line = normalize_line_number(line.get("newLine"))
+                anchor_key = line_anchor_key(old_line, new_line, kind)
+                if anchor_key in line_comment_map:
+                    kept_ctx += 1
+                else:
+                    hidden_ctx += 1
+            hint = f"Context lines hidden: {hidden_ctx} (kept commented: {kept_ctx}). Press 'z' to show all."
             if side_by_side:
                 lines_table.add_row(
                     "",
@@ -2346,19 +2363,16 @@ class DiffgrTextualApp(App[None]):
                     self._render_chunk_content_text("meta", hint, file_path=str(chunk.get("filePath", ""))),
                     key="ctx-hidden-hint",
                 )
-
-        line_comment_map = self._line_comment_map_for_chunk(chunk_id)
-        lines = list(chunk.get("lines", [])[: max(200, self.page_size * 30)])
         pair_map = self._build_intraline_pair_map(lines)
         selected_row_key: str | None = None
         first_line_row_key: str | None = None
         for line_index, line in enumerate(lines):
             kind = str(line.get("kind", ""))
-            if not self.show_context_lines and kind == "context":
-                continue
             old_line = normalize_line_number(line.get("oldLine"))
             new_line = normalize_line_number(line.get("newLine"))
             anchor_key = line_anchor_key(old_line, new_line, str(kind))
+            if not self.show_context_lines and kind == "context" and anchor_key not in line_comment_map:
+                continue
             row_key_value = f"line-{line_index}"
             if first_line_row_key is None:
                 first_line_row_key = row_key_value
