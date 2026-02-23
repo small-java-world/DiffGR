@@ -399,7 +399,8 @@ class DiffgrTextualApp(App[None]):
     MIN_DIFF_OLD_RATIO = 0.25
     MAX_DIFF_OLD_RATIO = 0.75
     DIFF_RATIO_STEP = 0.05
-    KEYMAP_REV = "km-20260222-6"
+    AUTOSAVE_INTERVAL_SEC = 20
+    KEYMAP_REV = "km-20260223-1"
 
     CSS = """
     Screen { layout: vertical; }
@@ -479,6 +480,9 @@ class DiffgrTextualApp(App[None]):
         self._chunk_line_anchor_by_row_key: dict[str, dict[str, Any]] = {}
         self._selected_line_anchor: dict[str, Any] | None = None
         self._suppress_chunk_table_events = False
+        self._has_unsaved_changes = False
+        self._last_saved_at: dt.datetime | None = None
+        self._last_save_kind = "-"
         self._dmp_engine = diff_match_patch() if diff_match_patch is not None else None
         if self._dmp_engine is not None:
             self._dmp_engine.Diff_Timeout = 0
@@ -507,6 +511,7 @@ class DiffgrTextualApp(App[None]):
         self._refresh_groups()
         self._apply_chunk_filter()
         self.query_one("#groups", DataTable).focus()
+        self.set_interval(self.AUTOSAVE_INTERVAL_SEC, self._auto_save_tick)
 
     def action_focus_filter(self) -> None:
         self.query_one("#filter", Input).focus()
@@ -883,6 +888,7 @@ class DiffgrTextualApp(App[None]):
 
     def _set_comment_for_chunk(self, chunk_id: str, comment: str) -> None:
         reviews: dict[str, Any] = self.doc.setdefault("reviews", {})
+        before_state = json.dumps(reviews.get(chunk_id), ensure_ascii=False, sort_keys=True, default=str)
         record = reviews.get(chunk_id, {})
         if not isinstance(record, dict):
             record = {}
@@ -896,6 +902,9 @@ class DiffgrTextualApp(App[None]):
             reviews[chunk_id] = record
         else:
             reviews.pop(chunk_id, None)
+        after_state = json.dumps(reviews.get(chunk_id), ensure_ascii=False, sort_keys=True, default=str)
+        if before_state != after_state:
+            self._mark_dirty()
 
     def _set_line_comment_for_anchor(
         self,
@@ -907,6 +916,7 @@ class DiffgrTextualApp(App[None]):
         comment: str,
     ) -> None:
         reviews: dict[str, Any] = self.doc.setdefault("reviews", {})
+        before_state = json.dumps(reviews.get(chunk_id), ensure_ascii=False, sort_keys=True, default=str)
         record = reviews.get(chunk_id, {})
         if not isinstance(record, dict):
             record = {}
@@ -947,6 +957,9 @@ class DiffgrTextualApp(App[None]):
             reviews[chunk_id] = record
         else:
             reviews.pop(chunk_id, None)
+        after_state = json.dumps(reviews.get(chunk_id), ensure_ascii=False, sort_keys=True, default=str)
+        if before_state != after_state:
+            self._mark_dirty()
 
     def action_new_group(self) -> None:
         def _on_dismiss(result: str | None) -> None:
@@ -963,6 +976,7 @@ class DiffgrTextualApp(App[None]):
 
             self.doc.setdefault("groups", []).append({"id": new_id, "name": result, "order": len(existing) + 1, "tags": ["slice"]})
             self.doc.setdefault("assignments", {})[new_id] = []
+            self._mark_dirty()
             self.current_group_id = new_id
             self._refresh_groups(select_group_id=new_id)
             self._apply_chunk_filter()
@@ -986,7 +1000,10 @@ class DiffgrTextualApp(App[None]):
             current_inner = next((g for g in groups_inner if isinstance(g, dict) and g.get("id") == group_id), None)
             if not current_inner:
                 return
+            if str(current_inner.get("name", "")) == result:
+                return
             current_inner["name"] = result
+            self._mark_dirty()
             self._refresh_groups(select_group_id=group_id)
 
         self.push_screen(NameModal("Rename Group", "新しい名前（日本語OK）", initial=current_name), callback=_on_dismiss)
@@ -998,16 +1015,21 @@ class DiffgrTextualApp(App[None]):
             return
         chunk_id = self.selected_chunk_id
         assignments: dict[str, Any] = self.doc.setdefault("assignments", {})
+        changed = False
 
         # Remove from any group first (enforce at-most-one-group behavior).
         for group_id, items in assignments.items():
             if isinstance(items, list) and chunk_id in items:
                 items[:] = [c for c in items if c != chunk_id]
+                changed = True
 
         target = assignments.setdefault(self.current_group_id, [])
         if isinstance(target, list) and chunk_id not in target:
             target.append(chunk_id)
+            changed = True
 
+        if changed:
+            self._mark_dirty()
         self._refresh_groups(select_group_id=self.current_group_id)
         self._apply_chunk_filter(keep_selection=True)
 
@@ -1016,9 +1038,13 @@ class DiffgrTextualApp(App[None]):
             return
         chunk_id = self.selected_chunk_id
         assignments: dict[str, Any] = self.doc.setdefault("assignments", {})
+        changed = False
         for group_id, items in assignments.items():
             if isinstance(items, list) and chunk_id in items:
                 items[:] = [c for c in items if c != chunk_id]
+                changed = True
+        if changed:
+            self._mark_dirty()
         self._refresh_groups(select_group_id=self.current_group_id)
         self._apply_chunk_filter(keep_selection=True)
 
@@ -1113,6 +1139,7 @@ class DiffgrTextualApp(App[None]):
             record["reviewedAt"] = iso_utc_now()
         reviews[chunk_id] = record
         self.status_map[chunk_id] = status
+        self._mark_dirty()
 
     def _render_current_selection(self) -> None:
         if self.group_report_mode:
@@ -1251,14 +1278,7 @@ class DiffgrTextualApp(App[None]):
         self._extend_chunk_selection(1)
 
     def action_save(self) -> None:
-        try:
-            backup = self.source_path.with_suffix(self.source_path.suffix + ".bak")
-            if not backup.exists():
-                backup.write_text(self.source_path.read_text(encoding="utf-8"), encoding="utf-8")
-            self.source_path.write_text(json.dumps(self.doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            self.notify(f"Saved: {self.source_path}", timeout=1.5)
-        except Exception as error:  # noqa: BLE001
-            self.notify(f"Save failed: {error}", severity="error", timeout=3.0)
+        self._save_document(auto=False, force=True)
 
     def action_export_html(self) -> None:
         try:
@@ -1422,6 +1442,56 @@ class DiffgrTextualApp(App[None]):
 
         self._refresh_topbar()
 
+    def _refresh_topbar_safe(self) -> None:
+        try:
+            self._refresh_topbar()
+        except Exception:
+            pass
+
+    def _safe_notify(self, message: str, *, timeout: float = 1.5, severity: str | None = None) -> None:
+        try:
+            self.notify(message, timeout=timeout, severity=severity)
+        except Exception:
+            pass
+
+    def _mark_dirty(self) -> None:
+        self._has_unsaved_changes = True
+        self._refresh_topbar_safe()
+
+    def _save_state_label(self) -> str:
+        if self._has_unsaved_changes:
+            return "save=dirty"
+        if self._last_saved_at is None:
+            return "save=clean"
+        stamp = self._last_saved_at.strftime("%H:%M:%S")
+        return f"save=clean({self._last_save_kind}@{stamp})"
+
+    def _save_document(self, *, auto: bool, force: bool) -> bool:
+        if not force and not self._has_unsaved_changes:
+            return False
+        try:
+            backup = self.source_path.with_suffix(self.source_path.suffix + ".bak")
+            if not backup.exists():
+                backup.write_text(self.source_path.read_text(encoding="utf-8"), encoding="utf-8")
+            self.source_path.write_text(json.dumps(self.doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            self._has_unsaved_changes = False
+            self._last_saved_at = dt.datetime.now()
+            self._last_save_kind = "auto" if auto else "manual"
+            self._refresh_topbar_safe()
+            if auto:
+                self._safe_notify(f"Auto-saved: {self.source_path.name}", timeout=0.9)
+            else:
+                self._safe_notify(f"Saved: {self.source_path}", timeout=1.5)
+            return True
+        except Exception as error:  # noqa: BLE001
+            self._safe_notify(f"Save failed: {error}", severity="error", timeout=3.0)
+            return False
+
+    def _auto_save_tick(self) -> None:
+        if not self._has_unsaved_changes:
+            return
+        self._save_document(auto=True, force=False)
+
     def _refresh_topbar(self) -> None:
         title = str(self.doc.get("meta", {}).get("title", "-"))
         group_name = self._group_display_name(self.current_group_id)
@@ -1430,6 +1500,7 @@ class DiffgrTextualApp(App[None]):
         cur_rate = self._reviewed_rate(m_cur)
         all_rate = self._reviewed_rate(m_all)
         selected_count = len(self._effective_chunk_selection())
+        save_state = self._save_state_label()
         warnings_text = f"warnings={len(self.warnings)}"
         filter_display = self.filter_text if self.filter_text else "none"
         text = (
@@ -1438,6 +1509,8 @@ class DiffgrTextualApp(App[None]):
             f"cur(total={m_cur['total']} pending={m_cur['pending']} reviewed={m_cur['reviewed']} rate={cur_rate:.1f}%)  "
             f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']} rate={all_rate:.1f}%)  "
             f"selected={selected_count}  "
+            f"{save_state}  "
+            f"autosave={self.AUTOSAVE_INTERVAL_SEC}s  "
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "

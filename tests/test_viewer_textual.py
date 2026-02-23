@@ -1,4 +1,7 @@
 import asyncio
+import datetime as dt
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -617,6 +620,87 @@ class TestViewerTextualReport(unittest.TestCase):
 
         self.assertIn("cur(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
         self.assertIn("all(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
+
+    def test_set_comment_for_chunk_marks_dirty(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        self.assertFalse(app._has_unsaved_changes)
+
+        app._set_comment_for_chunk("c1", "needs follow-up")
+
+        self.assertTrue(app._has_unsaved_changes)
+
+    def test_save_document_clears_dirty_and_persists_file(self):
+        doc = {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {"c1": {"comment": "x"}}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertFalse(app._has_unsaved_changes)
+            self.assertEqual(app._last_save_kind, "manual")
+            self.assertIsNotNone(app._last_saved_at)
+            roundtrip = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(roundtrip.get("reviews", {}).get("c1", {}).get("comment"), "x")
+
+    def test_auto_save_tick_runs_only_when_dirty(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        calls: list[tuple[bool, bool]] = []
+        app._save_document = lambda *, auto, force: calls.append((auto, force)) or True  # type: ignore[method-assign]
+
+        app._has_unsaved_changes = False
+        app._auto_save_tick()
+        self.assertEqual(calls, [])
+
+        app._has_unsaved_changes = True
+        app._auto_save_tick()
+        self.assertEqual(calls, [(True, False)])
+
+    def test_refresh_topbar_includes_save_state(self):
+        class StubStatic:
+            def __init__(self) -> None:
+                self.value = ""
+
+            def update(self, text: str) -> None:
+                self.value = text
+
+        topbar = StubStatic()
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {"title": "Sample"}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.query_one = lambda selector, *_args, **_kwargs: topbar if selector == "#topbar" else None  # type: ignore[method-assign]
+        app._has_unsaved_changes = True
+
+        app._refresh_topbar()
+        self.assertIn("save=dirty", topbar.value)
+
+        app._has_unsaved_changes = False
+        app._last_save_kind = "auto"
+        app._last_saved_at = dt.datetime(2026, 2, 23, 12, 34, 56)
+        app._refresh_topbar()
+        self.assertIn("save=clean(auto@12:34:56)", topbar.value)
 
     def test_add_left_border_prefixes_non_spacer_rows(self):
         app = DiffgrTextualApp(
