@@ -6092,7 +6092,6 @@
   ],
   "assignments": {
     "g-pr01": [
-      "4ee05693721666dd7677e3b0b8c82b17882bc5fbafddb2493cae4aae04a1990a",
       "cd5e3c1a9a02e1ec23037952cc0d12707fe6591b437e59d9f7423041a7431756",
       "87ec7aa2b71456e25ddd3ffd754a254f0d372c4381d082abb2fda1b71a984af5",
       "c15857abaccefc0035630027df8444489ee48ff0fbe4912b95a957d3124c0360",
@@ -6180,6 +6179,127 @@
       "f8eda816e34ea48c462470c5c7a61b2ad305d1fcf21d5a262cee2f4c261033ff"
     ]
   },
-  "reviews": {},
+  "reviews": {
+    "87ec7aa2b71456e25ddd3ffd754a254f0d372c4381d082abb2fda1b71a984af5": {
+      "comment": "aaa",
+      "status": "unreviewed",
+      "reviewedAt": "2026-02-23T03:02:10Z"
+    },
+    "0fdf8d6f13d09bc3c1a32cf0867042270456c19cb54db6c6780f05144c8a85c6": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-02-23T03:01:57Z"
+    },
+    "08dbbf00b37222118259b0baa00a17c10db0bcd19fbc77a927b2c0182947c9b7": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:33:28Z"
+    },
+    "302f49211e36befb67e2d382c09706b253583c084f1f568448b21112c3f14016": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:33:29Z"
+    },
+    "e77c661e885a870b27feefeb031219e911e61509f94580f987d2d48cc20c2530": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:33:30Z"
+    },
+    "cd5e3c1a9a02e1ec23037952cc0d12707fe6591b437e59d9f7423041a7431756": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-02-23T03:54:02Z"
+    },
+    "8d250446e8292a50672139615f5e062416c5132e5861eaf95f8d3dd2f3600a16": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:33:31Z"
+    },
+    "bf2dcb19fe70c4b7b8f34ed0b310898ccb02c885cf938052d4e5b051797928ef": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-02-23T03:02:10Z"
+    },
+    "a43083229d3009c0b7d4d640386007686deee8f897f4dca87b9aec09bed1d81b": {
+      "status": "needsReReview",
+      "reviewedAt": "2026-02-23T04:31:29Z"
+    },
+    "26df1cfba3b69034857afdf697ce51d95cea50a6c82672ec8a7986485c13b121": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-02-23T03:02:10Z"
+    },
+    "dad4b0aac57259c14a42f16081749ad6393b35a2fccf685089545e24309a4dfa": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T03:05:11Z"
+    },
+    "152f9d3fafbee74aab50411069848b06392ac23282bceb060af5d4cd6d3593f8": {
+      "comment": "aaa"
+    },
+    "1efa135e74783269ccb0b32059b30009879be1598edaea635352d68f37a3d774": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "053a4129ad9a61df399968b08694c180e52935f8ac983158cf77320bb57e657e": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "84da5a916c729ea7efbba46b9ee49a86f5a52b2ba3c67a2f21de7c1a529080d8": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "4d3a9792715a488ddc0c150f1b1e72346e0b265f96222b8e65911847d9381ad3": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "062a4327ee60d9797967a1e4c9b8fe052fccf23c1435e4603bb26f6f18e9fa37": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "4192abbb050a8e53b87bfd255e620d3e809031ec450a790b2c193562d2a23eaa": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "77c5a8185532c59738e9d7b7465554807eef3ced61f14ba5546c3e22f09cf29a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "9be4171185f7a05a4fa2990e0dab12d4d0d38627c43801d0b5993add24ac1648": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "57dbfd02fd7a1197d62e5f85adc28ea2e1d14aba9a6e51e33d58219da425a6da": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "bad2fa90b58bfa8df9a569bb5427c4cc5b8ffda4ebe7e9f2368bbe8986fa1a88": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "10ffc27f1e7515b9eb77a8e2f912ecb9c666f43895c51c95c38822e8e721d349": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "71c997f268edc91a12e85f39fb95b2f4bb886920e04c89ee0d3430f3d7ce32d0": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "720d785720a886cd3e82d99715bb851af405d27f1d67dc47edbea305f3289964": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "e568da069af17d81a39826df9df691774e6d467e4b866ba667ac5180c0d3651a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "695a5ed7e25f06b205966f4d312a8a761a27a5e30fd4b53043c41fe56b72bb5a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "0e80d99d3eeb30eab3e790b4f042431655e44352c2ea8ea6ede0b350a0a45d86": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "bc92bf0213d2dcfad8f20ac27a688d38e24a85291622adc6b3071bf466e8e93b": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:20:49Z"
+    },
+    "4ee05693721666dd7677e3b0b8c82b17882bc5fbafddb2493cae4aae04a1990a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-02-23T04:33:27Z"
+    }
+  },
   "patch": "diff --git a/samples/ts20-pr-sim/src/modules/module01.ts b/samples/ts20-pr-sim/src/modules/module01.ts\nindex 5c741c9..84511ed 100644\n--- a/samples/ts20-pr-sim/src/modules/module01.ts\n+++ b/samples/ts20-pr-sim/src/modules/module01.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_01_OFFSET = 101;\n \n export function compute01(input: number): number {\n-  return input + MODULE_01_OFFSET;\n+  const base = input + MODULE_01_OFFSET;\n+  return base * 2;\n }\n \n export function normalize01(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format01(value: number): string {\n@@ -15,9 +16,18 @@ export function format01(value: number): string {\n }\n \n export function makeStat01(): ModuleStat {\n-  const tags = [\"base\", \"module-01\"];\n+  const tags = [\"base\", \"module-01\", \"pr4\"];\n   return {\n     module: \"m01\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule01Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module02.ts b/samples/ts20-pr-sim/src/modules/module02.ts\nindex af71d48..f928255 100644\n--- a/samples/ts20-pr-sim/src/modules/module02.ts\n+++ b/samples/ts20-pr-sim/src/modules/module02.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_02_OFFSET = 102;\n \n export function compute02(input: number): number {\n-  return input + MODULE_02_OFFSET;\n+  const base = input + MODULE_02_OFFSET;\n+  return base * 2;\n }\n \n export function normalize02(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format02(value: number): string {\n@@ -15,9 +16,18 @@ export function format02(value: number): string {\n }\n \n export function makeStat02(): ModuleStat {\n-  const tags = [\"base\", \"module-02\"];\n+  const tags = [\"base\", \"module-02\", \"pr4\"];\n   return {\n     module: \"m02\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule02Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module03.ts b/samples/ts20-pr-sim/src/modules/module03.ts\nindex ef44625..0720f1d 100644\n--- a/samples/ts20-pr-sim/src/modules/module03.ts\n+++ b/samples/ts20-pr-sim/src/modules/module03.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_03_OFFSET = 103;\n \n export function compute03(input: number): number {\n-  return input + MODULE_03_OFFSET;\n+  const base = input + MODULE_03_OFFSET;\n+  return base * 2;\n }\n \n export function normalize03(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format03(value: number): string {\n@@ -15,9 +16,18 @@ export function format03(value: number): string {\n }\n \n export function makeStat03(): ModuleStat {\n-  const tags = [\"base\", \"module-03\"];\n+  const tags = [\"base\", \"module-03\", \"pr4\"];\n   return {\n     module: \"m03\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule03Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module04.ts b/samples/ts20-pr-sim/src/modules/module04.ts\nindex 4ac3b76..78429c5 100644\n--- a/samples/ts20-pr-sim/src/modules/module04.ts\n+++ b/samples/ts20-pr-sim/src/modules/module04.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_04_OFFSET = 104;\n \n export function compute04(input: number): number {\n-  return input + MODULE_04_OFFSET;\n+  const base = input + MODULE_04_OFFSET;\n+  return base * 2;\n }\n \n export function normalize04(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format04(value: number): string {\n@@ -15,9 +16,18 @@ export function format04(value: number): string {\n }\n \n export function makeStat04(): ModuleStat {\n-  const tags = [\"base\", \"module-04\"];\n+  const tags = [\"base\", \"module-04\", \"pr4\"];\n   return {\n     module: \"m04\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule04Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module05.ts b/samples/ts20-pr-sim/src/modules/module05.ts\nindex 54e8a9c..d811c1a 100644\n--- a/samples/ts20-pr-sim/src/modules/module05.ts\n+++ b/samples/ts20-pr-sim/src/modules/module05.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_05_OFFSET = 105;\n \n export function compute05(input: number): number {\n-  return input + MODULE_05_OFFSET;\n+  const base = input + MODULE_05_OFFSET;\n+  return base * 2;\n }\n \n export function normalize05(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format05(value: number): string {\n@@ -15,9 +16,18 @@ export function format05(value: number): string {\n }\n \n export function makeStat05(): ModuleStat {\n-  const tags = [\"base\", \"module-05\"];\n+  const tags = [\"base\", \"module-05\", \"pr4\"];\n   return {\n     module: \"m05\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule05Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module06.ts b/samples/ts20-pr-sim/src/modules/module06.ts\nindex fa49323..9512bb7 100644\n--- a/samples/ts20-pr-sim/src/modules/module06.ts\n+++ b/samples/ts20-pr-sim/src/modules/module06.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_06_OFFSET = 106;\n \n export function compute06(input: number): number {\n-  return input + MODULE_06_OFFSET;\n+  const base = input + MODULE_06_OFFSET;\n+  return base * 2;\n }\n \n export function normalize06(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format06(value: number): string {\n@@ -15,9 +16,18 @@ export function format06(value: number): string {\n }\n \n export function makeStat06(): ModuleStat {\n-  const tags = [\"base\", \"module-06\"];\n+  const tags = [\"base\", \"module-06\", \"pr4\"];\n   return {\n     module: \"m06\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule06Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module07.ts b/samples/ts20-pr-sim/src/modules/module07.ts\nindex 78af65b..76cc9fe 100644\n--- a/samples/ts20-pr-sim/src/modules/module07.ts\n+++ b/samples/ts20-pr-sim/src/modules/module07.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_07_OFFSET = 107;\n \n export function compute07(input: number): number {\n-  return input + MODULE_07_OFFSET;\n+  const base = input + MODULE_07_OFFSET;\n+  return base * 2;\n }\n \n export function normalize07(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format07(value: number): string {\n@@ -15,9 +16,18 @@ export function format07(value: number): string {\n }\n \n export function makeStat07(): ModuleStat {\n-  const tags = [\"base\", \"module-07\"];\n+  const tags = [\"base\", \"module-07\", \"pr4\"];\n   return {\n     module: \"m07\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule07Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module08.ts b/samples/ts20-pr-sim/src/modules/module08.ts\nindex b49b65e..893f7c8 100644\n--- a/samples/ts20-pr-sim/src/modules/module08.ts\n+++ b/samples/ts20-pr-sim/src/modules/module08.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_08_OFFSET = 108;\n \n export function compute08(input: number): number {\n-  return input + MODULE_08_OFFSET;\n+  const base = input + MODULE_08_OFFSET;\n+  return base * 2;\n }\n \n export function normalize08(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format08(value: number): string {\n@@ -15,9 +16,18 @@ export function format08(value: number): string {\n }\n \n export function makeStat08(): ModuleStat {\n-  const tags = [\"base\", \"module-08\"];\n+  const tags = [\"base\", \"module-08\", \"pr4\"];\n   return {\n     module: \"m08\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule08Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module09.ts b/samples/ts20-pr-sim/src/modules/module09.ts\nindex 5904f45..c1917ee 100644\n--- a/samples/ts20-pr-sim/src/modules/module09.ts\n+++ b/samples/ts20-pr-sim/src/modules/module09.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_09_OFFSET = 109;\n \n export function compute09(input: number): number {\n-  return input + MODULE_09_OFFSET;\n+  const base = input + MODULE_09_OFFSET;\n+  return base * 2;\n }\n \n export function normalize09(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format09(value: number): string {\n@@ -15,9 +16,18 @@ export function format09(value: number): string {\n }\n \n export function makeStat09(): ModuleStat {\n-  const tags = [\"base\", \"module-09\"];\n+  const tags = [\"base\", \"module-09\", \"pr4\"];\n   return {\n     module: \"m09\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule09Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module10.ts b/samples/ts20-pr-sim/src/modules/module10.ts\nindex 8bfdee2..2b2f180 100644\n--- a/samples/ts20-pr-sim/src/modules/module10.ts\n+++ b/samples/ts20-pr-sim/src/modules/module10.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_10_OFFSET = 110;\n \n export function compute10(input: number): number {\n-  return input + MODULE_10_OFFSET;\n+  const base = input + MODULE_10_OFFSET;\n+  return base * 2;\n }\n \n export function normalize10(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format10(value: number): string {\n@@ -15,9 +16,18 @@ export function format10(value: number): string {\n }\n \n export function makeStat10(): ModuleStat {\n-  const tags = [\"base\", \"module-10\"];\n+  const tags = [\"base\", \"module-10\", \"pr4\"];\n   return {\n     module: \"m10\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule10Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module11.ts b/samples/ts20-pr-sim/src/modules/module11.ts\nindex 115fb3a..c12bbb7 100644\n--- a/samples/ts20-pr-sim/src/modules/module11.ts\n+++ b/samples/ts20-pr-sim/src/modules/module11.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_11_OFFSET = 111;\n \n export function compute11(input: number): number {\n-  return input + MODULE_11_OFFSET;\n+  const base = input + MODULE_11_OFFSET;\n+  return base * 2;\n }\n \n export function normalize11(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format11(value: number): string {\n@@ -15,9 +16,18 @@ export function format11(value: number): string {\n }\n \n export function makeStat11(): ModuleStat {\n-  const tags = [\"base\", \"module-11\"];\n+  const tags = [\"base\", \"module-11\", \"pr4\"];\n   return {\n     module: \"m11\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule11Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module12.ts b/samples/ts20-pr-sim/src/modules/module12.ts\nindex 2d493d4..00a99d0 100644\n--- a/samples/ts20-pr-sim/src/modules/module12.ts\n+++ b/samples/ts20-pr-sim/src/modules/module12.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_12_OFFSET = 112;\n \n export function compute12(input: number): number {\n-  return input + MODULE_12_OFFSET;\n+  const base = input + MODULE_12_OFFSET;\n+  return base * 2;\n }\n \n export function normalize12(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format12(value: number): string {\n@@ -15,9 +16,18 @@ export function format12(value: number): string {\n }\n \n export function makeStat12(): ModuleStat {\n-  const tags = [\"base\", \"module-12\"];\n+  const tags = [\"base\", \"module-12\", \"pr4\"];\n   return {\n     module: \"m12\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule12Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module13.ts b/samples/ts20-pr-sim/src/modules/module13.ts\nindex 8d65a78..fc9b261 100644\n--- a/samples/ts20-pr-sim/src/modules/module13.ts\n+++ b/samples/ts20-pr-sim/src/modules/module13.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_13_OFFSET = 113;\n \n export function compute13(input: number): number {\n-  return input + MODULE_13_OFFSET;\n+  const base = input + MODULE_13_OFFSET;\n+  return base * 2;\n }\n \n export function normalize13(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format13(value: number): string {\n@@ -15,9 +16,18 @@ export function format13(value: number): string {\n }\n \n export function makeStat13(): ModuleStat {\n-  const tags = [\"base\", \"module-13\"];\n+  const tags = [\"base\", \"module-13\", \"pr4\"];\n   return {\n     module: \"m13\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule13Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module14.ts b/samples/ts20-pr-sim/src/modules/module14.ts\nindex e1ceef2..d809c9c 100644\n--- a/samples/ts20-pr-sim/src/modules/module14.ts\n+++ b/samples/ts20-pr-sim/src/modules/module14.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_14_OFFSET = 114;\n \n export function compute14(input: number): number {\n-  return input + MODULE_14_OFFSET;\n+  const base = input + MODULE_14_OFFSET;\n+  return base * 2;\n }\n \n export function normalize14(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format14(value: number): string {\n@@ -15,9 +16,18 @@ export function format14(value: number): string {\n }\n \n export function makeStat14(): ModuleStat {\n-  const tags = [\"base\", \"module-14\"];\n+  const tags = [\"base\", \"module-14\", \"pr4\"];\n   return {\n     module: \"m14\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule14Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module15.ts b/samples/ts20-pr-sim/src/modules/module15.ts\nindex b976785..f906106 100644\n--- a/samples/ts20-pr-sim/src/modules/module15.ts\n+++ b/samples/ts20-pr-sim/src/modules/module15.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_15_OFFSET = 115;\n \n export function compute15(input: number): number {\n-  return input + MODULE_15_OFFSET;\n+  const base = input + MODULE_15_OFFSET;\n+  return base * 2;\n }\n \n export function normalize15(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format15(value: number): string {\n@@ -15,9 +16,18 @@ export function format15(value: number): string {\n }\n \n export function makeStat15(): ModuleStat {\n-  const tags = [\"base\", \"module-15\"];\n+  const tags = [\"base\", \"module-15\", \"pr4\"];\n   return {\n     module: \"m15\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule15Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module16.ts b/samples/ts20-pr-sim/src/modules/module16.ts\nindex 8eeaadb..600a695 100644\n--- a/samples/ts20-pr-sim/src/modules/module16.ts\n+++ b/samples/ts20-pr-sim/src/modules/module16.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_16_OFFSET = 116;\n \n export function compute16(input: number): number {\n-  return input + MODULE_16_OFFSET;\n+  const base = input + MODULE_16_OFFSET;\n+  return base * 2;\n }\n \n export function normalize16(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format16(value: number): string {\n@@ -15,9 +16,18 @@ export function format16(value: number): string {\n }\n \n export function makeStat16(): ModuleStat {\n-  const tags = [\"base\", \"module-16\"];\n+  const tags = [\"base\", \"module-16\", \"pr4\"];\n   return {\n     module: \"m16\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule16Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module17.ts b/samples/ts20-pr-sim/src/modules/module17.ts\nindex e39f628..6a835fd 100644\n--- a/samples/ts20-pr-sim/src/modules/module17.ts\n+++ b/samples/ts20-pr-sim/src/modules/module17.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_17_OFFSET = 117;\n \n export function compute17(input: number): number {\n-  return input + MODULE_17_OFFSET;\n+  const base = input + MODULE_17_OFFSET;\n+  return base * 2;\n }\n \n export function normalize17(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format17(value: number): string {\n@@ -15,9 +16,18 @@ export function format17(value: number): string {\n }\n \n export function makeStat17(): ModuleStat {\n-  const tags = [\"base\", \"module-17\"];\n+  const tags = [\"base\", \"module-17\", \"pr4\"];\n   return {\n     module: \"m17\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule17Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module18.ts b/samples/ts20-pr-sim/src/modules/module18.ts\nindex 5ed24cc..afb93d8 100644\n--- a/samples/ts20-pr-sim/src/modules/module18.ts\n+++ b/samples/ts20-pr-sim/src/modules/module18.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_18_OFFSET = 118;\n \n export function compute18(input: number): number {\n-  return input + MODULE_18_OFFSET;\n+  const base = input + MODULE_18_OFFSET;\n+  return base * 2;\n }\n \n export function normalize18(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format18(value: number): string {\n@@ -15,9 +16,18 @@ export function format18(value: number): string {\n }\n \n export function makeStat18(): ModuleStat {\n-  const tags = [\"base\", \"module-18\"];\n+  const tags = [\"base\", \"module-18\", \"pr4\"];\n   return {\n     module: \"m18\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule18Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module19.ts b/samples/ts20-pr-sim/src/modules/module19.ts\nindex 056832b..2433a2c 100644\n--- a/samples/ts20-pr-sim/src/modules/module19.ts\n+++ b/samples/ts20-pr-sim/src/modules/module19.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_19_OFFSET = 119;\n \n export function compute19(input: number): number {\n-  return input + MODULE_19_OFFSET;\n+  const base = input + MODULE_19_OFFSET;\n+  return base * 2;\n }\n \n export function normalize19(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format19(value: number): string {\n@@ -15,9 +16,18 @@ export function format19(value: number): string {\n }\n \n export function makeStat19(): ModuleStat {\n-  const tags = [\"base\", \"module-19\"];\n+  const tags = [\"base\", \"module-19\", \"pr4\"];\n   return {\n     module: \"m19\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule19Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\ndiff --git a/samples/ts20-pr-sim/src/modules/module20.ts b/samples/ts20-pr-sim/src/modules/module20.ts\nindex c73e1dd..ea91c97 100644\n--- a/samples/ts20-pr-sim/src/modules/module20.ts\n+++ b/samples/ts20-pr-sim/src/modules/module20.ts\n@@ -3,11 +3,12 @@ import { ModuleStat } from \"../types\";\n export const MODULE_20_OFFSET = 120;\n \n export function compute20(input: number): number {\n-  return input + MODULE_20_OFFSET;\n+  const base = input + MODULE_20_OFFSET;\n+  return base * 2;\n }\n \n export function normalize20(value: string): string {\n-  return value.trim();\n+  return value.trim().toLowerCase();\n }\n \n export function format20(value: number): string {\n@@ -15,9 +16,18 @@ export function format20(value: number): string {\n }\n \n export function makeStat20(): ModuleStat {\n-  const tags = [\"base\", \"module-20\"];\n+  const tags = [\"base\", \"module-20\", \"pr4\"];\n   return {\n     module: \"m20\",\n     tags\n   };\n }\n+\n+\n+\n+\n+\n+export function isModule20Ready(input: number): boolean {\n+  return input >= 0;\n+}\n+\n"
 }
