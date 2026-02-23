@@ -139,6 +139,7 @@ python scripts\view_diffgr_app.py <path-to.diffgr.json> --ui textual
 - `d`: グループ差分レポート表示切替
 - `v`: チャンク詳細表示切替（compact / side-by-side）
 - `z`: Focus Changes（未変更行＝context を隠して「変更点だけ」に集中）
+- `Shift+T`: コードのシンタックステーマ切替（Pygments）
 - `=` / `-`: 表示のズーム相当（ui density 切替: compact/normal/comfortable）
 - `s`: 保存
 - `h`: HTML エクスポート
@@ -147,7 +148,7 @@ python scripts\view_diffgr_app.py <path-to.diffgr.json> --ui textual
 
 - `editor mode`: `auto` / `vscode` / `cursor` / `default-app` / `custom`
 - `diff syntax`: `on` / `off`（rich Syntax / Pygments による色分け）
-- `diff syntax theme`: `github-dark` など（Pygments のスタイル名）
+- `diff syntax theme`: `github-dark` など（Pygments のスタイル名。`Shift+T` で循環）
 - `ui density`: `compact` / `normal` / `comfortable`
 - 設定保存先: `~/.diffgr/viewer_settings.json`（環境変数 `DIFFGR_VIEWER_SETTINGS` で変更可）
 

@@ -45,6 +45,28 @@ def normalize_ui_density(value: Any, *, fallback: str = "normal") -> str:
         return raw
     return fallback
 
+
+def _preferred_pygments_themes() -> list[str]:
+    """Return a short, curated list of themes that look good on dark backgrounds."""
+    candidates = [
+        "github-dark",
+        "one-dark",
+        "nord",
+        "dracula",
+        "monokai",
+        "material",
+        "gruvbox-dark",
+        "solarized-dark",
+    ]
+    try:
+        from pygments.styles import get_all_styles
+
+        available = set(get_all_styles())
+        return [name for name in candidates if name in available]
+    except Exception:
+        # rich bundles pygments, but keep it robust in case of partial installs.
+        return candidates[:3]
+
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
 except Exception:  # noqa: BLE001
@@ -452,6 +474,7 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 "editor mode: auto / vscode / cursor / default-app / custom\n"
                 "custom command supports placeholders: {path} and optional {line}\n"
                 "diff syntax: on/off (rich Syntax / Pygments)\n"
+                "diff syntax theme: e.g. github-dark / nord / dracula (Shift+T cycles)\n"
                 "ui density: compact / normal / comfortable (terminal font size is controlled by your terminal)",
                 id="settings-hint",
             )
@@ -614,6 +637,7 @@ class DiffgrTextualApp(App[None]):
         Binding("h", "export_html", "Export HTML"),
         Binding("=", "zoom_in", "Zoom +"),
         Binding("-", "zoom_out", "Zoom -"),
+        Binding("shift+t", "cycle_diff_syntax_theme", "Theme"),
     ]
 
     def __init__(
@@ -797,6 +821,24 @@ class DiffgrTextualApp(App[None]):
             ),
             callback=_on_dismiss,
         )
+
+    def action_cycle_diff_syntax_theme(self) -> None:
+        themes = _preferred_pygments_themes()
+        if not themes:
+            self.notify("No syntax themes available", severity="warning", timeout=1.4)
+            return
+        current = normalize_diff_syntax_theme(self.diff_syntax_theme, fallback=themes[0])
+        try:
+            index = themes.index(current)
+        except ValueError:
+            index = -1
+        self.diff_syntax_theme = themes[(index + 1) % len(themes)]
+        self._syntax_by_lexer = {}
+        self._save_viewer_settings()
+        self.notify(f"Syntax theme: {self.diff_syntax_theme}", timeout=1.1)
+        if self.selected_chunk_id and not self.group_report_mode:
+            self._show_chunk(self.selected_chunk_id)
+        self._refresh_topbar()
 
     def _apply_ui_density(self) -> None:
         """Apply UI density tweaks (padding) to mimic a 'zoom' effect in a terminal UI.
@@ -2055,6 +2097,8 @@ class DiffgrTextualApp(App[None]):
         filter_display = self.filter_text if self.filter_text else "none"
         editor_label = self._editor_setting_label()
         ctx_label = "all" if self.show_context_lines else "changes"
+        syntax_label = "on" if self.diff_syntax else "off"
+        theme_label = self.diff_syntax_theme
         text = (
             f"[b]{title}[/b]  "
             f"group={group_name}  "
@@ -2063,13 +2107,14 @@ class DiffgrTextualApp(App[None]):
             f"selected={selected_count}  "
             f"{save_state}  "
             f"editor={editor_label}  "
+            f"syntax={syntax_label} theme={theme_label}  "
             f"autosave={self.AUTOSAVE_INTERVAL_SEC}s  "
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
             f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  ctx={ctx_label}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, z=focus-changes, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, z=focus-changes, Shift+T=theme, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
