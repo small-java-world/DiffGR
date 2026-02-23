@@ -38,6 +38,13 @@ def normalize_diff_syntax_theme(value: Any, *, fallback: str = "github-dark") ->
     except Exception:
         return fallback
 
+
+def normalize_ui_density(value: Any, *, fallback: str = "normal") -> str:
+    raw = str(value or "").strip().lower()
+    if raw in {"compact", "normal", "comfortable"}:
+        return raw
+    return fallback
+
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
 except Exception:  # noqa: BLE001
@@ -423,12 +430,20 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
     }
     """
 
-    def __init__(self, editor_mode: str, custom_editor_command: str, diff_syntax: bool, diff_syntax_theme: str) -> None:
+    def __init__(
+        self,
+        editor_mode: str,
+        custom_editor_command: str,
+        diff_syntax: bool,
+        diff_syntax_theme: str,
+        ui_density: str,
+    ) -> None:
         super().__init__()
         self.editor_mode = normalize_editor_mode(editor_mode)
         self.custom_editor_command = str(custom_editor_command)
         self.diff_syntax = bool(diff_syntax)
         self.diff_syntax_theme = normalize_diff_syntax_theme(diff_syntax_theme)
+        self.ui_density = normalize_ui_density(ui_density)
 
     def compose(self) -> ComposeResult:
         with Vertical(id="settings-dialog"):
@@ -436,7 +451,8 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
             yield Static(
                 "editor mode: auto / vscode / cursor / default-app / custom\n"
                 "custom command supports placeholders: {path} and optional {line}\n"
-                "diff syntax: on/off (rich Syntax / Pygments)",
+                "diff syntax: on/off (rich Syntax / Pygments)\n"
+                "ui density: compact / normal / comfortable (terminal font size is controlled by your terminal)",
                 id="settings-hint",
             )
             yield Input(value=self.editor_mode, placeholder="editor mode", id="editor_mode")
@@ -455,6 +471,11 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 placeholder="diff syntax theme (e.g. github-dark / one-dark / nord)",
                 id="diff_syntax_theme",
             )
+            yield Input(
+                value=self.ui_density,
+                placeholder="ui density (compact/normal/comfortable)",
+                id="ui_density",
+            )
             with Horizontal(id="settings-buttons"):
                 yield Button("Cancel", id="cancel")
                 yield Button("Save", id="save", variant="primary")
@@ -472,6 +493,7 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 "custom_editor_command": self.query_one("#editor_command", Input).value.strip(),
                 "diff_syntax": self.query_one("#diff_syntax", Input).value.strip(),
                 "diff_syntax_theme": self.query_one("#diff_syntax_theme", Input).value.strip(),
+                "ui_density": self.query_one("#ui_density", Input).value.strip(),
             }
         )
 
@@ -548,6 +570,11 @@ class DiffgrTextualApp(App[None]):
     """
 
     CONTEXT_LINE_BG = "#0f1724"
+    UI_DENSITY_CELL_PADDING = {
+        "compact": 0,
+        "normal": 1,
+        "comfortable": 2,
+    }
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
@@ -585,6 +612,8 @@ class DiffgrTextualApp(App[None]):
         Binding("alt+right", "move_diff_split_right", "Diff ->"),
         Binding("s", "save", "Save"),
         Binding("h", "export_html", "Export HTML"),
+        Binding("=", "zoom_in", "Zoom +"),
+        Binding("-", "zoom_out", "Zoom -"),
     ]
 
     def __init__(
@@ -628,6 +657,7 @@ class DiffgrTextualApp(App[None]):
         self.diff_syntax = True
         self.diff_syntax_theme = "github-dark"
         self._syntax_by_lexer: dict[str, Syntax] = {}
+        self.ui_density = "normal"
         self.settings_path = self._viewer_settings_path()
         self._settings_load_error: str | None = None
         self._dmp_engine = diff_match_patch() if diff_match_patch is not None else None
@@ -662,6 +692,7 @@ class DiffgrTextualApp(App[None]):
         chunk_table.add_columns("sel", "done", "status", "note", "chunk", "file", "old", "new", "header")
         self._switch_lines_table_mode("chunk")
         self._apply_main_split_widths()
+        self._apply_ui_density()
 
         self._refresh_groups()
         self._apply_chunk_filter()
@@ -681,6 +712,7 @@ class DiffgrTextualApp(App[None]):
         self.custom_editor_command = ""
         self.diff_syntax = True
         self.diff_syntax_theme = "github-dark"
+        self.ui_density = "normal"
         path = self.settings_path
         if not path.exists():
             return
@@ -694,6 +726,8 @@ class DiffgrTextualApp(App[None]):
                 self.diff_syntax = bool(payload.get("diffSyntax"))
             if isinstance(payload.get("diffSyntaxTheme"), str) and str(payload.get("diffSyntaxTheme")).strip():
                 self.diff_syntax_theme = normalize_diff_syntax_theme(payload.get("diffSyntaxTheme"))
+            if "uiDensity" in payload:
+                self.ui_density = normalize_ui_density(payload.get("uiDensity"))
         except Exception as error:  # noqa: BLE001
             self._settings_load_error = str(error)
 
@@ -704,6 +738,7 @@ class DiffgrTextualApp(App[None]):
                 "customEditorCommand": str(self.custom_editor_command).strip(),
                 "diffSyntax": bool(self.diff_syntax),
                 "diffSyntaxTheme": normalize_diff_syntax_theme(self.diff_syntax_theme),
+                "uiDensity": normalize_ui_density(self.ui_density),
             }
             self.settings_path.parent.mkdir(parents=True, exist_ok=True)
             self.settings_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -730,6 +765,7 @@ class DiffgrTextualApp(App[None]):
             elif next_diff_syntax_raw in {"off", "false", "0", "no", "n"}:
                 next_diff_syntax = False
             next_theme = normalize_diff_syntax_theme(value.get("diff_syntax_theme"), fallback=self.diff_syntax_theme)
+            next_density = normalize_ui_density(value.get("ui_density"), fallback=self.ui_density)
             if next_mode == EDITOR_MODE_CUSTOM and not next_custom:
                 self.notify("custom mode requires command template", severity="warning", timeout=2.0)
                 return
@@ -738,20 +774,62 @@ class DiffgrTextualApp(App[None]):
                 or next_custom != self.custom_editor_command
                 or next_diff_syntax != self.diff_syntax
                 or next_theme != self.diff_syntax_theme
+                or next_density != self.ui_density
             )
             self.editor_mode = next_mode
             self.custom_editor_command = next_custom
             self.diff_syntax = next_diff_syntax
             self.diff_syntax_theme = next_theme
+            self.ui_density = next_density
             self._syntax_by_lexer = {}
+            self._apply_ui_density()
             if changed and self._save_viewer_settings():
                 self.notify(f"Settings saved: editor={self._editor_setting_label()}", timeout=1.5)
             self._refresh_topbar()
 
         self.push_screen(
-            SettingsModal(self.editor_mode, self.custom_editor_command, self.diff_syntax, self.diff_syntax_theme),
+            SettingsModal(
+                self.editor_mode,
+                self.custom_editor_command,
+                self.diff_syntax,
+                self.diff_syntax_theme,
+                self.ui_density,
+            ),
             callback=_on_dismiss,
         )
+
+    def _apply_ui_density(self) -> None:
+        """Apply UI density tweaks (padding) to mimic a 'zoom' effect in a terminal UI.
+
+        Note: terminal font size itself is controlled by the terminal emulator.
+        """
+        padding = int(self.UI_DENSITY_CELL_PADDING.get(self.ui_density, 1))
+        for selector in ("#groups", "#chunks", "#lines"):
+            try:
+                table = self.query_one(selector, DataTable)
+                table.cell_padding = padding
+            except Exception:
+                pass
+
+    def action_zoom_in(self) -> None:
+        order = ["compact", "normal", "comfortable"]
+        current = normalize_ui_density(self.ui_density)
+        idx = order.index(current) if current in order else 1
+        self.ui_density = order[min(len(order) - 1, idx + 1)]
+        self._apply_ui_density()
+        self._save_viewer_settings()
+        self.notify(f"UI density: {self.ui_density}", timeout=1.0)
+        self._refresh_topbar()
+
+    def action_zoom_out(self) -> None:
+        order = ["compact", "normal", "comfortable"]
+        current = normalize_ui_density(self.ui_density)
+        idx = order.index(current) if current in order else 1
+        self.ui_density = order[max(0, idx - 1)]
+        self._apply_ui_density()
+        self._save_viewer_settings()
+        self.notify(f"UI density: {self.ui_density}", timeout=1.0)
+        self._refresh_topbar()
 
     def _syntax_lexer_for_file(self, file_path: str, code_hint: str | None = None) -> str | None:
         raw = str(file_path or "").strip()

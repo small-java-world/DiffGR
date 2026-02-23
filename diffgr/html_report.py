@@ -633,6 +633,7 @@ def render_group_diff_html(
       --ctx-bg: #121722;
       --meta-bg: #1b2232;
       --accent: #5ea3ff;
+      --diff-font: 12px;
     }}
     * {{ box-sizing: border-box; }}
     body {{
@@ -1204,6 +1205,10 @@ def render_group_diff_html(
     }}
     .diff-table td.code {{
       padding: 4px 8px;
+      font-family: Consolas, "Courier New", monospace;
+    }}
+    .diff-table {{
+      font-size: var(--diff-font);
     }}
     .line-link {{
       color: #94b9f7;
@@ -1255,7 +1260,7 @@ def render_group_diff_html(
       font-size: 12px;
     }}
     body.compact .diff-table {{
-      font-size: 11px;
+      font-size: calc(var(--diff-font) - 1px);
     }}
     body.compact .diff-table td.num {{
       padding: 2px 6px;
@@ -1428,6 +1433,9 @@ def render_group_diff_html(
         <button id="toggle-comments" type="button" aria-pressed="false">Comments Only</button>
         <button id="toggle-wrap" type="button" aria-pressed="true">Wrap</button>
         <button id="toggle-compact" type="button" aria-pressed="false">Compact</button>
+        <button id="font-smaller" type="button" title="Decrease diff font size">A-</button>
+        <button id="font-larger" type="button" title="Increase diff font size">A+</button>
+        <button id="font-reset" type="button" title="Reset diff font size">A0</button>
         <button id="save-reviews" type="button" hidden>Save to App</button>
         <button id="download-json" type="button">Download JSON</button>
         <button id="copy-reviews" type="button">Copy Reviews</button>
@@ -1553,6 +1561,35 @@ def render_group_diff_html(
         if (!button) return;
         button.setAttribute("aria-pressed", value ? "true" : "false");
       }}
+
+      // Font size (diff table) zoom controls.
+      const FONT_KEY = "diffgr:diffFontPx";
+      const rootStyle = document.documentElement.style;
+      const fontSmaller = document.getElementById("font-smaller");
+      const fontLarger = document.getElementById("font-larger");
+      const fontReset = document.getElementById("font-reset");
+
+      function clamp(n, lo, hi) {{
+        return Math.max(lo, Math.min(hi, n));
+      }}
+
+      function getFontPx() {{
+        const raw = localStorage.getItem(FONT_KEY);
+        const n = raw ? Number(raw) : NaN;
+        return Number.isFinite(n) ? clamp(Math.round(n), 9, 22) : 12;
+      }}
+
+      function setFontPx(px) {{
+        const n = clamp(Math.round(px), 9, 22);
+        rootStyle.setProperty("--diff-font", `${{n}}px`);
+        localStorage.setItem(FONT_KEY, String(n));
+      }}
+
+      // Initialize.
+      setFontPx(getFontPx());
+      fontSmaller?.addEventListener("click", () => setFontPx(getFontPx() - 1));
+      fontLarger?.addEventListener("click", () => setFontPx(getFontPx() + 1));
+      fontReset?.addEventListener("click", () => setFontPx(12));
 
       function setSaveStatus(message, isError) {{
         if (!saveReviewsStatus) {{
@@ -1768,7 +1805,7 @@ def render_group_diff_html(
       }}
 
       function isoUtcNow() {{
-        return new Date().toISOString().replace(/\\\.\\d{{3}}Z$/, "Z");
+        return new Date().toISOString().replace(/\\.\\d{{3}}Z$/, "Z");
       }}
 
       function normalizeStatus(status) {{
