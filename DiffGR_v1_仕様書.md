@@ -62,10 +62,39 @@ Status: Stable (v1)
   - `url` (string, OPTIONAL): source URL
   - `base` (string, OPTIONAL): base ref（branch/SHA）
   - `head` (string, OPTIONAL): head ref（branch/SHA）
+  - `baseSha` (string, OPTIONAL): base の解決済み commit SHA（40桁 hex 推奨）
+  - `headSha` (string, OPTIONAL): head の解決済み commit SHA（40桁 hex 推奨）
+  - `mergeBaseSha` (string, OPTIONAL): `git merge-base base head` の SHA（`git diff base...head` の基準）
   - `description` (string, OPTIONAL)
 - `notes` (string, OPTIONAL): 自由記述
 
 consumer は `title` を目立つ形で表示すべき。
+
+### 5.1 推奨拡張: レビュー修正履歴と影響範囲
+
+`DiffGR v1` は未知フィールドを許容するため、レビュー運用では以下の拡張を推奨する。
+
+- `meta.x-reviewHistory` (array, OPTIONAL): レビュー運用イベント履歴
+  - 例: `rebase_reviews.py` 実行結果、担当再割当、手動判断メモ
+  - 推奨要素（object）:
+    - `type` (string): 例 `rebase`
+    - `at` (string): ISO-8601 timestamp
+    - `from` / `to` (object): 対象 snapshot の参照情報（path/title/source）
+    - `result` (object): match 統計や `needsReReview` 件数など
+    - `impactScope` (object): 影響あり/影響なし group 情報
+- `meta.x-impactScope` (object, OPTIONAL): 最新の影響範囲サマリ
+  - `grouping` (string): `old` / `new`
+  - `impactedGroups` / `unaffectedGroups` (array)
+  - `newOnlyChunkIds` / `oldOnlyChunkIds` (array)
+  - `coverageNew` (object): 新snapshotの未割当/重複など
+  - 実運用では `coverageNew` は「rebase後に保存された出力JSON」を基準に算出することを推奨
+  - 大規模差分では履歴肥大化防止のため、`changedChunkIds` などID配列をサンプリングし
+    `*Truncated` カウンタ（例: `changedChunkIdsTruncated`）を併記してよい
+
+運用上の意図:
+
+- 「どの修正ラウンドで、どの仮想PRが影響を受けたか」を JSON 単体で追跡可能にする
+- 影響なし group のレビュアへ不要な再レビュー依頼を避ける
 
 ## 6. `groups`
 

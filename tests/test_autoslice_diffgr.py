@@ -53,6 +53,11 @@ class TestAutoSliceDiffgr(unittest.TestCase):
                 include_patch=False,
             )
             self.assertGreaterEqual(len(doc["chunks"]), 3)
+            source = doc.get("meta", {}).get("source", {})
+            self.assertEqual(source.get("baseSha"), base)
+            self.assertEqual(source.get("headSha"), feature)
+            # base is an ancestor of feature in this test repo, so merge-base == base.
+            self.assertEqual(source.get("mergeBaseSha"), base)
 
             new_doc, warnings = autoslice_document_by_commits(
                 repo=repo,
@@ -69,4 +74,3 @@ class TestAutoSliceDiffgr(unittest.TestCase):
             for ids in new_doc["assignments"].values():
                 assigned.update(ids)
             self.assertEqual(assigned, {c["id"] for c in doc["chunks"]})
-
