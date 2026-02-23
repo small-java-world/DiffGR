@@ -990,6 +990,45 @@ class TestViewerTextualReport(unittest.TestCase):
         app.action_move_split_right()
         self.assertEqual(app.left_pane_pct, app.MAX_LEFT_PANE_PCT)
 
+    def test_move_split_actions_trigger_rerender_and_refresh_when_changed(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.left_pane_pct = 52
+        rerender_calls: list[bool] = []
+        refresh_calls: list[bool] = []
+        app._apply_main_split_widths = lambda: None  # type: ignore[method-assign]
+        app._rerender_lines_if_width_sensitive = lambda: rerender_calls.append(True)  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: refresh_calls.append(True)  # type: ignore[method-assign]
+
+        app.action_move_split_right()
+
+        self.assertEqual(app.left_pane_pct, 56)
+        self.assertEqual(rerender_calls, [True])
+        self.assertEqual(refresh_calls, [True])
+
+    def test_move_split_right_noop_at_max_does_not_rerender(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.left_pane_pct = app.MAX_LEFT_PANE_PCT
+        app._apply_main_split_widths = lambda: self.fail("must not apply widths on no-op")  # type: ignore[method-assign]
+        app._rerender_lines_if_width_sensitive = lambda: self.fail("must not rerender on no-op")  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: self.fail("must not refresh on no-op")  # type: ignore[method-assign]
+
+        app.action_move_split_right()
+        self.assertEqual(app.left_pane_pct, app.MAX_LEFT_PANE_PCT)
+
     def test_clamp_diff_old_ratio_respects_min_max(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),
@@ -1021,6 +1060,49 @@ class TestViewerTextualReport(unittest.TestCase):
         self.assertGreaterEqual(old_width, 12)
         self.assertGreaterEqual(new_width, 12)
 
+    def test_group_report_text_widths_prefers_lines_widget_width(self):
+        class StubSize:
+            def __init__(self, width: int) -> None:
+                self.width = width
+
+        class StubLinesTable:
+            def __init__(self, width: int) -> None:
+                self.size = StubSize(width)
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_old_ratio = 0.50
+        app.query_one = lambda *_args, **_kwargs: StubLinesTable(88)  # type: ignore[method-assign]
+
+        old_width, new_width = app._group_report_text_widths(total_width=200)
+
+        self.assertEqual((old_width, new_width), (36, 36))
+
+    def test_group_report_text_widths_falls_back_when_lines_unavailable(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.left_pane_pct = 52
+        app.diff_old_ratio = 0.50
+        app.query_one = lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("no widget"))  # type: ignore[method-assign]
+
+        old_width, new_width = app._group_report_text_widths(total_width=120)
+
+        self.assertGreaterEqual(old_width, 12)
+        self.assertGreaterEqual(new_width, 12)
+        self.assertEqual(old_width + new_width, 41)
+
     def test_move_diff_split_actions_adjust_ratio_within_bounds(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),
@@ -1043,6 +1125,52 @@ class TestViewerTextualReport(unittest.TestCase):
         app.diff_old_ratio = app.MAX_DIFF_OLD_RATIO
         app.action_move_diff_split_right()
         self.assertAlmostEqual(app.diff_old_ratio, app.MAX_DIFF_OLD_RATIO)
+
+    def test_move_diff_split_noop_at_max_does_not_rerender(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_old_ratio = app.MAX_DIFF_OLD_RATIO
+        app._rerender_lines_if_width_sensitive = lambda: self.fail("must not rerender on no-op")  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: self.fail("must not refresh on no-op")  # type: ignore[method-assign]
+
+        app.action_move_diff_split_right()
+        self.assertAlmostEqual(app.diff_old_ratio, app.MAX_DIFF_OLD_RATIO)
+
+    def test_apply_ui_density_sets_padding_for_all_tables(self):
+        class StubTable:
+            def __init__(self) -> None:
+                self.cell_padding = -1
+
+        groups = StubTable()
+        chunks = StubTable()
+        lines = StubTable()
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.ui_density = "comfortable"
+
+        def _query_one(selector, *_args, **_kwargs):
+            mapping = {"#groups": groups, "#chunks": chunks, "#lines": lines}
+            return mapping[selector]
+
+        app.query_one = _query_one  # type: ignore[method-assign]
+
+        app._apply_ui_density()
+
+        self.assertEqual(groups.cell_padding, 2)
+        self.assertEqual(chunks.cell_padding, 2)
+        self.assertEqual(lines.cell_padding, 2)
 
     def test_toggle_reviewed_checkbox_switches_between_reviewed_and_unreviewed(self):
         app = DiffgrTextualApp(
