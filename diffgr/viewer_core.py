@@ -54,6 +54,9 @@ def validate_document(doc: dict[str, Any]) -> list[str]:
 
     group_set = set(group_ids)
     chunk_set = set(chunk_ids)
+    for group_id in group_set:
+        if group_id not in assignments:
+            warnings.append(f"Group missing assignments entry: {group_id}")
     for group_id, assigned in assignments.items():
         if group_id not in group_set:
             warnings.append(f"Assignment key not in groups: {group_id}")
@@ -120,7 +123,12 @@ def filter_chunks(
     if group_id:
         assigned = doc["assignments"].get(group_id)
         if assigned is None:
-            raise LookupError(f"Group not found in assignments: {group_id}")
+            group_exists = any(
+                isinstance(group, dict) and str(group.get("id", "")) == group_id for group in doc.get("groups", [])
+            )
+            if not group_exists:
+                raise LookupError(f"Group not found in assignments: {group_id}")
+            assigned = []
         candidates = [chunk_map[item] for item in assigned if item in chunk_map]
     else:
         candidates = list(chunk_map.values())

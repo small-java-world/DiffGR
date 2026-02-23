@@ -157,6 +157,35 @@ class TestReviewRebase(unittest.TestCase):
         self.assertEqual(summary.matched_similar, 1)
         self.assertEqual(out_doc["reviews"]["new1"]["status"], "needsReReview")
 
+    def test_preserve_groups_keeps_empty_assignment_keys(self):
+        old_chunk = make_chunk(
+            chunk_id="old1",
+            file_path="src/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "x", "oldLine": None, "newLine": 1}],
+        )
+        old_doc = make_doc(
+            chunks=[old_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}, {"id": "g2", "name": "B", "order": 2}],
+            assignments={"g1": ["old1"], "g2": []},
+            reviews={},
+        )
+        new_doc = make_doc(
+            chunks=[],
+            groups=[{"id": "g-all", "name": "All", "order": 1}],
+            assignments={"g-all": []},
+            reviews={},
+        )
+
+        out_doc, _, _ = rebase_review_state(old_doc=old_doc, new_doc=new_doc, preserve_groups=True)
+        validate_document(out_doc)
+        self.assertIn("g1", out_doc["assignments"])
+        self.assertIn("g2", out_doc["assignments"])
+        self.assertEqual(out_doc["assignments"]["g1"], [])
+        self.assertEqual(out_doc["assignments"]["g2"], [])
+
     def test_delta_match_preserves_reviewed_when_only_context_changes(self):
         old_lines = [
             {"kind": "context", "text": "const x = 1;", "oldLine": 1, "newLine": 1},

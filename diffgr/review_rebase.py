@@ -453,7 +453,12 @@ def rebase_review_state(
     out_assignments = new_out.get("assignments", {})
     if preserve_groups:
         out_groups = copy.deepcopy(old_doc.get("groups", []))
-        out_assignments = {}
+        # Keep every old group key even if it becomes empty after rebase.
+        out_assignments = {
+            str(group.get("id")): []
+            for group in out_groups
+            if isinstance(group, dict) and str(group.get("id", ""))
+        }
         old_assignments = old_doc.get("assignments", {})
         if isinstance(old_assignments, dict):
             for group_id, chunk_ids in old_assignments.items():
@@ -464,9 +469,11 @@ def rebase_review_state(
                     match = old_to_new.get(old_chunk_id_str)
                     if not match:
                         continue
-                    out_assignments.setdefault(str(group_id), [])
-                    if match.new_id not in out_assignments[str(group_id)]:
-                        out_assignments[str(group_id)].append(match.new_id)
+                    group_id_str = str(group_id)
+                    if group_id_str not in out_assignments:
+                        continue
+                    if match.new_id not in out_assignments[group_id_str]:
+                        out_assignments[group_id_str].append(match.new_id)
 
         # Keep only groups with valid ids; assignments keys must exist in groups.
         group_ids = {str(g.get("id")) for g in out_groups if isinstance(g, dict) and str(g.get("id", ""))}

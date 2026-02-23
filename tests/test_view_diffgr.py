@@ -67,6 +67,12 @@ class TestViewDiffgr(unittest.TestCase):
         self.assertTrue(any("Assigned chunk id not found: missing" in item for item in warnings))
         self.assertTrue(any("Review key chunk id not found: missing-review" in item for item in warnings))
 
+    def test_validate_document_warns_when_group_assignments_key_missing(self):
+        doc = make_doc()
+        doc["assignments"].pop("g2", None)
+        warnings = view_diffgr.validate_document(doc)
+        self.assertTrue(any("Group missing assignments entry: g2" in item for item in warnings))
+
     def test_build_indexes_defaults_invalid_status_to_unreviewed(self):
         doc = make_doc()
         doc["reviews"]["c2"] = {"status": "invalid-status"}
@@ -112,6 +118,21 @@ class TestViewDiffgr(unittest.TestCase):
                 status_filter=None,
                 file_contains=None,
             )
+
+    def test_filter_chunks_allows_known_group_without_assignments_key(self):
+        doc = make_doc()
+        doc["assignments"].pop("g2", None)
+        chunk_map, status_map = view_diffgr.build_indexes(doc)
+        filtered = view_diffgr.filter_chunks(
+            doc=doc,
+            chunk_map=chunk_map,
+            status_map=status_map,
+            group_id="g2",
+            chunk_id=None,
+            status_filter=None,
+            file_contains=None,
+        )
+        self.assertEqual(filtered, [])
 
     def test_resolve_input_path_falls_back_to_search_root(self):
         with tempfile.TemporaryDirectory() as tmp:
