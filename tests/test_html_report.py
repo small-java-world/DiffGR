@@ -133,12 +133,14 @@ class TestHtmlReport(unittest.TestCase):
         self.assertIn("data-action='toggle-reviewed'", html)
         self.assertIn("data-action='chunk-comment'", html)
         self.assertIn("data-action='line-comment'", html)
+        self.assertIn("data-action='edit-comment-item'", html)
         self.assertIn("function openCommentEditor(options)", html)
         self.assertIn("function setChunkStatus(", html)
         self.assertIn("function refreshReviewProgress()", html)
         self.assertIn("setSaveStatus(", html)
         self.assertIn("function setChunkComment(", html)
         self.assertIn("function setLineCommentForAnchor(", html)
+        self.assertIn("function editCommentItemFromPane(commentItemEl)", html)
         self.assertIn("function rebuildCommentPaneFromDraft()", html)
         self.assertIn("function rebuildInboxFromDom()", html)
 
@@ -168,6 +170,26 @@ class TestHtmlReport(unittest.TestCase):
         self.assertIn('id="comment-total">2</span>', html)
         self.assertIn('id="comment-unresolved">2</span>', html)
         self.assertIn("data-kind='line-comment' data-anchor-key='delete:2:'", html)
+        self.assertIn("data-chunk-id='c1' data-anchor-key='delete:2:'", html)
+
+    def test_render_comment_items_include_edit_anchor_metadata(self):
+        doc = make_doc()
+        doc["reviews"] = {
+            "c1": {
+                "status": "needsReReview",
+                "comment": "chunk note",
+                "lineComments": [
+                    {"oldLine": 2, "newLine": None, "lineType": "delete", "comment": "line note"},
+                ],
+            }
+        }
+        html = render_group_diff_html(doc, group_selector="計算倍率変更")
+        self.assertIn("data-type='chunk' data-chunk-id='c1' data-anchor-key='' data-chunk-anchor='chunk-c1'", html)
+        self.assertIn(
+            "data-type='line' data-chunk-id='c1' data-anchor-key='delete:2:' data-chunk-anchor='chunk-c1'",
+            html,
+        )
+        self.assertIn("class='comment-edit-btn' type='button' data-action='edit-comment-item'", html)
 
     def test_render_reflects_reviewed_checkbox_and_percentage(self):
         doc = make_doc()

@@ -376,6 +376,7 @@ def render_group_diff_html(
                     {
                         "anchor": chunk_anchor,
                         "type": "chunk",
+                        "chunk_anchor": chunk_anchor,
                         "file_path": file_path,
                         "chunk_id": chunk_id,
                         "status": chunk_status,
@@ -389,6 +390,8 @@ def render_group_diff_html(
                         {
                             "anchor": target_anchor,
                             "type": "line",
+                            "chunk_anchor": chunk_anchor,
+                            "anchor_key": anchor_key,
                             "file_path": file_path,
                             "chunk_id": chunk_id,
                             "status": chunk_status,
@@ -572,7 +575,8 @@ def render_group_diff_html(
         item_type = str(item.get("type", "line"))
         item_type_label = "CHUNK" if item_type == "chunk" else "LINE"
         comment_html_parts.append(
-            "<li class='comment-item' data-status='{status}' data-unresolved='{unresolved}' data-type='{item_type}' data-text='{text_blob}'>"
+            "<li class='comment-item' data-status='{status}' data-unresolved='{unresolved}' data-type='{item_type}' "
+            "data-chunk-id='{chunk_id_full}' data-anchor-key='{anchor_key}' data-chunk-anchor='{chunk_anchor}' data-text='{text_blob}'>"
             "<a class='comment-jump' href='#{anchor}'>#{idx}</a>"
             "<div class='comment-body'>"
             "<div class='comment-meta'>"
@@ -580,6 +584,7 @@ def render_group_diff_html(
             "<span class='comment-chunk'>{chunk_id}</span>"
             "<span class='comment-type'>{item_type_label}</span>"
             "{status_badge}"
+            "<button class='comment-edit-btn' type='button' data-action='edit-comment-item'>Edit</button>"
             "</div>"
             "<p class='comment-text'>{comment_text}</p>"
             "</div>"
@@ -587,6 +592,9 @@ def render_group_diff_html(
                 status=escape(status),
                 unresolved="1" if unresolved else "0",
                 item_type=escape(item_type),
+                chunk_id_full=escape(str(item.get("chunk_id", ""))),
+                anchor_key=escape(str(item.get("anchor_key", ""))),
+                chunk_anchor=escape(str(item.get("chunk_anchor", ""))),
                 text_blob=escape(
                     (
                         str(item.get("file_path", ""))
@@ -770,6 +778,20 @@ def render_group_diff_html(
       color: #d2dff5;
       font-size: 10px;
       font-weight: 700;
+    }}
+    .comment-edit-btn {{
+      margin-left: auto;
+      border: 1px solid #4d6ea3;
+      border-radius: 7px;
+      background: #162746;
+      color: #d8e8ff;
+      font-size: 11px;
+      line-height: 1;
+      padding: 4px 8px;
+      cursor: pointer;
+    }}
+    .comment-edit-btn:hover {{
+      background: #214172;
     }}
     .comment-text {{
       margin: 0;
@@ -2193,6 +2215,8 @@ def render_group_diff_html(
             entries.push({{
               type: "chunk",
               anchor: chunkEl.id,
+              chunkAnchor: chunkEl.id,
+              anchorKey: "",
               filePath: filePath,
               chunkId: chunkId,
               status: status,
@@ -2209,6 +2233,8 @@ def render_group_diff_html(
             entries.push({{
               type: "line",
               anchor: findRowIdForLineComment(chunkEl, lineComment),
+              chunkAnchor: chunkEl.id,
+              anchorKey: lineAnchorKey(lineComment.oldLine, lineComment.newLine, lineComment.lineType),
               filePath: filePath,
               chunkId: chunkId,
               status: status,
@@ -2242,7 +2268,9 @@ def render_group_diff_html(
           for (const item of entries) {{
             html.push(
               "<li class='comment-item' data-status='" + escapeHtml(item.status) + "' data-unresolved='" + (item.unresolved ? "1" : "0") + "'" +
-              " data-type='" + escapeHtml(item.type) + "' data-text='" + escapeHtml((item.filePath + " " + item.chunkId + " " + item.text).toLowerCase()) + "'>" +
+              " data-type='" + escapeHtml(item.type) + "' data-chunk-id='" + escapeHtml(item.chunkId) + "'" +
+              " data-anchor-key='" + escapeHtml(item.anchorKey || "") + "' data-chunk-anchor='" + escapeHtml(item.chunkAnchor || "") + "'" +
+              " data-text='" + escapeHtml((item.filePath + " " + item.chunkId + " " + item.text).toLowerCase()) + "'>" +
               "<a class='comment-jump' href='#" + escapeHtml(item.anchor) + "'>#"+ escapeHtml(String(index)) + "</a>" +
               "<div class='comment-body'>" +
               "<div class='comment-meta'>" +
@@ -2250,6 +2278,7 @@ def render_group_diff_html(
               "<span class='comment-chunk'>" + escapeHtml(item.chunkId.slice(0, 12)) + "</span>" +
               "<span class='comment-type'>" + (item.type === "chunk" ? "CHUNK" : "LINE") + "</span>" +
               statusBadgeHtml(item.status) +
+              "<button class='comment-edit-btn' type='button' data-action='edit-comment-item'>Edit</button>" +
               "</div>" +
               "<p class='comment-text'>" + escapeHtml(item.text) + "</p>" +
               "</div></li>"
@@ -2328,6 +2357,43 @@ def render_group_diff_html(
         rebuildInboxFromDom();
         applyFilters();
         applyCommentFilters();
+      }}
+
+      function findLineRowByAnchorKey(chunkId, anchorKey) {{
+        const targetChunk = findChunkById(chunkId);
+        if (!targetChunk) {{
+          return null;
+        }}
+        const rows = Array.from(targetChunk.querySelectorAll("tr.diff-row"));
+        for (const row of rows) {{
+          const kind = row.getAttribute("data-kind") || "";
+          if (kind === "line-comment") {{
+            continue;
+          }}
+          if ((row.getAttribute("data-anchor-key") || "") === String(anchorKey || "")) {{
+            return row;
+          }}
+        }}
+        return null;
+      }}
+
+      async function editCommentItemFromPane(commentItemEl) {{
+        if (!commentItemEl) {{
+          return;
+        }}
+        const itemType = commentItemEl.getAttribute("data-type") || "line";
+        const chunkId = commentItemEl.getAttribute("data-chunk-id") || "";
+        if (!chunkId) {{
+          return;
+        }}
+        if (itemType === "chunk") {{
+          const chunkEl = findChunkById(chunkId);
+          await editChunkComment(chunkEl);
+          return;
+        }}
+        const anchorKey = commentItemEl.getAttribute("data-anchor-key") || "";
+        const row = findLineRowByAnchorKey(chunkId, anchorKey);
+        await editLineCommentFromRow(row);
       }}
 
       function applyFilters() {{
@@ -2619,6 +2685,15 @@ def render_group_diff_html(
           event.stopPropagation();
           const chunkEl = chunkBtn.closest(".chunk");
           void editChunkComment(chunkEl);
+          return;
+        }}
+
+        const editCommentBtn = target.closest("button[data-action='edit-comment-item']");
+        if (editCommentBtn) {{
+          event.preventDefault();
+          event.stopPropagation();
+          const commentItemEl = editCommentBtn.closest(".comment-item");
+          void editCommentItemFromPane(commentItemEl);
           return;
         }}
 

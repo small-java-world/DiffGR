@@ -24,6 +24,7 @@ from textual.widgets import Button, DataTable, Footer, Header, Input, Static, Ru
 from rich.text import Text
 from rich.syntax import Syntax
 from .html_report import render_group_diff_html
+from .review_split import build_group_output_filename, split_document_by_group
 
 
 def normalize_diff_syntax_theme(value: Any, *, fallback: str = "github-dark") -> str:
@@ -459,6 +460,7 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
         diff_syntax: bool,
         diff_syntax_theme: str,
         ui_density: str,
+        diff_auto_wrap: bool,
     ) -> None:
         super().__init__()
         self.editor_mode = normalize_editor_mode(editor_mode)
@@ -466,6 +468,7 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
         self.diff_syntax = bool(diff_syntax)
         self.diff_syntax_theme = normalize_diff_syntax_theme(diff_syntax_theme)
         self.ui_density = normalize_ui_density(ui_density)
+        self.diff_auto_wrap = bool(diff_auto_wrap)
 
     def compose(self) -> ComposeResult:
         with Vertical(id="settings-dialog"):
@@ -475,7 +478,8 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 "custom command supports placeholders: {path} and optional {line}\n"
                 "diff syntax: on/off (rich Syntax / Pygments)\n"
                 "diff syntax theme: e.g. github-dark / nord / dracula (Shift+T cycles)\n"
-                "ui density: compact / normal / comfortable (terminal font size is controlled by your terminal)",
+                "ui density: compact / normal / comfortable (terminal font size is controlled by your terminal)\n"
+                "diff auto wrap: on/off (wrap long diff lines in chunk detail)",
                 id="settings-hint",
             )
             yield Input(value=self.editor_mode, placeholder="editor mode", id="editor_mode")
@@ -499,6 +503,11 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 placeholder="ui density (compact/normal/comfortable)",
                 id="ui_density",
             )
+            yield Input(
+                value="on" if self.diff_auto_wrap else "off",
+                placeholder="diff auto wrap (on/off)",
+                id="diff_auto_wrap",
+            )
             with Horizontal(id="settings-buttons"):
                 yield Button("Cancel", id="cancel")
                 yield Button("Save", id="save", variant="primary")
@@ -517,6 +526,7 @@ class SettingsModal(ModalScreen[dict[str, str] | None]):
                 "diff_syntax": self.query_one("#diff_syntax", Input).value.strip(),
                 "diff_syntax_theme": self.query_one("#diff_syntax_theme", Input).value.strip(),
                 "ui_density": self.query_one("#ui_density", Input).value.strip(),
+                "diff_auto_wrap": self.query_one("#diff_auto_wrap", Input).value.strip(),
             }
         )
 
@@ -560,6 +570,7 @@ class DiffgrTextualApp(App[None]):
     MAX_DIFF_OLD_RATIO = 0.75
     DIFF_RATIO_STEP = 0.05
     AUTOSAVE_INTERVAL_SEC = 20
+    AUTO_SPLIT_MANIFEST_NAME = "manifest.json"
     KEYMAP_REV = "km-20260223-4"
 
     CSS = """
@@ -616,6 +627,7 @@ class DiffgrTextualApp(App[None]):
         Binding("d", "toggle_group_report", "Diff Report"),
         Binding("v", "toggle_chunk_detail_view", "Detail View"),
         Binding("z", "toggle_context_lines", "Focus Changes"),
+        Binding("w", "toggle_auto_wrap", "Wrap"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
         Binding("2", "set_status('reviewed')", "Reviewed"),
         Binding("3", "set_status('needsReReview')", "ReReview"),
@@ -681,6 +693,7 @@ class DiffgrTextualApp(App[None]):
         self.custom_editor_command = ""
         self.diff_syntax = True
         self.diff_syntax_theme = "github-dark"
+        self.diff_auto_wrap = True
         self._syntax_by_lexer: dict[str, Syntax] = {}
         self.ui_density = "normal"
         self.settings_path = self._viewer_settings_path()
@@ -737,6 +750,7 @@ class DiffgrTextualApp(App[None]):
         self.custom_editor_command = ""
         self.diff_syntax = True
         self.diff_syntax_theme = "github-dark"
+        self.diff_auto_wrap = True
         self.ui_density = "normal"
         path = self.settings_path
         if not path.exists():
@@ -751,6 +765,8 @@ class DiffgrTextualApp(App[None]):
                 self.diff_syntax = bool(payload.get("diffSyntax"))
             if isinstance(payload.get("diffSyntaxTheme"), str) and str(payload.get("diffSyntaxTheme")).strip():
                 self.diff_syntax_theme = normalize_diff_syntax_theme(payload.get("diffSyntaxTheme"))
+            if "diffAutoWrap" in payload:
+                self.diff_auto_wrap = bool(payload.get("diffAutoWrap"))
             if "uiDensity" in payload:
                 self.ui_density = normalize_ui_density(payload.get("uiDensity"))
         except Exception as error:  # noqa: BLE001
@@ -763,6 +779,7 @@ class DiffgrTextualApp(App[None]):
                 "customEditorCommand": str(self.custom_editor_command).strip(),
                 "diffSyntax": bool(self.diff_syntax),
                 "diffSyntaxTheme": normalize_diff_syntax_theme(self.diff_syntax_theme),
+                "diffAutoWrap": bool(self.diff_auto_wrap),
                 "uiDensity": normalize_ui_density(self.ui_density),
             }
             self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -791,6 +808,12 @@ class DiffgrTextualApp(App[None]):
                 next_diff_syntax = False
             next_theme = normalize_diff_syntax_theme(value.get("diff_syntax_theme"), fallback=self.diff_syntax_theme)
             next_density = normalize_ui_density(value.get("ui_density"), fallback=self.ui_density)
+            next_auto_wrap_raw = str(value.get("diff_auto_wrap", "")).strip().lower()
+            next_auto_wrap = self.diff_auto_wrap
+            if next_auto_wrap_raw in {"on", "true", "1", "yes", "y"}:
+                next_auto_wrap = True
+            elif next_auto_wrap_raw in {"off", "false", "0", "no", "n"}:
+                next_auto_wrap = False
             if next_mode == EDITOR_MODE_CUSTOM and not next_custom:
                 self.notify("custom mode requires command template", severity="warning", timeout=2.0)
                 return
@@ -799,15 +822,18 @@ class DiffgrTextualApp(App[None]):
                 or next_custom != self.custom_editor_command
                 or next_diff_syntax != self.diff_syntax
                 or next_theme != self.diff_syntax_theme
+                or next_auto_wrap != self.diff_auto_wrap
                 or next_density != self.ui_density
             )
             self.editor_mode = next_mode
             self.custom_editor_command = next_custom
             self.diff_syntax = next_diff_syntax
             self.diff_syntax_theme = next_theme
+            self.diff_auto_wrap = next_auto_wrap
             self.ui_density = next_density
             self._syntax_by_lexer = {}
             self._apply_ui_density()
+            self._rerender_lines_if_width_sensitive()
             if changed and self._save_viewer_settings():
                 self.notify(f"Settings saved: editor={self._editor_setting_label()}", timeout=1.5)
             self._refresh_topbar()
@@ -819,9 +845,17 @@ class DiffgrTextualApp(App[None]):
                 self.diff_syntax,
                 self.diff_syntax_theme,
                 self.ui_density,
+                self.diff_auto_wrap,
             ),
             callback=_on_dismiss,
         )
+
+    def action_toggle_auto_wrap(self) -> None:
+        self.diff_auto_wrap = not bool(self.diff_auto_wrap)
+        self._rerender_lines_if_width_sensitive()
+        self._save_viewer_settings()
+        self.notify(f"Auto wrap: {'ON' if self.diff_auto_wrap else 'OFF'}", timeout=1.0)
+        self._refresh_topbar()
 
     def action_cycle_diff_syntax_theme(self) -> None:
         themes = _preferred_pygments_themes()
@@ -1187,7 +1221,7 @@ class DiffgrTextualApp(App[None]):
             if self.group_report_mode:
                 self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
                 return
-            if self.chunk_detail_view_mode == "side_by_side" and self.selected_chunk_id:
+            if self.selected_chunk_id and (self.chunk_detail_view_mode == "side_by_side" or self.diff_auto_wrap):
                 self._show_chunk(self.selected_chunk_id)
         except Exception:
             # Ignore transient layout-time errors; normal rendering path will repaint.
@@ -2080,6 +2114,79 @@ class DiffgrTextualApp(App[None]):
         stamp = self._last_saved_at.strftime("%H:%M:%S")
         return f"save=clean({self._last_save_kind}@{stamp})"
 
+    def _auto_split_output_dir(self) -> Path:
+        configured = str(os.environ.get("DIFFGR_AUTO_SPLIT_DIR", "")).strip()
+        if configured:
+            configured_path = Path(configured).expanduser()
+            if not configured_path.is_absolute():
+                configured_path = self.source_path.parent / configured_path
+            return configured_path
+        if self.source_path.parent.name.lower() == "reviewers":
+            return self.source_path.parent
+        reviewers_dir = self.source_path.parent / "reviewers"
+        if reviewers_dir.is_dir():
+            return reviewers_dir
+        return self.source_path.parent / f"{safe_slug(self.source_path.stem)}.reviewers"
+
+    def _sync_split_review_files(self) -> tuple[int, Path]:
+        meta = self.doc.get("meta", {})
+        if isinstance(meta, dict) and isinstance(meta.get("x-reviewSplit"), dict):
+            return 0, self.source_path.parent
+        split_items = split_document_by_group(self.doc, include_empty=False)
+        output_dir = self._auto_split_output_dir()
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        source_path = str(self.source_path.resolve())
+        manifest_path = output_dir / self.AUTO_SPLIT_MANIFEST_NAME
+        previous_paths: set[str] = set()
+        if manifest_path.exists():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                if isinstance(manifest, dict) and str(manifest.get("source", "")) == source_path:
+                    for item in manifest.get("files", []):
+                        if not isinstance(item, dict):
+                            continue
+                        rel_path = str(item.get("path", "")).strip()
+                        if rel_path:
+                            previous_paths.add(rel_path)
+            except Exception:
+                pass
+
+        manifest_items: list[dict[str, Any]] = []
+        current_paths: set[str] = set()
+        for index, (group, group_doc) in enumerate(split_items, start=1):
+            group_id = str(group.get("id", ""))
+            group_name = str(group.get("name", group_id))
+            filename = build_group_output_filename(index, group_id, group_name)
+            target = output_dir / filename
+            target.write_text(json.dumps(group_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            current_paths.add(filename)
+            manifest_items.append(
+                {
+                    "groupId": group_id,
+                    "groupName": group_name,
+                    "chunkCount": len(group_doc.get("chunks", [])),
+                    "path": filename,
+                }
+            )
+
+        for stale_rel_path in sorted(previous_paths - current_paths):
+            stale_path = output_dir / stale_rel_path
+            if stale_path.is_file():
+                try:
+                    stale_path.unlink()
+                except Exception:
+                    pass
+
+        manifest_payload = {
+            "source": source_path,
+            "fileCount": len(manifest_items),
+            "files": manifest_items,
+            "updatedAt": iso_utc_now(),
+        }
+        manifest_path.write_text(json.dumps(manifest_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return len(manifest_items), output_dir
+
     def _save_document(self, *, auto: bool, force: bool) -> bool:
         if not force and not self._has_unsaved_changes:
             return False
@@ -2088,14 +2195,21 @@ class DiffgrTextualApp(App[None]):
             if not backup.exists():
                 backup.write_text(self.source_path.read_text(encoding="utf-8"), encoding="utf-8")
             self.source_path.write_text(json.dumps(self.doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            split_count, split_dir = self._sync_split_review_files()
             self._has_unsaved_changes = False
             self._last_saved_at = dt.datetime.now()
             self._last_save_kind = "auto" if auto else "manual"
             self._refresh_topbar_safe()
             if auto:
-                self._safe_notify(f"Auto-saved: {self.source_path.name}", timeout=0.9)
+                self._safe_notify(
+                    f"Auto-saved: {self.source_path.name} + split:{split_count}",
+                    timeout=0.9,
+                )
             else:
-                self._safe_notify(f"Saved: {self.source_path}", timeout=1.5)
+                self._safe_notify(
+                    f"Saved: {self.source_path} (split:{split_count} -> {split_dir.name})",
+                    timeout=1.5,
+                )
             return True
         except Exception as error:  # noqa: BLE001
             self._safe_notify(f"Save failed: {error}", severity="error", timeout=3.0)
@@ -2122,6 +2236,7 @@ class DiffgrTextualApp(App[None]):
         ctx_label = "all" if self.show_context_lines else "changes"
         syntax_label = "on" if self.diff_syntax else "off"
         theme_label = self.diff_syntax_theme
+        wrap_label = "on" if self.diff_auto_wrap else "off"
         text = (
             f"[b]{title}[/b]  "
             f"group={group_name}  "
@@ -2131,13 +2246,14 @@ class DiffgrTextualApp(App[None]):
             f"{save_state}  "
             f"editor={editor_label}  "
             f"syntax={syntax_label} theme={theme_label}  "
+            f"wrap={wrap_label}  "
             f"autosave={self.AUTOSAVE_INTERVAL_SEC}s  "
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
             f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  ctx={ctx_label}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, z=focus-changes, Shift+T=theme, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, z=focus-changes, w=wrap, Shift+T=theme, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
@@ -2440,6 +2556,43 @@ class DiffgrTextualApp(App[None]):
     def _update_chunk_meta(self, chunk_id: str) -> None:
         self.query_one("#meta", Static).update("\n".join(self._build_chunk_meta_lines(chunk_id)))
 
+    def _chunk_line_wrap_width(self, *, side_by_side: bool) -> int:
+        if not self.diff_auto_wrap:
+            return 0
+        try:
+            lines_width = int(self.query_one("#lines", DataTable).size.width)
+        except Exception:
+            lines_width = 0
+        if lines_width <= 0:
+            lines_width = 120
+        if side_by_side:
+            if self._lines_side_by_side_widths:
+                old_width, new_width = self._lines_side_by_side_widths
+                content_width = max(int(old_width), int(new_width))
+            else:
+                content_width = max(24, int(lines_width * 0.45))
+            return max(24, content_width - 3)
+        return max(30, lines_width - 24)
+
+    def _wrap_diff_line_text(self, text: str, *, width: int) -> list[str]:
+        if width <= 0:
+            return [str(text)]
+        chunks: list[str] = []
+        raw_lines = str(text).replace("\t", "    ").splitlines()
+        if not raw_lines:
+            raw_lines = [""]
+        for raw_line in raw_lines:
+            wrapped = textwrap.wrap(
+                raw_line,
+                width=max(1, int(width)),
+                replace_whitespace=False,
+                drop_whitespace=False,
+                break_long_words=True,
+                break_on_hyphens=False,
+            )
+            chunks.extend(wrapped if wrapped else [""])
+        return chunks
+
     def _show_chunk(self, chunk_id: str) -> None:
         chunk = self.chunk_map.get(chunk_id)
         if chunk is None:
@@ -2453,6 +2606,7 @@ class DiffgrTextualApp(App[None]):
         side_by_side = self.chunk_detail_view_mode == "side_by_side"
         lines_table_mode = "chunk_side_by_side" if side_by_side else "chunk_compact"
         lines_table = self._switch_lines_table_mode(lines_table_mode)
+        wrap_width = self._chunk_line_wrap_width(side_by_side=side_by_side)
         comment_lines = format_comment_lines(self._comment_for_chunk(chunk_id), max_width=110, max_lines=10)
         if comment_lines:
             for index, comment_line in enumerate(comment_lines):
@@ -2534,42 +2688,50 @@ class DiffgrTextualApp(App[None]):
                 "newLine": new_line,
                 "lineType": str(kind),
             }
-            content = self._render_chunk_content_text(
-                kind,
-                str(line.get("text", "")),
-                pair_text=pair_map.get(line_index),
-                file_path=str(chunk.get("filePath", "")),
-            )
-            old_number = "" if line.get("oldLine") is None else str(line.get("oldLine"))
-            new_number = "" if line.get("newLine") is None else str(line.get("newLine"))
-            if side_by_side:
-                if kind == "add":
-                    old_cell = Text("", style="dim #47715a")
-                    new_cell = content
-                elif kind == "delete":
-                    old_cell = content
-                    new_cell = Text("", style="dim #47715a")
-                elif kind == "context":
-                    old_cell = self._render_chunk_content_text("context", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
-                    new_cell = self._render_chunk_content_text("context", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
+            raw_text = str(line.get("text", ""))
+            wrapped_chunks = self._wrap_diff_line_text(raw_text, width=wrap_width)
+            for wrapped_index, wrapped_text in enumerate(wrapped_chunks):
+                is_primary_line = wrapped_index == 0
+                content = self._render_chunk_content_text(
+                    kind,
+                    wrapped_text,
+                    pair_text=pair_map.get(line_index) if is_primary_line else None,
+                    file_path=str(chunk.get("filePath", "")),
+                )
+                row_key = row_key_value if is_primary_line else f"{row_key_value}-wrap-{wrapped_index}"
+                old_number = ""
+                new_number = ""
+                if is_primary_line:
+                    old_number = "" if line.get("oldLine") is None else str(line.get("oldLine"))
+                    new_number = "" if line.get("newLine") is None else str(line.get("newLine"))
+                if side_by_side:
+                    if kind == "add":
+                        old_cell = Text("", style="dim #47715a")
+                        new_cell = content
+                    elif kind == "delete":
+                        old_cell = content
+                        new_cell = Text("", style="dim #47715a")
+                    elif kind == "context":
+                        old_cell = self._render_chunk_content_text("context", wrapped_text, file_path=str(chunk.get("filePath", "")))
+                        new_cell = self._render_chunk_content_text("context", wrapped_text, file_path=str(chunk.get("filePath", "")))
+                    else:
+                        old_cell = self._render_chunk_content_text("meta", wrapped_text, file_path=str(chunk.get("filePath", "")))
+                        new_cell = self._render_chunk_content_text("meta", wrapped_text, file_path=str(chunk.get("filePath", "")))
+                    lines_table.add_row(
+                        old_number,
+                        old_cell,
+                        new_number,
+                        new_cell,
+                        key=row_key,
+                    )
                 else:
-                    old_cell = self._render_chunk_content_text("meta", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
-                    new_cell = self._render_chunk_content_text("meta", str(line.get("text", "")), file_path=str(chunk.get("filePath", "")))
-                lines_table.add_row(
-                    old_number,
-                    old_cell,
-                    new_number,
-                    new_cell,
-                    key=row_key_value,
-                )
-            else:
-                lines_table.add_row(
-                    old_number,
-                    new_number,
-                    self._render_chunk_kind_badge(kind),
-                    content,
-                    key=row_key_value,
-                )
+                    lines_table.add_row(
+                        old_number,
+                        new_number,
+                        self._render_chunk_kind_badge(kind),
+                        content,
+                        key=row_key,
+                    )
             if previous_anchor_key and previous_anchor_key == anchor_key:
                 selected_row_key = row_key_value
                 self._selected_line_anchor = dict(self._chunk_line_anchor_by_row_key[row_key_value])

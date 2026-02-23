@@ -742,6 +742,38 @@ class TestViewerTextualReport(unittest.TestCase):
             self.assertEqual(app.editor_mode, "custom")
             self.assertEqual(app.custom_editor_command, "code -g {path}:{line}")
 
+    def test_load_viewer_settings_reads_diff_auto_wrap(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            settings_path = Path(tmpdir) / "viewer_settings.json"
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "editorMode": "auto",
+                        "diffAutoWrap": False,
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            previous_env = os.environ.get("DIFFGR_VIEWER_SETTINGS")
+            os.environ["DIFFGR_VIEWER_SETTINGS"] = str(settings_path)
+            try:
+                app = DiffgrTextualApp(
+                    Path("dummy.diffgr.json"),
+                    {"groups": [], "assignments": {}, "meta": {}},
+                    [],
+                    {},
+                    {},
+                    15,
+                )
+            finally:
+                if previous_env is None:
+                    os.environ.pop("DIFFGR_VIEWER_SETTINGS", None)
+                else:
+                    os.environ["DIFFGR_VIEWER_SETTINGS"] = previous_env
+
+            self.assertFalse(app.diff_auto_wrap)
+
     def test_save_viewer_settings_writes_json_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             settings_path = Path(tmpdir) / "viewer_settings.json"
@@ -758,6 +790,7 @@ class TestViewerTextualReport(unittest.TestCase):
                 )
                 app.editor_mode = "cursor"
                 app.custom_editor_command = "cursor {path}"
+                app.diff_auto_wrap = False
                 saved = app._save_viewer_settings()
             finally:
                 if previous_env is None:
@@ -769,6 +802,207 @@ class TestViewerTextualReport(unittest.TestCase):
             payload = json.loads(settings_path.read_text(encoding="utf-8"))
             self.assertEqual(payload["editorMode"], "cursor")
             self.assertEqual(payload["customEditorCommand"], "cursor {path}")
+            self.assertEqual(payload["diffAutoWrap"], False)
+
+    def test_action_toggle_auto_wrap_toggles_and_rerenders(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_auto_wrap = True
+        rerender_called: list[bool] = []
+        save_called: list[bool] = []
+        refresh_called: list[bool] = []
+        notices: list[str] = []
+        app._rerender_lines_if_width_sensitive = lambda: rerender_called.append(True)  # type: ignore[method-assign]
+        app._save_viewer_settings = lambda: save_called.append(True) or True  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: refresh_called.append(True)  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+
+        app.action_toggle_auto_wrap()
+
+        self.assertFalse(app.diff_auto_wrap)
+        self.assertEqual(rerender_called, [True])
+        self.assertEqual(save_called, [True])
+        self.assertEqual(refresh_called, [True])
+        self.assertTrue(any("Auto wrap: OFF" in item for item in notices))
+
+    def test_wrap_diff_line_text_breaks_long_text_by_width(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        chunks = app._wrap_diff_line_text("abcdefghijklmnopqrstuvwxyz", width=8)
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(len(item) <= 8 for item in chunks))
+
+    def test_wrap_diff_line_text_no_wrap_when_width_is_zero(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        self.assertEqual(app._wrap_diff_line_text("abcde", width=0), ["abcde"])
+
+    def test_wrap_diff_line_text_preserves_multiline_segments(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        chunks = app._wrap_diff_line_text("abcde\n123456789", width=5)
+        self.assertEqual(chunks[0], "abcde")
+        self.assertIn("12345", chunks)
+
+    def test_chunk_line_wrap_width_returns_zero_when_auto_wrap_off(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_auto_wrap = False
+        self.assertEqual(app._chunk_line_wrap_width(side_by_side=False), 0)
+        self.assertEqual(app._chunk_line_wrap_width(side_by_side=True), 0)
+
+    def test_chunk_line_wrap_width_prefers_side_by_side_column_width(self):
+        class StubSize:
+            def __init__(self, width: int) -> None:
+                self.width = width
+
+        class StubLines:
+            def __init__(self, width: int) -> None:
+                self.size = StubSize(width)
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_auto_wrap = True
+        app._lines_side_by_side_widths = (52, 40)
+        app.query_one = lambda *_args, **_kwargs: StubLines(120)  # type: ignore[method-assign]
+
+        width = app._chunk_line_wrap_width(side_by_side=True)
+
+        self.assertEqual(width, 49)
+
+    def test_rerender_lines_if_width_sensitive_rerenders_chunk_in_compact_when_wrap_on(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+        )
+        app.group_report_mode = False
+        app.chunk_detail_view_mode = "compact"
+        app.diff_auto_wrap = True
+        app.selected_chunk_id = "c1"
+        calls: list[str] = []
+        app._show_chunk = lambda chunk_id: calls.append(chunk_id)  # type: ignore[method-assign]
+
+        app._rerender_lines_if_width_sensitive()
+
+        self.assertEqual(calls, ["c1"])
+
+    def test_rerender_lines_if_width_sensitive_skips_compact_when_wrap_off(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+        )
+        app.group_report_mode = False
+        app.chunk_detail_view_mode = "compact"
+        app.diff_auto_wrap = False
+        app.selected_chunk_id = "c1"
+        app._show_chunk = lambda *_args, **_kwargs: self.fail("must not rerender compact chunk when wrap is off")  # type: ignore[method-assign]
+
+        app._rerender_lines_if_width_sensitive()
+
+    def test_action_open_settings_can_update_diff_auto_wrap(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_auto_wrap = True
+        save_called: list[bool] = []
+        rerender_called: list[bool] = []
+        app._save_viewer_settings = lambda: save_called.append(True) or True  # type: ignore[method-assign]
+        app._rerender_lines_if_width_sensitive = lambda: rerender_called.append(True)  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+        app.notify = lambda *_args, **_kwargs: None  # type: ignore[method-assign]
+
+        def _push_screen(_screen, callback):
+            callback(
+                {
+                    "editor_mode": app.editor_mode,
+                    "custom_editor_command": app.custom_editor_command,
+                    "diff_syntax": "on" if app.diff_syntax else "off",
+                    "diff_syntax_theme": app.diff_syntax_theme,
+                    "ui_density": app.ui_density,
+                    "diff_auto_wrap": "off",
+                }
+            )
+
+        app.push_screen = _push_screen  # type: ignore[method-assign]
+
+        app.action_open_settings()
+
+        self.assertFalse(app.diff_auto_wrap)
+        self.assertEqual(save_called, [True])
+        self.assertEqual(rerender_called, [True])
+
+    def test_refresh_topbar_includes_wrap_state(self):
+        class StubStatic:
+            def __init__(self) -> None:
+                self.value = ""
+
+            def update(self, text: str) -> None:
+                self.value = text
+
+        topbar = StubStatic()
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {"title": "Sample"}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.diff_auto_wrap = False
+        app.query_one = lambda selector, *_args, **_kwargs: topbar if selector == "#topbar" else None  # type: ignore[method-assign]
+
+        app._refresh_topbar()
+
+        self.assertIn("wrap=off", topbar.value)
 
     def test_open_file_path_uses_custom_editor_template(self):
         app = DiffgrTextualApp(
@@ -1402,6 +1636,385 @@ class TestViewerTextualReport(unittest.TestCase):
             self.assertIsNotNone(app._last_saved_at)
             roundtrip = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(roundtrip.get("reviews", {}).get("c1", {}).get("comment"), "x")
+
+    def test_save_document_noop_when_clean_and_not_forced(self):
+        doc = {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            original = json.dumps(doc, ensure_ascii=False, indent=2) + "\n"
+            path.write_text(original, encoding="utf-8")
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = False
+            app._sync_split_review_files = lambda: self.fail("must not sync on no-op save")  # type: ignore[method-assign]
+
+            saved = app._save_document(auto=False, force=False)
+
+            self.assertFalse(saved)
+            self.assertEqual(path.read_text(encoding="utf-8"), original)
+
+    def test_save_document_creates_backup_once_and_keeps_original_content(self):
+        initial_doc = {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {"c1": {"comment": "old"}}}
+        updated_doc = {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {"c1": {"comment": "new"}}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            initial_text = json.dumps(initial_doc, ensure_ascii=False, indent=2) + "\n"
+            path.write_text(initial_text, encoding="utf-8")
+            app = DiffgrTextualApp(path, updated_doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            first_saved = app._save_document(auto=False, force=True)
+            self.assertTrue(first_saved)
+            backup = path.with_suffix(path.suffix + ".bak")
+            self.assertTrue(backup.exists())
+            self.assertEqual(backup.read_text(encoding="utf-8"), initial_text)
+
+            app.doc["reviews"]["c1"]["comment"] = "newer"
+            app._has_unsaved_changes = True
+            second_saved = app._save_document(auto=False, force=True)
+            self.assertTrue(second_saved)
+            self.assertEqual(backup.read_text(encoding="utf-8"), initial_text)
+
+    def test_save_document_auto_notify_message_contains_split_count(self):
+        doc = {
+            "groups": [{"id": "g-api", "name": "API", "order": 1}],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"]},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+            notices: list[tuple[str, float, str | None]] = []
+            app._safe_notify = lambda msg, timeout=1.5, severity=None: notices.append((msg, timeout, severity))  # type: ignore[method-assign]
+
+            saved = app._save_document(auto=True, force=True)
+
+            self.assertTrue(saved)
+            self.assertTrue(any("Auto-saved:" in msg and "split:1" in msg for msg, _, _ in notices))
+
+    def test_save_document_syncs_group_split_files_and_manifest(self):
+        doc = {
+            "groups": [
+                {"id": "g-api", "name": "API", "order": 1},
+                {"id": "g-ui", "name": "UI", "order": 2},
+            ],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 2},
+                    "header": "api",
+                    "lines": [],
+                },
+                {
+                    "id": "c2",
+                    "filePath": "src/ui.ts",
+                    "old": {"start": 3, "count": 1},
+                    "new": {"start": 3, "count": 2},
+                    "header": "ui",
+                    "lines": [],
+                },
+            ],
+            "assignments": {"g-api": ["c1"], "g-ui": ["c2"]},
+            "meta": {"title": "Sample"},
+            "reviews": {"c1": {"status": "reviewed"}},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            split_dir = path.parent / "sample-diffgr.reviewers"
+            self.assertTrue(split_dir.exists())
+            split_files = sorted(split_dir.glob("*.diffgr.json"))
+            self.assertEqual(len(split_files), 2)
+            manifest = json.loads((split_dir / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest.get("fileCount"), 2)
+            self.assertEqual(
+                {item.get("groupId") for item in manifest.get("files", []) if isinstance(item, dict)},
+                {"g-api", "g-ui"},
+            )
+            self.assertEqual(manifest.get("source"), str(path.resolve()))
+            self.assertRegex(str(manifest.get("updatedAt", "")), r"^\d{4}-\d{2}-\d{2}T")
+            self.assertTrue(str(manifest.get("updatedAt", "")).endswith("Z"))
+
+    def test_save_document_uses_existing_reviewers_dir_for_split_sync(self):
+        doc = {
+            "groups": [{"id": "g-api", "name": "API", "order": 1}],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"]},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            path = root / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            (root / "reviewers").mkdir(parents=True, exist_ok=True)
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            split_files = sorted((root / "reviewers").glob("*.diffgr.json"))
+            self.assertEqual(len(split_files), 1)
+            self.assertTrue((root / "reviewers" / "manifest.json").exists())
+
+    def test_save_document_removes_stale_split_file_from_previous_manifest(self):
+        doc = {
+            "groups": [
+                {"id": "g-api", "name": "API", "order": 1},
+                {"id": "g-ui", "name": "UI", "order": 2},
+            ],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"], "g-ui": []},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            split_dir = path.parent / "sample-diffgr.reviewers"
+            split_dir.mkdir(parents=True, exist_ok=True)
+            stale_file = split_dir / "02-g-ui-UI.diffgr.json"
+            stale_file.write_text("{}", encoding="utf-8")
+            (split_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "source": str(path.resolve()),
+                        "fileCount": 2,
+                        "files": [
+                            {"groupId": "g-api", "groupName": "API", "chunkCount": 1, "path": "01-g-api-API.diffgr.json"},
+                            {"groupId": "g-ui", "groupName": "UI", "chunkCount": 0, "path": "02-g-ui-UI.diffgr.json"},
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertFalse(stale_file.exists())
+
+    def test_save_document_skips_resplit_for_group_split_source_doc(self):
+        doc = {
+            "groups": [{"id": "g-ui", "name": "UI", "order": 2}],
+            "chunks": [
+                {
+                    "id": "c2",
+                    "filePath": "src/ui.ts",
+                    "old": {"start": 3, "count": 1},
+                    "new": {"start": 3, "count": 2},
+                    "header": "ui",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-ui": ["c2"]},
+            "meta": {"title": "Sample [UI]", "x-reviewSplit": {"groupId": "g-ui", "groupName": "UI", "chunkCount": 1}},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "reviewers" / "02-g-ui-UI.diffgr.json"
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertFalse((source.parent / "manifest.json").exists())
+            self.assertEqual(len(list(source.parent.glob("*.diffgr.json"))), 1)
+
+    def test_auto_split_output_dir_uses_env_relative_path_from_source_parent(self):
+        doc = {"groups": [], "chunks": [], "assignments": {}, "meta": {}, "reviews": {}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "bundle" / "sample.diffgr.json"
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+            with mock.patch.dict(os.environ, {"DIFFGR_AUTO_SPLIT_DIR": "out/reviewers"}):
+                target = app._auto_split_output_dir()
+            self.assertEqual(target, source.parent / "out" / "reviewers")
+
+    def test_auto_split_output_dir_returns_source_parent_when_input_is_under_reviewers(self):
+        doc = {"groups": [], "chunks": [], "assignments": {}, "meta": {}, "reviews": {}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "reviewers" / "01-g-api-API.diffgr.json"
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+
+            target = app._auto_split_output_dir()
+
+            self.assertEqual(target, source.parent)
+
+    def test_save_document_uses_env_split_dir_override(self):
+        doc = {
+            "groups": [{"id": "g-api", "name": "API", "order": 1}],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"]},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "sample.diffgr.json"
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            with mock.patch.dict(os.environ, {"DIFFGR_AUTO_SPLIT_DIR": "custom/reviewers"}):
+                saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertTrue((source.parent / "custom" / "reviewers" / "manifest.json").exists())
+            self.assertFalse((source.parent / "sample-diffgr.reviewers").exists())
+
+    def test_save_document_keeps_stale_files_when_manifest_source_mismatch(self):
+        doc = {
+            "groups": [{"id": "g-api", "name": "API", "order": 1}],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"]},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "sample.diffgr.json"
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            split_dir = source.parent / "sample-diffgr.reviewers"
+            split_dir.mkdir(parents=True, exist_ok=True)
+            stale_file = split_dir / "99-stale.diffgr.json"
+            stale_file.write_text("{}", encoding="utf-8")
+            (split_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "source": str((source.parent / "other.diffgr.json").resolve()),
+                        "fileCount": 1,
+                        "files": [{"path": "99-stale.diffgr.json"}],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertTrue(stale_file.exists())
+
+    def test_save_document_with_invalid_manifest_still_writes_split_files(self):
+        doc = {
+            "groups": [{"id": "g-api", "name": "API", "order": 1}],
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/api.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "api",
+                    "lines": [],
+                }
+            ],
+            "assignments": {"g-api": ["c1"]},
+            "meta": {"title": "Sample"},
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "sample.diffgr.json"
+            source.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            split_dir = source.parent / "sample-diffgr.reviewers"
+            split_dir.mkdir(parents=True, exist_ok=True)
+            (split_dir / "manifest.json").write_text("{broken json", encoding="utf-8")
+            app = DiffgrTextualApp(source, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertEqual(len(list(split_dir.glob("*.diffgr.json"))), 1)
+            manifest = json.loads((split_dir / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest.get("fileCount"), 1)
+
+    def test_save_document_notifies_error_and_keeps_dirty_when_split_sync_fails(self):
+        doc = {"groups": [], "chunks": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {}}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            app = DiffgrTextualApp(path, doc, [], {}, {}, 15)
+            app._has_unsaved_changes = True
+            notices: list[tuple[str, float, str | None]] = []
+            app._safe_notify = lambda msg, timeout=1.5, severity=None: notices.append((msg, timeout, severity))  # type: ignore[method-assign]
+            app._sync_split_review_files = lambda: (_ for _ in ()).throw(RuntimeError("sync failed"))  # type: ignore[method-assign]
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertFalse(saved)
+            self.assertTrue(app._has_unsaved_changes)
+            self.assertTrue(any("Save failed: sync failed" in msg and sev == "error" for msg, _, sev in notices))
 
     def test_auto_save_tick_runs_only_when_dirty(self):
         app = DiffgrTextualApp(
