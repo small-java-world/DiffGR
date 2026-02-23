@@ -24,6 +24,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Group selector. Use group id (e.g. g-pr01) or exact group name (e.g. 計算倍率変更). Default: all.",
     )
     parser.add_argument("--title", help="Optional custom report title.")
+    parser.add_argument("--save-reviews-url", help="Optional POST endpoint to save reviews from HTML.")
+    parser.add_argument("--save-reviews-label", default="Save to App", help="Label for save button.")
     parser.add_argument("--open", action="store_true", help="Open the generated HTML in your default browser.")
     return parser.parse_args(argv)
 
@@ -40,7 +42,13 @@ def main(argv: list[str]) -> int:
     try:
         doc = load_json(input_path)
         validate_document(doc)
-        html = render_group_diff_html(doc, group_selector=args.group, report_title=args.title)
+        html = render_group_diff_html(
+            doc,
+            group_selector=args.group,
+            report_title=args.title,
+            save_reviews_url=args.save_reviews_url,
+            save_reviews_label=args.save_reviews_label,
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(html, encoding="utf-8")
     except Exception as error:  # noqa: BLE001
@@ -55,4 +63,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

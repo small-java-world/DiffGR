@@ -1,7 +1,9 @@
+import asyncio
 import unittest
 from pathlib import Path
 
 from diffgr.viewer_textual import DiffgrTextualApp, build_group_diff_report_rows, format_file_label
+from textual.widgets import DataTable
 
 
 def make_chunk(
@@ -26,6 +28,157 @@ def make_chunk(
 
 
 class TestViewerTextualReport(unittest.TestCase):
+    def _make_key_test_app(self, *, initial_status: str = "unreviewed") -> tuple[DiffgrTextualApp, dict[str, str]]:
+        doc = {"groups": [], "assignments": {}, "meta": {"title": "KeyTest"}, "reviews": {}}
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            },
+            "c2": {
+                "id": "c2",
+                "filePath": "src/a.ts",
+                "old": {"start": 2, "count": 1},
+                "new": {"start": 2, "count": 1},
+                "header": "h2",
+                "lines": [],
+            },
+            "c3": {
+                "id": "c3",
+                "filePath": "src/a.ts",
+                "old": {"start": 3, "count": 1},
+                "new": {"start": 3, "count": 1},
+                "header": "h3",
+                "lines": [],
+            },
+        }
+        status_map = {chunk_id: initial_status for chunk_id in chunk_map}
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, status_map, 15)
+        return app, status_map
+
+    def _cell_text(self, value: object) -> str:
+        if hasattr(value, "plain"):
+            return str(getattr(value, "plain"))
+        return str(value)
+
+    def test_space_key_marks_done_in_runtime_and_updates_done_column(self):
+        app, status_map = self._make_key_test_app(initial_status="unreviewed")
+        done_cell = ""
+
+        async def _run() -> None:
+            nonlocal done_cell
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("space")
+                await pilot.pause()
+                table = app.query_one("#chunks", DataTable)
+                done_cell = self._cell_text(table.get_cell_at((0, 1)))
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "reviewed")
+        self.assertEqual(done_cell, "[x]")
+
+    def test_shift_space_key_marks_done_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="unreviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("shift+space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "reviewed")
+
+    def test_space_key_toggles_done_to_undone_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="reviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "unreviewed")
+
+    def test_shift_space_key_keeps_done_when_already_done_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="reviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("shift+space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "reviewed")
+
+    def test_backspace_key_marks_undone_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="reviewed")
+        done_cell = ""
+
+        async def _run() -> None:
+            nonlocal done_cell
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("backspace")
+                await pilot.pause()
+                table = app.query_one("#chunks", DataTable)
+                done_cell = self._cell_text(table.get_cell_at((0, 1)))
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "unreviewed")
+        self.assertEqual(done_cell, "[ ]")
+
+    def test_space_marks_selected_range_done_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="unreviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("down")
+                await pilot.press("j")
+                await pilot.press("space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "unreviewed")
+        self.assertEqual(status_map["c2"], "reviewed")
+        self.assertEqual(status_map["c3"], "reviewed")
+
+    def test_space_toggles_selected_range_to_undone_in_runtime(self):
+        app, status_map = self._make_key_test_app(initial_status="reviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("c")
+                await pilot.press("down")
+                await pilot.press("j")
+                await pilot.press("space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "reviewed")
+        self.assertEqual(status_map["c2"], "unreviewed")
+        self.assertEqual(status_map["c3"], "unreviewed")
+
+    def test_space_marks_done_even_when_lines_table_is_focused(self):
+        app, status_map = self._make_key_test_app(initial_status="unreviewed")
+
+        async def _run() -> None:
+            async with app.run_test() as pilot:
+                await pilot.press("l")
+                await pilot.press("space")
+                await pilot.pause()
+
+        asyncio.run(_run())
+        self.assertEqual(status_map["c1"], "reviewed")
+
     def test_format_file_label_prefers_basename_and_short_parent(self):
         self.assertEqual(format_file_label("src/a.ts"), "a.ts (src)")
         self.assertEqual(
@@ -267,6 +420,204 @@ class TestViewerTextualReport(unittest.TestCase):
         app.action_move_diff_split_right()
         self.assertAlmostEqual(app.diff_old_ratio, app.MAX_DIFF_OLD_RATIO)
 
+    def test_toggle_reviewed_checkbox_switches_between_reviewed_and_unreviewed(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {}}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        app._refresh_groups = lambda *_, **__: None  # type: ignore[method-assign]
+        app._apply_chunk_filter = lambda *_, **__: None  # type: ignore[method-assign]
+        app._show_chunk = lambda *_args, **_kwargs: None  # type: ignore[method-assign]
+
+        app.action_toggle_reviewed_checkbox()
+        self.assertEqual(app.status_map["c1"], "reviewed")
+        self.assertEqual(app.doc["reviews"]["c1"]["status"], "reviewed")
+        self.assertTrue(app.doc["reviews"]["c1"].get("reviewedAt"))
+
+        app.action_toggle_reviewed_checkbox()
+        self.assertEqual(app.status_map["c1"], "unreviewed")
+        self.assertEqual(app.doc["reviews"]["c1"]["status"], "unreviewed")
+
+    def test_effective_chunk_selection_orders_multi_selection_by_filtered_order(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.filtered_chunk_ids = ["c2", "c1", "c3"]
+        app.selected_chunk_ids = {"c1", "c2"}
+        app.selected_chunk_id = "c1"
+
+        self.assertEqual(app._effective_chunk_selection(), ["c2", "c1"])
+
+    def test_set_status_applies_to_all_selected_chunks(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {}, "c2": {}}},
+            [],
+            {
+                "c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []},
+                "c2": {"id": "c2", "filePath": "src/b.ts", "old": {}, "new": {}, "header": "", "lines": []},
+            },
+            {"c1": "unreviewed", "c2": "needsReReview"},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1", "c2"]
+        app.selected_chunk_ids = {"c1", "c2"}
+        app.selected_chunk_id = "c2"
+        app._refresh_groups = lambda *_, **__: None  # type: ignore[method-assign]
+        app._apply_chunk_filter = lambda *_, **__: None  # type: ignore[method-assign]
+        app._render_current_selection = lambda: None  # type: ignore[method-assign]
+
+        app.action_set_status("reviewed")
+
+        self.assertEqual(app.status_map["c1"], "reviewed")
+        self.assertEqual(app.status_map["c2"], "reviewed")
+        self.assertEqual(app.doc["reviews"]["c1"]["status"], "reviewed")
+        self.assertEqual(app.doc["reviews"]["c2"]["status"], "reviewed")
+
+    def test_mark_selected_unreviewed_applies_to_all_selected_chunks(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {}, "c2": {}}},
+            [],
+            {
+                "c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []},
+                "c2": {"id": "c2", "filePath": "src/b.ts", "old": {}, "new": {}, "header": "", "lines": []},
+            },
+            {"c1": "reviewed", "c2": "reviewed"},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1", "c2"]
+        app.selected_chunk_ids = {"c1", "c2"}
+        app.selected_chunk_id = "c2"
+        app._refresh_groups = lambda *_, **__: None  # type: ignore[method-assign]
+        app._apply_chunk_filter = lambda *_, **__: None  # type: ignore[method-assign]
+        app._render_current_selection = lambda: None  # type: ignore[method-assign]
+
+        app.action_mark_selected_unreviewed()
+
+        self.assertEqual(app.status_map["c1"], "unreviewed")
+        self.assertEqual(app.status_map["c2"], "unreviewed")
+
+    def test_toggle_reviewed_checkbox_toggles_all_selected_chunks(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {}, "c2": {}}},
+            [],
+            {
+                "c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []},
+                "c2": {"id": "c2", "filePath": "src/b.ts", "old": {}, "new": {}, "header": "", "lines": []},
+            },
+            {"c1": "reviewed", "c2": "reviewed"},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1", "c2"]
+        app.selected_chunk_ids = {"c1", "c2"}
+        app.selected_chunk_id = "c2"
+        app._refresh_groups = lambda *_, **__: None  # type: ignore[method-assign]
+        app._apply_chunk_filter = lambda *_, **__: None  # type: ignore[method-assign]
+        app._render_current_selection = lambda: None  # type: ignore[method-assign]
+
+        app.action_toggle_reviewed_checkbox()
+        self.assertEqual(app.status_map["c1"], "unreviewed")
+        self.assertEqual(app.status_map["c2"], "unreviewed")
+
+    def test_select_all_visible_chunks_marks_all_as_selected(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1", "c2", "c3"]
+        app.selected_chunk_id = "c2"
+        app.selected_chunk_ids = {"c2"}
+        app._refresh_chunk_selection_markers = lambda: None  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+
+        app.action_select_all_visible_chunks()
+
+        self.assertEqual(app.selected_chunk_ids, {"c1", "c2", "c3"})
+        self.assertEqual(app.selected_chunk_id, "c2")
+
+    def test_clear_chunk_multi_selection_keeps_current_only(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1", "c2", "c3"]
+        app.selected_chunk_id = "c2"
+        app.selected_chunk_ids = {"c1", "c2", "c3"}
+        app._refresh_chunk_selection_markers = lambda: None  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+
+        app.action_clear_chunk_multi_selection()
+
+        self.assertEqual(app.selected_chunk_ids, {"c2"})
+        self.assertEqual(app.selected_chunk_id, "c2")
+
+    def test_toggle_current_chunk_selection_readds_current_when_last_removed(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.filtered_chunk_ids = ["c1"]
+        app.selected_chunk_id = "c1"
+        app.selected_chunk_ids = {"c1"}
+        app._refresh_chunk_selection_markers = lambda: None  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+
+        app.action_toggle_current_chunk_selection()
+
+        self.assertEqual(app.selected_chunk_ids, {"c1"})
+        self.assertEqual(app.selected_chunk_id, "c1")
+
+    def test_refresh_topbar_includes_reviewed_rate_percent(self):
+        class StubStatic:
+            def __init__(self) -> None:
+                self.value = ""
+
+            def update(self, text: str) -> None:
+                self.value = text
+
+        topbar = StubStatic()
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {"title": "Sample"}},
+            [],
+            {
+                "c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []},
+                "c2": {"id": "c2", "filePath": "src/b.ts", "old": {}, "new": {}, "header": "", "lines": []},
+            },
+            {"c1": "reviewed", "c2": "unreviewed"},
+            15,
+        )
+        app.query_one = lambda selector, *_args, **_kwargs: topbar if selector == "#topbar" else None  # type: ignore[method-assign]
+
+        app._refresh_topbar()
+
+        self.assertIn("cur(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
+        self.assertIn("all(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
+
     def test_add_left_border_prefixes_non_spacer_rows(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),
@@ -369,6 +720,209 @@ class TestViewerTextualReport(unittest.TestCase):
 
         self.assertEqual(app._suppress_chunk_table_events, False)
         self.assertEqual(table.cursor_coordinate, (1, 0))
+
+    def test_set_comment_for_chunk_creates_review_record(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_comment_for_chunk("c1", "looks good")
+
+        self.assertEqual(app._comment_for_chunk("c1"), "looks good")
+        self.assertEqual(app.doc["reviews"]["c1"]["comment"], "looks good")
+
+    def test_set_comment_for_chunk_keeps_status_when_comment_cleared(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {"status": "reviewed", "comment": "x"}}},
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_comment_for_chunk("c1", "")
+
+        self.assertEqual(app._comment_for_chunk("c1"), "")
+        self.assertEqual(app.doc["reviews"]["c1"], {"status": "reviewed"})
+
+    def test_set_comment_for_chunk_removes_empty_review_record(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {"comment": "x"}}},
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_comment_for_chunk("c1", "   ")
+
+        self.assertNotIn("c1", app.doc["reviews"])
+
+    def test_set_line_comment_for_anchor_creates_review_record(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_line_comment_for_anchor(
+            "c1",
+            old_line=2,
+            new_line=None,
+            line_type="delete",
+            comment="line note",
+        )
+
+        self.assertEqual(app._line_comment_for_anchor("c1", 2, None, "delete"), "line note")
+        self.assertEqual(app._line_comment_count_for_chunk("c1"), 1)
+        record = app.doc["reviews"]["c1"]["lineComments"][0]
+        self.assertEqual(record["oldLine"], 2)
+        self.assertIsNone(record["newLine"])
+        self.assertEqual(record["lineType"], "delete")
+        self.assertEqual(record["comment"], "line note")
+        self.assertTrue(record.get("updatedAt"))
+
+    def test_set_line_comment_for_anchor_replaces_existing_same_anchor_only(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {
+                "groups": [],
+                "assignments": {},
+                "meta": {},
+                "reviews": {
+                    "c1": {
+                        "lineComments": [
+                            {"oldLine": 2, "newLine": None, "lineType": "delete", "comment": "old note"},
+                            {"oldLine": None, "newLine": 2, "lineType": "add", "comment": "keep me"},
+                        ]
+                    }
+                },
+            },
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_line_comment_for_anchor(
+            "c1",
+            old_line=2,
+            new_line=None,
+            line_type="delete",
+            comment="new note",
+        )
+
+        self.assertEqual(app._line_comment_for_anchor("c1", 2, None, "delete"), "new note")
+        self.assertEqual(app._line_comment_for_anchor("c1", None, 2, "add"), "keep me")
+        self.assertEqual(app._line_comment_count_for_chunk("c1"), 2)
+
+    def test_set_line_comment_for_anchor_removes_empty_review_record(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {
+                "groups": [],
+                "assignments": {},
+                "meta": {},
+                "reviews": {
+                    "c1": {
+                        "lineComments": [
+                            {"oldLine": 2, "newLine": None, "lineType": "delete", "comment": "x"},
+                        ]
+                    }
+                },
+            },
+            [],
+            {},
+            {},
+            15,
+        )
+
+        app._set_line_comment_for_anchor(
+            "c1",
+            old_line=2,
+            new_line=None,
+            line_type="delete",
+            comment="   ",
+        )
+
+        self.assertNotIn("c1", app.doc["reviews"])
+
+    def test_build_intraline_pair_map_pairs_delete_and_add_by_block_order(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        lines = [
+            {"kind": "context", "text": "ctx"},
+            {"kind": "delete", "text": "return a + 1;"},
+            {"kind": "delete", "text": "const b = x;"},
+            {"kind": "add", "text": "return a * 2;"},
+            {"kind": "add", "text": "const b = normalize(x);"},
+            {"kind": "context", "text": "tail"},
+        ]
+
+        pair_map = app._build_intraline_pair_map(lines)
+
+        self.assertEqual(pair_map[1], "return a * 2;")
+        self.assertEqual(pair_map[3], "return a + 1;")
+        self.assertEqual(pair_map[2], "const b = normalize(x);")
+        self.assertEqual(pair_map[4], "const b = x;")
+
+    def test_build_intraline_pair_map_ignores_unpaired_add_or_delete(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        lines = [
+            {"kind": "delete", "text": "only old"},
+            {"kind": "context", "text": "ctx"},
+            {"kind": "add", "text": "only new"},
+        ]
+
+        pair_map = app._build_intraline_pair_map(lines)
+
+        self.assertEqual(pair_map, {})
+
+    def test_build_intraline_pair_map_prefers_best_similarity_over_position(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        lines = [
+            {"kind": "delete", "text": "alpha gamma"},
+            {"kind": "delete", "text": "return user.name"},
+            {"kind": "add", "text": "return user.full_name"},
+            {"kind": "add", "text": "alpha beta gamma"},
+        ]
+
+        pair_map = app._build_intraline_pair_map(lines)
+
+        self.assertEqual(pair_map[0], "alpha beta gamma")
+        self.assertEqual(pair_map[3], "alpha gamma")
+        self.assertEqual(pair_map[1], "return user.full_name")
+        self.assertEqual(pair_map[2], "return user.name")
 
 
 if __name__ == "__main__":

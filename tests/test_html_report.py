@@ -12,6 +12,30 @@ from diffgr.html_report import render_group_diff_html
 from scripts.export_diffgr_html import main as export_html_main
 
 
+def extract_report_doc_json(html: str) -> dict:
+    marker = '<script id="report-doc-json" type="application/json">'
+    start = html.find(marker)
+    if start < 0:
+        raise AssertionError("embedded report-doc-json script not found")
+    end = html.find("</script>", start)
+    if end < 0:
+        raise AssertionError("embedded report-doc-json script is not closed")
+    payload = html[start + len(marker) : end]
+    return json.loads(payload)
+
+
+def extract_report_config_json(html: str) -> dict:
+    marker = '<script id="report-config-json" type="application/json">'
+    start = html.find(marker)
+    if start < 0:
+        raise AssertionError("embedded report-config-json script not found")
+    end = html.find("</script>", start)
+    if end < 0:
+        raise AssertionError("embedded report-config-json script is not closed")
+    payload = html[start + len(marker) : end]
+    return json.loads(payload)
+
+
 def make_doc() -> dict:
     return {
         "format": "diffgr",
@@ -71,8 +95,8 @@ class TestHtmlReport(unittest.TestCase):
     def test_render_group_diff_html_by_japanese_name(self):
         html = render_group_diff_html(make_doc(), group_selector="計算倍率変更")
         self.assertIn("Group: <b>計算倍率変更</b>", html)
-        self.assertIn("src/a.ts", html)
-        self.assertNotIn("src/b.ts", html)
+        self.assertIn("data-file='src/a.ts'", html)
+        self.assertNotIn("data-file='src/b.ts'", html)
         self.assertIn("return a * 2", html)
         self.assertIn("return a + 1", html)
 
@@ -88,9 +112,90 @@ class TestHtmlReport(unittest.TestCase):
     def test_render_group_diff_html_unassigned_selector(self):
         html = render_group_diff_html(make_doc(), group_selector="unassigned")
         self.assertIn("Group: <b>Unassigned</b>", html)
-        self.assertIn("src/c.ts", html)
-        self.assertNotIn("src/a.ts", html)
-        self.assertNotIn("src/b.ts", html)
+        self.assertIn("data-file='src/c.ts'", html)
+        self.assertNotIn("data-file='src/a.ts'", html)
+        self.assertNotIn("data-file='src/b.ts'", html)
+
+    def test_render_embeds_original_doc_json_for_html_side_editing(self):
+        doc = make_doc()
+        html = render_group_diff_html(doc, group_selector="計算倍率変更")
+        embedded = extract_report_doc_json(html)
+        self.assertEqual(embedded.get("format"), "diffgr")
+        self.assertEqual([chunk.get("id") for chunk in embedded.get("chunks", [])], ["c1", "c2", "c3"])
+
+    def test_render_includes_html_comment_posting_controls_and_script_hooks(self):
+        html = render_group_diff_html(make_doc(), group_selector="計算倍率変更")
+        self.assertIn('id="stat-reviewed-rate"', html)
+        self.assertIn('id="save-reviews"', html)
+        self.assertIn('id="download-json"', html)
+        self.assertIn('id="copy-reviews"', html)
+        self.assertIn('id="comment-editor-modal"', html)
+        self.assertIn("data-action='toggle-reviewed'", html)
+        self.assertIn("data-action='chunk-comment'", html)
+        self.assertIn("data-action='line-comment'", html)
+        self.assertIn("function openCommentEditor(options)", html)
+        self.assertIn("function setChunkStatus(", html)
+        self.assertIn("function refreshReviewProgress()", html)
+        self.assertIn("setSaveStatus(", html)
+        self.assertIn("function setChunkComment(", html)
+        self.assertIn("function setLineCommentForAnchor(", html)
+        self.assertIn("function rebuildCommentPaneFromDraft()", html)
+        self.assertIn("function rebuildInboxFromDom()", html)
+
+    def test_render_includes_line_anchor_data_attributes_for_line_commenting(self):
+        html = render_group_diff_html(make_doc(), group_selector="計算倍率変更")
+        self.assertIn("data-anchor-key='delete:2:'", html)
+        self.assertIn("data-old-line='2' data-new-line=''", html)
+        self.assertIn("data-anchor-key='add::2'", html)
+        self.assertIn("data-old-line='' data-new-line='2'", html)
+        self.assertIn("data-chunk-id='c1'", html)
+
+    def test_render_prefills_comment_pane_and_stats_from_reviews(self):
+        doc = make_doc()
+        doc["reviews"] = {
+            "c1": {
+                "status": "needsReReview",
+                "comment": "chunk note",
+                "lineComments": [
+                    {"oldLine": 2, "newLine": None, "lineType": "delete", "comment": "line note"},
+                ],
+            }
+        }
+        html = render_group_diff_html(doc, group_selector="計算倍率変更")
+        self.assertIn("chunk note", html)
+        self.assertIn("line note", html)
+        self.assertIn('id="stat-comments-total" class="v">2</span>', html)
+        self.assertIn('id="comment-total">2</span>', html)
+        self.assertIn('id="comment-unresolved">2</span>', html)
+        self.assertIn("data-kind='line-comment' data-anchor-key='delete:2:'", html)
+
+    def test_render_reflects_reviewed_checkbox_and_percentage(self):
+        doc = make_doc()
+        doc["reviews"] = {"c1": {"status": "reviewed", "reviewedAt": "2026-02-22T00:00:00Z"}}
+        html = render_group_diff_html(doc, group_selector="計算倍率変更")
+        self.assertIn("data-status='reviewed'", html)
+        self.assertIn("data-action='toggle-reviewed' checked", html)
+        self.assertIn('id="stat-reviewed-count">1</span>', html)
+        self.assertIn('id="stat-reviewed-total">1</span>', html)
+        self.assertIn('id="stat-reviewed-rate">100</span>', html)
+
+    def test_render_embeds_save_config_defaults(self):
+        html = render_group_diff_html(make_doc(), group_selector="計算倍率変更")
+        config = extract_report_config_json(html)
+        self.assertEqual(config.get("saveReviewsUrl"), "")
+        self.assertEqual(config.get("saveReviewsLabel"), "Save to App")
+        self.assertIn('id="save-reviews" type="button" hidden', html)
+
+    def test_render_embeds_save_config_when_url_is_provided(self):
+        html = render_group_diff_html(
+            make_doc(),
+            group_selector="計算倍率変更",
+            save_reviews_url="/api/reviews",
+            save_reviews_label="Sync",
+        )
+        config = extract_report_config_json(html)
+        self.assertEqual(config.get("saveReviewsUrl"), "/api/reviews")
+        self.assertEqual(config.get("saveReviewsLabel"), "Sync")
 
     def test_export_script_writes_html(self):
         with tempfile.TemporaryDirectory() as tempdir:
@@ -113,6 +218,32 @@ class TestHtmlReport(unittest.TestCase):
             html = output_path.read_text(encoding="utf-8")
             self.assertIn("計算倍率変更", html)
             self.assertIn("src/a.ts", html)
+
+    def test_export_script_embeds_save_reviews_url(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            repo = Path(tempdir)
+            input_path = repo / "doc.diffgr.json"
+            output_path = repo / "out" / "report.html"
+            input_path.write_text(json.dumps(make_doc(), ensure_ascii=False), encoding="utf-8")
+            code = export_html_main(
+                [
+                    "--input",
+                    str(input_path),
+                    "--output",
+                    str(output_path),
+                    "--group",
+                    "計算倍率変更",
+                    "--save-reviews-url",
+                    "/api/reviews",
+                    "--save-reviews-label",
+                    "Save Live",
+                ]
+            )
+            self.assertEqual(code, 0)
+            html = output_path.read_text(encoding="utf-8")
+            config = extract_report_config_json(html)
+            self.assertEqual(config.get("saveReviewsUrl"), "/api/reviews")
+            self.assertEqual(config.get("saveReviewsLabel"), "Save Live")
 
 
 if __name__ == "__main__":

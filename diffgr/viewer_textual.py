@@ -3,18 +3,31 @@ from __future__ import annotations
 import datetime as dt
 import json
 import re
+import textwrap
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
+from textual import events
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Footer, Header, Input, Static
 from rich.text import Text
 from .html_report import render_group_diff_html
+
+try:
+    from rapidfuzz import fuzz as rapidfuzz_fuzz
+except Exception:  # noqa: BLE001
+    rapidfuzz_fuzz = None
+
+try:
+    from diff_match_patch import diff_match_patch
+except Exception:  # noqa: BLE001
+    diff_match_patch = None
 
 
 PSEUDO_ALL = "__all__"
@@ -55,6 +68,50 @@ def format_file_label(file_path: str) -> str:
     else:
         parent_display = "/".join(parent_parts)
     return f"{name} ({parent_display})"
+
+
+def format_comment_lines(comment: str, *, max_width: int = 96, max_lines: int = 8) -> list[str]:
+    clean = str(comment).strip()
+    if not clean:
+        return []
+
+    lines: list[str] = []
+    for raw_line in clean.splitlines():
+        if not raw_line.strip():
+            if lines and lines[-1] != "":
+                lines.append("")
+            continue
+        wrapped = textwrap.wrap(
+            raw_line,
+            width=max_width,
+            break_long_words=False,
+            break_on_hyphens=False,
+            drop_whitespace=False,
+        )
+        lines.extend(wrapped if wrapped else [raw_line])
+
+    if len(lines) > max_lines:
+        hidden = len(lines) - max_lines
+        lines = lines[:max_lines]
+        lines.append(f"... ({hidden} more line(s))")
+    return lines
+
+
+def normalize_line_number(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def line_anchor_key(old_line: Any, new_line: Any, line_type: str) -> str:
+    old_value = normalize_line_number(old_line)
+    new_value = normalize_line_number(new_line)
+    old_token = "" if old_value is None else str(old_value)
+    new_token = "" if new_value is None else str(new_value)
+    return f"{line_type}:{old_token}:{new_token}"
 
 
 @dataclass(frozen=True)
@@ -147,6 +204,34 @@ def build_group_diff_report_rows(
             )
         )
 
+        comment_lines = format_comment_lines(str(chunk.get("_comment", "")), max_width=88, max_lines=6)
+        for index, comment_line in enumerate(comment_lines):
+            prefix = "COMMENT: " if index == 0 else "         "
+            rows.append(
+                GroupReportRow(
+                    row_type="comment",
+                    old_line="",
+                    old_text="",
+                    new_line="",
+                    new_text=f"{prefix}{comment_line}",
+                    chunk_id=chunk_id,
+                )
+            )
+
+        line_comment_map: dict[str, list[str]] = {}
+        for line_comment in chunk.get("_lineComments", []) or []:
+            if not isinstance(line_comment, dict):
+                continue
+            comment_text = str(line_comment.get("comment", "")).strip()
+            if not comment_text:
+                continue
+            key = line_anchor_key(
+                line_comment.get("oldLine"),
+                line_comment.get("newLine"),
+                str(line_comment.get("lineType", "")),
+            )
+            line_comment_map.setdefault(key, []).append(comment_text)
+
         lines = list(chunk.get("lines") or [])
         if not lines:
             rows.append(GroupReportRow(row_type="meta", old_line="", old_text="(no lines)", new_line="", new_text="", chunk_id=chunk_id))
@@ -183,6 +268,21 @@ def build_group_diff_report_rows(
                     chunk_id=chunk_id,
                 )
             )
+            anchor = line_anchor_key(line.get("oldLine"), line.get("newLine"), kind)
+            for anchor_comment in line_comment_map.get(anchor, []):
+                wrapped = format_comment_lines(anchor_comment, max_width=78, max_lines=4)
+                for wrapped_index, wrapped_line in enumerate(wrapped):
+                    prefix = "COMMENT: " if wrapped_index == 0 else "         "
+                    rows.append(
+                        GroupReportRow(
+                            row_type="comment",
+                            old_line="",
+                            old_text="",
+                            new_line="",
+                            new_text=f"{prefix}{wrapped_line}",
+                            chunk_id=chunk_id,
+                        )
+                    )
 
         hidden = len(lines) - max_lines_per_chunk
         if hidden > 0:
@@ -224,11 +324,19 @@ class NameModal(ModalScreen[str | None]):
     }
     """
 
-    def __init__(self, title: str, placeholder: str, initial: str = "") -> None:
+    def __init__(
+        self,
+        title: str,
+        placeholder: str,
+        initial: str = "",
+        *,
+        allow_empty: bool = False,
+    ) -> None:
         super().__init__()
         self.dialog_title = title
         self.placeholder = placeholder
         self.initial = initial
+        self.allow_empty = allow_empty
 
     def compose(self) -> ComposeResult:
         with Vertical(id="dialog"):
@@ -245,8 +353,43 @@ class NameModal(ModalScreen[str | None]):
         if event.button.id == "cancel":
             self.dismiss(None)
             return
-        value = self.query_one("#name_input", Input).value.strip()
-        self.dismiss(value if value else None)
+        value = self.query_one("#name_input", Input).value
+        if self.allow_empty:
+            self.dismiss(value.strip())
+            return
+        stripped = value.strip()
+        self.dismiss(stripped if stripped else None)
+
+
+class ChunkTable(DataTable):
+    def _app_mark_reviewed(self) -> None:
+        mark = getattr(self.app, "action_mark_selected_reviewed", None)
+        if callable(mark):
+            mark()
+
+    def _app_mark_unreviewed(self) -> None:
+        mark = getattr(self.app, "action_mark_selected_unreviewed", None)
+        if callable(mark):
+            mark()
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key in {"backspace", "ctrl+h"}:
+            self._app_mark_unreviewed()
+            event.prevent_default()
+            event.stop()
+            return
+        if event.key == "shift+space":
+            self._app_mark_reviewed()
+            event.prevent_default()
+            event.stop()
+            return
+        if event.key == "space" or event.character in {" ", "　"}:
+            toggle = getattr(self.app, "action_toggle_reviewed_checkbox", None)
+            if callable(toggle):
+                toggle()
+            event.prevent_default()
+            event.stop()
+            return
 
 
 class DiffgrTextualApp(App[None]):
@@ -256,6 +399,7 @@ class DiffgrTextualApp(App[None]):
     MIN_DIFF_OLD_RATIO = 0.25
     MAX_DIFF_OLD_RATIO = 0.75
     DIFF_RATIO_STEP = 0.05
+    KEYMAP_REV = "km-20260222-6"
 
     CSS = """
     Screen { layout: vertical; }
@@ -276,15 +420,24 @@ class DiffgrTextualApp(App[None]):
         Binding("r", "reset_filter", "Reset Filter"),
         Binding("g", "focus_groups", "Groups"),
         Binding("c", "focus_chunks", "Chunks"),
+        Binding("l", "focus_lines", "Lines"),
         Binding("n", "new_group", "New Group"),
         Binding("e", "rename_group", "Rename Group"),
         Binding("a", "assign_chunk", "Assign"),
         Binding("u", "unassign_chunk", "Unassign"),
+        Binding("m", "edit_comment", "Comment"),
         Binding("d", "toggle_group_report", "Diff Report"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
         Binding("2", "set_status('reviewed')", "Reviewed"),
         Binding("3", "set_status('needsReReview')", "ReReview"),
         Binding("4", "set_status('ignored')", "Ignored"),
+        Binding("shift+up", "extend_chunk_selection_up", "Select Up"),
+        Binding("shift+down", "extend_chunk_selection_down", "Select Down"),
+        Binding("k", "extend_chunk_selection_up", "Select Up"),
+        Binding("j", "extend_chunk_selection_down", "Select Down"),
+        Binding("x", "toggle_current_chunk_selection", "Toggle Select"),
+        Binding("ctrl+a", "select_all_visible_chunks", "Select All"),
+        Binding("escape", "clear_chunk_multi_selection", "Clear Selection"),
         Binding("[", "move_split_left", "Split <-"),
         Binding("]", "move_split_right", "Split ->"),
         Binding("ctrl+left", "move_split_left", "Split <-"),
@@ -316,12 +469,19 @@ class DiffgrTextualApp(App[None]):
         self.current_group_id = PSEUDO_ALL
         self.filtered_chunk_ids: list[str] = []
         self.selected_chunk_id: str | None = None
+        self.selected_chunk_ids: set[str] = set()
+        self._chunk_selection_anchor_index: int | None = None
         self.group_report_mode = False
         self._lines_table_mode: str | None = None
         self.left_pane_pct = 52
         self.diff_old_ratio = 0.50
         self._group_report_row_chunk_by_key: dict[str, str] = {}
+        self._chunk_line_anchor_by_row_key: dict[str, dict[str, Any]] = {}
+        self._selected_line_anchor: dict[str, Any] | None = None
         self._suppress_chunk_table_events = False
+        self._dmp_engine = diff_match_patch() if diff_match_patch is not None else None
+        if self._dmp_engine is not None:
+            self._dmp_engine.Diff_Timeout = 0
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -330,7 +490,7 @@ class DiffgrTextualApp(App[None]):
             with Vertical(id="left"):
                 yield DataTable(id="groups", cursor_type="row")
                 yield Input(placeholder="Filter chunks by file/chunk/header/status...", id="filter")
-                yield DataTable(id="chunks", cursor_type="row")
+                yield ChunkTable(id="chunks", cursor_type="row")
             with Vertical(id="right"):
                 yield Static("Select a chunk from the left.", id="meta")
                 yield DataTable(id="lines", cursor_type="row")
@@ -340,7 +500,7 @@ class DiffgrTextualApp(App[None]):
         group_table = self.query_one("#groups", DataTable)
         group_table.add_columns("name", "total", "pending", "reviewed", "ignored")
         chunk_table = self.query_one("#chunks", DataTable)
-        chunk_table.add_columns("status", "chunk", "file", "old", "new", "header")
+        chunk_table.add_columns("sel", "done", "status", "note", "chunk", "file", "old", "new", "header")
         self._switch_lines_table_mode("chunk")
         self._apply_main_split_widths()
 
@@ -362,8 +522,13 @@ class DiffgrTextualApp(App[None]):
     def action_focus_chunks(self) -> None:
         self.query_one("#chunks", DataTable).focus()
 
+    def action_focus_lines(self) -> None:
+        self.query_one("#lines", DataTable).focus()
+
     def action_toggle_group_report(self) -> None:
         self.group_report_mode = not self.group_report_mode
+        self._selected_line_anchor = None
+        self._chunk_line_anchor_by_row_key = {}
         if self.group_report_mode:
             self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
             self.notify("Group diff report: ON", timeout=1.2)
@@ -457,6 +622,8 @@ class DiffgrTextualApp(App[None]):
             style = "bold #1f8f49"
         elif row_type == "delete" and side == "old":
             style = "bold #c63e51"
+        elif row_type == "comment":
+            style = "bold #c8b75b"
         return Text(value, style=style)
 
     def _render_report_text(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
@@ -480,6 +647,10 @@ class DiffgrTextualApp(App[None]):
             return Text(value, style="dim #84575c")
         if row_type == "context":
             return Text(value, style="#c7d4e8")
+        if row_type == "comment":
+            if side == "new":
+                return Text(value, style="bold #1e1a06 on #ffe7a1")
+            return Text(value, style="dim #7a7360")
         if row_type == "meta":
             return Text(value, style="italic #9db0c8")
         if row_type == "spacer":
@@ -488,6 +659,146 @@ class DiffgrTextualApp(App[None]):
             return Text(value, style="italic #9db0c8")
         return Text(value, style="#c7d4e8")
 
+    def _line_similarity_score(self, left: str, right: str) -> float:
+        if not left and not right:
+            return 1.0
+        if rapidfuzz_fuzz is not None:
+            return float(rapidfuzz_fuzz.ratio(left, right)) / 100.0
+        return SequenceMatcher(a=left, b=right, autojunk=False).ratio()
+
+    def _build_intraline_pair_map(self, lines: list[dict[str, Any]]) -> dict[int, str]:
+        pair_map: dict[int, str] = {}
+        index = 0
+        while index < len(lines):
+            kind = str(lines[index].get("kind", ""))
+            if kind not in {"add", "delete"}:
+                index += 1
+                continue
+
+            block_start = index
+            while index < len(lines) and str(lines[index].get("kind", "")) in {"add", "delete"}:
+                index += 1
+            block = lines[block_start:index]
+            deletes: list[tuple[int, str]] = []
+            adds: list[tuple[int, str]] = []
+            for offset, line in enumerate(block):
+                absolute_index = block_start + offset
+                text = str(line.get("text", ""))
+                line_kind = str(line.get("kind", ""))
+                if line_kind == "delete":
+                    deletes.append((absolute_index, text))
+                elif line_kind == "add":
+                    adds.append((absolute_index, text))
+            if not deletes or not adds:
+                continue
+
+            candidates: list[tuple[float, int, int]] = []
+            for delete_row_index, delete_text in deletes:
+                for add_row_index, add_text in adds:
+                    score = self._line_similarity_score(delete_text, add_text)
+                    candidates.append((score, delete_row_index, add_row_index))
+            candidates.sort(key=lambda item: item[0], reverse=True)
+
+            used_delete_rows: set[int] = set()
+            used_add_rows: set[int] = set()
+            for score, delete_row_index, add_row_index in candidates:
+                if delete_row_index in used_delete_rows or add_row_index in used_add_rows:
+                    continue
+                # Keep unrelated add/delete lines unpaired to reduce noisy intraline highlight.
+                if score < 0.20:
+                    continue
+                delete_text = next(text for row, text in deletes if row == delete_row_index)
+                add_text = next(text for row, text in adds if row == add_row_index)
+                pair_map[delete_row_index] = add_text
+                pair_map[add_row_index] = delete_text
+                used_delete_rows.add(delete_row_index)
+                used_add_rows.add(add_row_index)
+        return pair_map
+
+    def _render_chunk_kind_badge(self, kind: str) -> Text:
+        label = {
+            "context": "CTX",
+            "add": "ADD",
+            "delete": "DEL",
+            "meta": "META",
+            "comment": "NOTE",
+            "line-comment": "NOTE",
+        }.get(kind, str(kind).upper())
+        style = {
+            "context": "bold #d3deee on #24334e",
+            "add": "bold #072010 on #92f2ae",
+            "delete": "bold #2a030a on #ffb3bb",
+            "meta": "bold #d6e0f2 on #33405a",
+            "comment": "bold #2d2004 on #ffe7a1",
+            "line-comment": "bold #2d2004 on #ffe7a1",
+        }.get(kind, "bold #d3deee on #2d3e5c")
+        return Text(f" {label} ", style=style)
+
+    def _render_chunk_content_text(self, kind: str, text: str, *, pair_text: str | None = None) -> Text:
+        prefix = {
+            "context": "  ",
+            "add": "+ ",
+            "delete": "- ",
+            "meta": "\\ ",
+            "comment": "! ",
+            "line-comment": "! ",
+        }.get(kind, "? ")
+        base_style = {
+            "context": "#c7d4e8",
+            "add": "bold #c4f8d1",
+            "delete": "bold #ffd3d7",
+            "meta": "italic #9db0c8",
+            "comment": "bold #f3e6b3",
+            "line-comment": "bold #f3e6b3",
+        }.get(kind, "#c7d4e8")
+        rendered = Text(prefix + text, style=base_style)
+        if kind not in {"add", "delete"} or pair_text is None:
+            return rendered
+
+        old_text = pair_text if kind == "add" else text
+        new_text = text if kind == "add" else pair_text
+        prefix_len = len(prefix)
+        applied_by_dmp = False
+        if self._dmp_engine is not None:
+            diffs = self._dmp_engine.diff_main(old_text, new_text, False)
+            self._dmp_engine.diff_cleanupSemantic(diffs)
+            old_pos = 0
+            new_pos = 0
+            for op, segment in diffs:
+                seg_len = len(segment)
+                if seg_len == 0:
+                    continue
+                if op == 0:
+                    old_pos += seg_len
+                    new_pos += seg_len
+                    continue
+                if op < 0:
+                    if kind == "delete":
+                        rendered.stylize("bold #300008 on #ff93a0", prefix_len + old_pos, prefix_len + old_pos + seg_len)
+                        applied_by_dmp = True
+                    old_pos += seg_len
+                    continue
+                if op > 0:
+                    if kind == "add":
+                        rendered.stylize("bold #01150a on #69d28f", prefix_len + new_pos, prefix_len + new_pos + seg_len)
+                        applied_by_dmp = True
+                    new_pos += seg_len
+                    continue
+        if applied_by_dmp:
+            return rendered
+
+        opcodes = SequenceMatcher(a=old_text, b=new_text, autojunk=False).get_opcodes()
+        for tag, old_start, old_end, new_start, new_end in opcodes:
+            if tag == "equal":
+                continue
+            if kind == "add":
+                if new_end > new_start:
+                    rendered.stylize("bold #01150a on #69d28f", prefix_len + new_start, prefix_len + new_end)
+            else:
+                if old_end > old_start:
+                    rendered.stylize("bold #300008 on #ff93a0", prefix_len + old_start, prefix_len + old_end)
+        return rendered
+
     def _add_left_border(self, value: str, row_type: str) -> str:
         if row_type == "spacer":
             return ""
@@ -495,38 +806,190 @@ class DiffgrTextualApp(App[None]):
             return "│"
         return f"│ {value}"
 
-    async def action_new_group(self) -> None:
-        result = await self.push_screen_wait(NameModal("New Group (Japanese name OK)", "例: 認証周り / UI調整 / PR3…"))
-        if not result:
-            return
-        new_id = safe_group_id(result)
-        existing = {group.get("id") for group in self.doc.get("groups", []) if isinstance(group, dict)}
-        suffix = 1
-        candidate = new_id
-        while candidate in existing or candidate in RESERVED_GROUP_IDS:
-            suffix += 1
-            candidate = f"{new_id}-{suffix}"
-        new_id = candidate
+    def _comment_for_chunk(self, chunk_id: str) -> str:
+        record = self.doc.get("reviews", {}).get(chunk_id, {})
+        if not isinstance(record, dict):
+            return ""
+        value = record.get("comment")
+        if value is None:
+            return ""
+        return str(value).strip()
 
-        self.doc.setdefault("groups", []).append({"id": new_id, "name": result, "order": len(existing) + 1, "tags": ["slice"]})
-        self.doc.setdefault("assignments", {})[new_id] = []
-        self.current_group_id = new_id
-        self._refresh_groups(select_group_id=new_id)
-        self._apply_chunk_filter()
+    def _line_comments_for_chunk(self, chunk_id: str) -> list[dict[str, Any]]:
+        record = self.doc.get("reviews", {}).get(chunk_id, {})
+        if not isinstance(record, dict):
+            return []
+        raw_line_comments = record.get("lineComments")
+        if not isinstance(raw_line_comments, list):
+            return []
 
-    async def action_rename_group(self) -> None:
+        line_comments: list[dict[str, Any]] = []
+        for item in raw_line_comments:
+            if not isinstance(item, dict):
+                continue
+            comment = str(item.get("comment", "")).strip()
+            if not comment:
+                continue
+            old_line = normalize_line_number(item.get("oldLine"))
+            new_line = normalize_line_number(item.get("newLine"))
+            line_type = str(item.get("lineType", ""))
+            if line_type not in {"add", "delete", "context", "meta"}:
+                if old_line is None and new_line is not None:
+                    line_type = "add"
+                elif old_line is not None and new_line is None:
+                    line_type = "delete"
+                elif old_line is not None and new_line is not None:
+                    line_type = "context"
+                else:
+                    line_type = "meta"
+            line_comments.append(
+                {
+                    "oldLine": old_line,
+                    "newLine": new_line,
+                    "lineType": line_type,
+                    "comment": comment,
+                }
+            )
+        return line_comments
+
+    def _line_comment_map_for_chunk(self, chunk_id: str) -> dict[str, list[str]]:
+        line_comment_map: dict[str, list[str]] = {}
+        for item in self._line_comments_for_chunk(chunk_id):
+            key = line_anchor_key(item.get("oldLine"), item.get("newLine"), str(item.get("lineType", "")))
+            line_comment_map.setdefault(key, []).append(str(item.get("comment", "")))
+        return line_comment_map
+
+    def _line_comment_for_anchor(self, chunk_id: str, old_line: Any, new_line: Any, line_type: str) -> str:
+        key = line_anchor_key(old_line, new_line, line_type)
+        comments = self._line_comment_map_for_chunk(chunk_id).get(key, [])
+        return comments[0].strip() if comments else ""
+
+    def _line_comment_count_for_chunk(self, chunk_id: str) -> int:
+        return len(self._line_comments_for_chunk(chunk_id))
+
+    def _all_comments_text_for_chunk(self, chunk_id: str) -> str:
+        chunks: list[str] = []
+        chunk_comment = self._comment_for_chunk(chunk_id)
+        if chunk_comment:
+            chunks.append(chunk_comment)
+        for item in self._line_comments_for_chunk(chunk_id):
+            comment = str(item.get("comment", "")).strip()
+            if comment:
+                chunks.append(comment)
+        return " ".join(chunks).strip()
+
+    def _has_any_comment_for_chunk(self, chunk_id: str) -> bool:
+        return bool(self._all_comments_text_for_chunk(chunk_id))
+
+    def _set_comment_for_chunk(self, chunk_id: str, comment: str) -> None:
+        reviews: dict[str, Any] = self.doc.setdefault("reviews", {})
+        record = reviews.get(chunk_id, {})
+        if not isinstance(record, dict):
+            record = {}
+        clean = comment.strip()
+        if clean:
+            record["comment"] = clean
+        else:
+            record.pop("comment", None)
+
+        if record:
+            reviews[chunk_id] = record
+        else:
+            reviews.pop(chunk_id, None)
+
+    def _set_line_comment_for_anchor(
+        self,
+        chunk_id: str,
+        *,
+        old_line: Any,
+        new_line: Any,
+        line_type: str,
+        comment: str,
+    ) -> None:
+        reviews: dict[str, Any] = self.doc.setdefault("reviews", {})
+        record = reviews.get(chunk_id, {})
+        if not isinstance(record, dict):
+            record = {}
+
+        raw_line_comments = record.get("lineComments")
+        existing = raw_line_comments if isinstance(raw_line_comments, list) else []
+        target_anchor_key = line_anchor_key(old_line, new_line, line_type)
+        kept: list[dict[str, Any]] = []
+        for item in existing:
+            if not isinstance(item, dict):
+                continue
+            item_comment = str(item.get("comment", "")).strip()
+            if not item_comment:
+                continue
+            item_key = line_anchor_key(item.get("oldLine"), item.get("newLine"), str(item.get("lineType", "")))
+            if item_key == target_anchor_key:
+                continue
+            kept.append(item)
+
+        clean = comment.strip()
+        if clean:
+            kept.append(
+                {
+                    "oldLine": normalize_line_number(old_line),
+                    "newLine": normalize_line_number(new_line),
+                    "lineType": line_type,
+                    "comment": clean,
+                    "updatedAt": iso_utc_now(),
+                }
+            )
+
+        if kept:
+            record["lineComments"] = kept
+        else:
+            record.pop("lineComments", None)
+
+        if record:
+            reviews[chunk_id] = record
+        else:
+            reviews.pop(chunk_id, None)
+
+    def action_new_group(self) -> None:
+        def _on_dismiss(result: str | None) -> None:
+            if not result:
+                return
+            new_id = safe_group_id(result)
+            existing = {group.get("id") for group in self.doc.get("groups", []) if isinstance(group, dict)}
+            suffix = 1
+            candidate = new_id
+            while candidate in existing or candidate in RESERVED_GROUP_IDS:
+                suffix += 1
+                candidate = f"{new_id}-{suffix}"
+            new_id = candidate
+
+            self.doc.setdefault("groups", []).append({"id": new_id, "name": result, "order": len(existing) + 1, "tags": ["slice"]})
+            self.doc.setdefault("assignments", {})[new_id] = []
+            self.current_group_id = new_id
+            self._refresh_groups(select_group_id=new_id)
+            self._apply_chunk_filter()
+
+        self.push_screen(NameModal("New Group (Japanese name OK)", "例: 認証周り / UI調整 / PR3…"), callback=_on_dismiss)
+
+    def action_rename_group(self) -> None:
         if self.current_group_id in {PSEUDO_ALL, PSEUDO_UNASSIGNED}:
             return
+        group_id = self.current_group_id
         groups = self.doc.get("groups", [])
-        current = next((g for g in groups if isinstance(g, dict) and g.get("id") == self.current_group_id), None)
+        current = next((g for g in groups if isinstance(g, dict) and g.get("id") == group_id), None)
         if not current:
             return
         current_name = str(current.get("name", ""))
-        result = await self.push_screen_wait(NameModal("Rename Group", "新しい名前（日本語OK）", initial=current_name))
-        if not result:
-            return
-        current["name"] = result
-        self._refresh_groups(select_group_id=self.current_group_id)
+
+        def _on_dismiss(result: str | None) -> None:
+            if not result:
+                return
+            groups_inner = self.doc.get("groups", [])
+            current_inner = next((g for g in groups_inner if isinstance(g, dict) and g.get("id") == group_id), None)
+            if not current_inner:
+                return
+            current_inner["name"] = result
+            self._refresh_groups(select_group_id=group_id)
+
+        self.push_screen(NameModal("Rename Group", "新しい名前（日本語OK）", initial=current_name), callback=_on_dismiss)
 
     def action_assign_chunk(self) -> None:
         if self.current_group_id in {PSEUDO_ALL, PSEUDO_UNASSIGNED}:
@@ -559,12 +1022,88 @@ class DiffgrTextualApp(App[None]):
         self._refresh_groups(select_group_id=self.current_group_id)
         self._apply_chunk_filter(keep_selection=True)
 
-    def action_set_status(self, status: str) -> None:
+    def action_edit_comment(self) -> None:
         if not self.selected_chunk_id:
             return
-        if status not in {"unreviewed", "reviewed", "ignored", "needsReReview"}:
-            return
         chunk_id = self.selected_chunk_id
+        focused_widget = self.focused
+        editing_line_anchor = (
+            not self.group_report_mode
+            and isinstance(focused_widget, DataTable)
+            and focused_widget.id == "lines"
+            and self._selected_line_anchor is not None
+        )
+
+        if editing_line_anchor:
+            anchor = self._selected_line_anchor or {}
+            old_line = normalize_line_number(anchor.get("oldLine"))
+            new_line = normalize_line_number(anchor.get("newLine"))
+            line_type = str(anchor.get("lineType", "context"))
+            initial = self._line_comment_for_anchor(chunk_id, old_line, new_line, line_type)
+            old_text = "-" if old_line is None else str(old_line)
+            new_text = "-" if new_line is None else str(new_line)
+
+            def _on_line_dismiss(result: str | None) -> None:
+                if result is None:
+                    return
+                self._set_line_comment_for_anchor(
+                    chunk_id,
+                    old_line=old_line,
+                    new_line=new_line,
+                    line_type=line_type,
+                    comment=result,
+                )
+                self._apply_chunk_filter(keep_selection=True)
+                if self.group_report_mode:
+                    self._show_current_group_report(target_chunk_id=chunk_id)
+                else:
+                    self._show_chunk(chunk_id)
+                self.notify("Line comment updated", timeout=1.1)
+
+            self.push_screen(
+                NameModal(
+                    f"Line Comment (old {old_text} / new {new_text})",
+                    "行コメントを入力（空で削除）",
+                    initial=initial,
+                    allow_empty=True,
+                ),
+                callback=_on_line_dismiss,
+            )
+            return
+
+        initial = self._comment_for_chunk(chunk_id)
+
+        def _on_chunk_dismiss(result: str | None) -> None:
+            if result is None:
+                return
+            self._set_comment_for_chunk(chunk_id, result)
+            self._apply_chunk_filter(keep_selection=True)
+            if self.group_report_mode:
+                self._show_current_group_report(target_chunk_id=chunk_id)
+            else:
+                self._show_chunk(chunk_id)
+            self.notify("Comment updated", timeout=1.1)
+
+        self.push_screen(
+            NameModal(
+                "Review Comment",
+                "コメントを入力（空で削除）",
+                initial=initial,
+                allow_empty=True,
+            ),
+            callback=_on_chunk_dismiss,
+        )
+
+    def _effective_chunk_selection(self) -> list[str]:
+        if self.selected_chunk_ids:
+            ordered = [chunk_id for chunk_id in self.filtered_chunk_ids if chunk_id in self.selected_chunk_ids]
+            if ordered:
+                return ordered
+        if self.selected_chunk_id:
+            return [self.selected_chunk_id]
+        return []
+
+    def _set_status_for_chunk(self, chunk_id: str, status: str) -> None:
         reviews: dict[str, Any] = self.doc.setdefault("reviews", {})
         record = reviews.get(chunk_id, {})
         if not isinstance(record, dict):
@@ -574,9 +1113,142 @@ class DiffgrTextualApp(App[None]):
             record["reviewedAt"] = iso_utc_now()
         reviews[chunk_id] = record
         self.status_map[chunk_id] = status
+
+    def _render_current_selection(self) -> None:
+        if self.group_report_mode:
+            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+            return
+        if self.selected_chunk_id:
+            self._show_chunk(self.selected_chunk_id)
+
+    def action_set_status(self, status: str) -> None:
+        if status not in {"unreviewed", "reviewed", "ignored", "needsReReview"}:
+            return
+        targets = self._effective_chunk_selection()
+        if not targets:
+            return
+        for chunk_id in targets:
+            self._set_status_for_chunk(chunk_id, status)
         self._refresh_groups(select_group_id=self.current_group_id)
         self._apply_chunk_filter(keep_selection=True)
-        self._show_chunk(chunk_id)
+        self._render_current_selection()
+
+    def action_toggle_reviewed_checkbox(self) -> None:
+        targets = self._effective_chunk_selection()
+        if not targets:
+            return
+        all_reviewed = all(self.status_map.get(chunk_id, "unreviewed") == "reviewed" for chunk_id in targets)
+        self.action_set_status("unreviewed" if all_reviewed else "reviewed")
+
+    def action_mark_selected_reviewed(self) -> None:
+        self.action_set_status("reviewed")
+
+    def action_mark_selected_unreviewed(self) -> None:
+        self.action_set_status("unreviewed")
+
+    def action_toggle_current_chunk_selection(self) -> None:
+        if not self.selected_chunk_id:
+            return
+        chunk_id = self.selected_chunk_id
+        if chunk_id in self.selected_chunk_ids:
+            self.selected_chunk_ids.discard(chunk_id)
+        else:
+            self.selected_chunk_ids.add(chunk_id)
+        if not self.selected_chunk_ids:
+            self.selected_chunk_ids = {chunk_id}
+        if self.selected_chunk_id not in self.selected_chunk_ids:
+            self.selected_chunk_id = next(
+                (cid for cid in self.filtered_chunk_ids if cid in self.selected_chunk_ids),
+                chunk_id,
+            )
+        self._set_chunk_selection_anchor_from_current()
+        self._refresh_chunk_selection_markers()
+        self._refresh_topbar()
+
+    def action_select_all_visible_chunks(self) -> None:
+        if not self.filtered_chunk_ids:
+            return
+        self.selected_chunk_ids = set(self.filtered_chunk_ids)
+        if not self.selected_chunk_id or self.selected_chunk_id not in self.selected_chunk_ids:
+            self.selected_chunk_id = self.filtered_chunk_ids[0]
+            self._select_chunk_row(self.selected_chunk_id)
+        self._set_chunk_selection_anchor_from_current()
+        self._refresh_chunk_selection_markers()
+        self._refresh_topbar()
+
+    def action_clear_chunk_multi_selection(self) -> None:
+        if not self.selected_chunk_id:
+            self.selected_chunk_ids = set()
+            self._chunk_selection_anchor_index = None
+            self._refresh_chunk_selection_markers()
+            self._refresh_topbar()
+            return
+        self.selected_chunk_ids = {self.selected_chunk_id}
+        self._set_chunk_selection_anchor_from_current()
+        self._refresh_chunk_selection_markers()
+        self._refresh_topbar()
+
+    def _set_chunk_selection_anchor_from_current(self) -> None:
+        if not self.selected_chunk_id:
+            self._chunk_selection_anchor_index = None
+            return
+        try:
+            self._chunk_selection_anchor_index = self.filtered_chunk_ids.index(self.selected_chunk_id)
+        except ValueError:
+            self._chunk_selection_anchor_index = None
+
+    def _set_single_chunk_selection(self, chunk_id: str) -> None:
+        self.selected_chunk_id = chunk_id
+        self.selected_chunk_ids = {chunk_id}
+        self._set_chunk_selection_anchor_from_current()
+        self._refresh_chunk_selection_markers()
+
+    def _refresh_chunk_selection_markers(self) -> None:
+        try:
+            chunk_table = self.query_one("#chunks", DataTable)
+            for row_index, row_key in enumerate(chunk_table.rows.keys()):
+                row_chunk_id = str(row_key.value)
+                marker = "*" if row_chunk_id in self.selected_chunk_ids else ""
+                chunk_table.update_cell_at((row_index, 0), marker, update_width=False)
+        except Exception:
+            pass
+
+    def _extend_chunk_selection(self, step: int) -> None:
+        if step == 0 or not self.filtered_chunk_ids:
+            return
+        chunk_table = self.query_one("#chunks", DataTable)
+        try:
+            current_index = int(chunk_table.cursor_row)
+        except Exception:
+            current_index = 0
+        current_index = max(0, min(len(self.filtered_chunk_ids) - 1, current_index))
+        anchor_index = self._chunk_selection_anchor_index
+        if anchor_index is None:
+            anchor_index = current_index
+        anchor_index = max(0, min(len(self.filtered_chunk_ids) - 1, anchor_index))
+        new_index = max(0, min(len(self.filtered_chunk_ids) - 1, current_index + step))
+        if new_index == current_index and self.selected_chunk_ids:
+            return
+        start = min(anchor_index, new_index)
+        end = max(anchor_index, new_index)
+        self.selected_chunk_ids = set(self.filtered_chunk_ids[start : end + 1])
+        self.selected_chunk_id = self.filtered_chunk_ids[new_index]
+        self._chunk_selection_anchor_index = anchor_index
+        try:
+            self._suppress_chunk_table_events = True
+            chunk_table.move_cursor(row=new_index, column=0, animate=False, scroll=True)
+        except Exception:
+            pass
+        finally:
+            self._suppress_chunk_table_events = False
+        self._refresh_chunk_selection_markers()
+        self._render_current_selection()
+
+    def action_extend_chunk_selection_up(self) -> None:
+        self._extend_chunk_selection(-1)
+
+    def action_extend_chunk_selection_down(self) -> None:
+        self._extend_chunk_selection(1)
 
     def action_save(self) -> None:
         try:
@@ -618,6 +1290,23 @@ class DiffgrTextualApp(App[None]):
         self.filter_text = event.value.strip().lower()
         self._apply_chunk_filter()
 
+    def on_key(self, event: events.Key) -> None:
+        focused = self.focused
+        if isinstance(focused, Input):
+            return
+        if isinstance(focused, DataTable) and focused.id == "chunks":
+            return
+        if event.key in {"backspace", "ctrl+h"}:
+            self.action_mark_selected_unreviewed()
+            event.prevent_default()
+            event.stop()
+            return
+        if event.key in {"space", "shift+space"} or event.character == " ":
+            self.action_mark_selected_reviewed()
+            event.prevent_default()
+            event.stop()
+            return
+
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         if event.data_table.id == "groups":
             group_id = str(event.row_key.value)
@@ -630,7 +1319,7 @@ class DiffgrTextualApp(App[None]):
             if event.row_key.value is None:
                 return
             chunk_id = str(event.row_key.value)
-            self.selected_chunk_id = chunk_id
+            self._set_single_chunk_selection(chunk_id)
             if self.group_report_mode:
                 self._show_current_group_report(target_chunk_id=chunk_id)
             else:
@@ -641,8 +1330,18 @@ class DiffgrTextualApp(App[None]):
                 return
             self._sync_selection_from_report_row_key(str(event.row_key.value))
             return
+        if event.data_table.id == "lines" and not self.group_report_mode:
+            if event.row_key.value is None:
+                return
+            self._sync_selection_from_chunk_line_row_key(str(event.row_key.value))
+            return
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
+        if event.data_table.id == "lines" and not self.group_report_mode:
+            if event.row_key.value is None:
+                return
+            self._sync_selection_from_chunk_line_row_key(str(event.row_key.value))
+            return
         if event.data_table.id != "chunks":
             return
         if self._suppress_chunk_table_events:
@@ -652,7 +1351,7 @@ class DiffgrTextualApp(App[None]):
         chunk_id = str(event.row_key.value)
         if chunk_id == self.selected_chunk_id:
             return
-        self.selected_chunk_id = chunk_id
+        self._set_single_chunk_selection(chunk_id)
         if self.group_report_mode:
             self._show_current_group_report(target_chunk_id=chunk_id)
         else:
@@ -728,20 +1427,35 @@ class DiffgrTextualApp(App[None]):
         group_name = self._group_display_name(self.current_group_id)
         m_all = self._compute_group_metrics(PSEUDO_ALL)
         m_cur = self._compute_group_metrics(self.current_group_id)
+        cur_rate = self._reviewed_rate(m_cur)
+        all_rate = self._reviewed_rate(m_all)
+        selected_count = len(self._effective_chunk_selection())
         warnings_text = f"warnings={len(self.warnings)}"
         filter_display = self.filter_text if self.filter_text else "none"
         text = (
             f"[b]{title}[/b]  "
             f"group={group_name}  "
-            f"cur(total={m_cur['total']} pending={m_cur['pending']} reviewed={m_cur['reviewed']})  "
-            f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']})  "
+            f"cur(total={m_cur['total']} pending={m_cur['pending']} reviewed={m_cur['reviewed']} rate={cur_rate:.1f}%)  "
+            f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']} rate={all_rate:.1f}%)  "
+            f"selected={selected_count}  "
+            f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
             f"view={'group-diff' if self.group_report_mode else 'chunk'}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, d=report, h=html, 1-4=status, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), d=report, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
+
+    def _reviewed_rate(self, metrics: dict[str, int]) -> float:
+        total = int(metrics.get("total", 0))
+        if total <= 0:
+            return 0.0
+        reviewed = int(metrics.get("reviewed", 0))
+        return (reviewed / total) * 100.0
+
+    def _done_checkbox_for_status(self, status: str) -> str:
+        return "[x]" if status == "reviewed" else "[ ]"
 
     def _group_display_name(self, group_id: str) -> str:
         if group_id == PSEUDO_ALL:
@@ -776,7 +1490,8 @@ class DiffgrTextualApp(App[None]):
             return True
         status = self.status_map.get(chunk["id"], "unreviewed")
         header = str(chunk.get("header", ""))
-        haystack = " ".join([chunk["id"], chunk.get("filePath", ""), header, status]).lower()
+        comment = self._all_comments_text_for_chunk(chunk["id"])
+        haystack = " ".join([chunk["id"], chunk.get("filePath", ""), header, status, comment]).lower()
         return self.filter_text in haystack
 
     def _apply_chunk_filter(self, keep_selection: bool = False) -> None:
@@ -785,12 +1500,26 @@ class DiffgrTextualApp(App[None]):
         self.filtered_chunk_ids = []
 
         chunks = [c for c in self._chunks_for_current_group() if self._matches_filter(c)]
+        visible_chunk_ids = [str(chunk.get("id", "")) for chunk in chunks if str(chunk.get("id", ""))]
+        if self.selected_chunk_ids:
+            self.selected_chunk_ids = {chunk_id for chunk_id in self.selected_chunk_ids if chunk_id in visible_chunk_ids}
+        if self.selected_chunk_id and self.selected_chunk_id not in visible_chunk_ids:
+            self.selected_chunk_id = None
+        if not self.selected_chunk_id and self.selected_chunk_ids:
+            self.selected_chunk_id = next((chunk_id for chunk_id in visible_chunk_ids if chunk_id in self.selected_chunk_ids), None)
+        if self.selected_chunk_id and not self.selected_chunk_ids:
+            self.selected_chunk_ids = {self.selected_chunk_id}
+
         for chunk in chunks:
             chunk_id = chunk["id"]
             self.filtered_chunk_ids.append(chunk_id)
             status = self.status_map.get(chunk_id, "unreviewed")
+            comment_flag = "C" if self._has_any_comment_for_chunk(chunk_id) else ""
             chunk_table.add_row(
+                "*" if chunk_id in self.selected_chunk_ids else "",
+                self._done_checkbox_for_status(status),
                 status,
+                comment_flag,
                 chunk_id[:12],
                 format_file_label(str(chunk.get("filePath", "-"))),
                 f"{chunk.get('old', {}).get('start', '?')},{chunk.get('old', {}).get('count', '?')}",
@@ -802,22 +1531,36 @@ class DiffgrTextualApp(App[None]):
         self._refresh_topbar()
 
         if self.group_report_mode:
+            self._selected_line_anchor = None
+            self._chunk_line_anchor_by_row_key = {}
             if self.filtered_chunk_ids and (self.selected_chunk_id not in self.filtered_chunk_ids):
                 self.selected_chunk_id = self.filtered_chunk_ids[0]
+                self.selected_chunk_ids = {self.selected_chunk_id}
+                self._set_chunk_selection_anchor_from_current()
                 self._select_chunk_row(self.selected_chunk_id)
             self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
             return
 
         if keep_selection and self.selected_chunk_id in self.filtered_chunk_ids:
+            self.selected_chunk_ids = {
+                chunk_id for chunk_id in self.selected_chunk_ids if chunk_id in self.filtered_chunk_ids
+            } or {self.selected_chunk_id}
+            self._set_chunk_selection_anchor_from_current()
             self._select_chunk_row(self.selected_chunk_id)
             return
         if self.filtered_chunk_ids:
             first = self.filtered_chunk_ids[0]
             self.selected_chunk_id = first
+            self.selected_chunk_ids = {first}
+            self._set_chunk_selection_anchor_from_current()
             self._select_chunk_row(first)
             self._show_chunk(first)
         else:
             self.selected_chunk_id = None
+            self.selected_chunk_ids = set()
+            self._chunk_selection_anchor_index = None
+            self._selected_line_anchor = None
+            self._chunk_line_anchor_by_row_key = {}
             self.query_one("#meta", Static).update("No chunks match current selection/filter.")
             self.query_one("#lines", DataTable).clear(columns=False)
 
@@ -839,16 +1582,23 @@ class DiffgrTextualApp(App[None]):
         chunks_for_view: list[dict[str, Any]] = []
         for chunk in chunks:
             chunk_view = dict(chunk)
-            chunk_view["_assignedGroups"] = self._groups_for_chunk(str(chunk.get("id", "")))
+            chunk_id = str(chunk.get("id", ""))
+            chunk_view["_assignedGroups"] = self._groups_for_chunk(chunk_id)
+            chunk_view["_comment"] = self._comment_for_chunk(chunk_id)
+            chunk_view["_lineComments"] = self._line_comments_for_chunk(chunk_id)
             chunks_for_view.append(chunk_view)
         file_count = len({str(chunk.get("filePath", "")) for chunk in chunks})
         selected_summary = "-"
+        selected_comment = "(none)"
+        selected_line_comment_count = 0
         if target_chunk_id and target_chunk_id in self.chunk_map:
             selected_chunk = self.chunk_map[target_chunk_id]
             selected_summary = (
                 f"{target_chunk_id[:12]} "
                 f"{format_file_label(str(selected_chunk.get('filePath', '-')))}"
             )
+            selected_comment = self._comment_for_chunk(target_chunk_id) or "(none)"
+            selected_line_comment_count = self._line_comment_count_for_chunk(target_chunk_id)
         self.query_one("#meta", Static).update(
             "\n".join(
                 [
@@ -857,6 +1607,8 @@ class DiffgrTextualApp(App[None]):
                     f"[b]chunks[/b] {len(chunks)}",
                     f"[b]files[/b] {file_count}",
                     f"[b]selected chunk[/b] {selected_summary}",
+                    f"[b]comment[/b] {selected_comment}",
+                    f"[b]line comments[/b] {selected_line_comment_count}",
                     f"[b]scope[/b] chunk-level assignment (line-level ownership is not tracked)",
                     "[dim]Press [b]d[/b] to return to single-chunk view.[/dim]",
                 ]
@@ -909,9 +1661,26 @@ class DiffgrTextualApp(App[None]):
         if chunk_id == self.selected_chunk_id:
             return False
         self.selected_chunk_id = chunk_id
+        self.selected_chunk_ids = {chunk_id}
+        self._set_chunk_selection_anchor_from_current()
+        self._refresh_chunk_selection_markers()
         self._select_chunk_row(chunk_id)
         if refresh_report and self.group_report_mode:
             self._show_current_group_report(target_chunk_id=chunk_id)
+        return True
+
+    def _sync_selection_from_chunk_line_row_key(self, row_key_value: str) -> bool:
+        anchor = self._chunk_line_anchor_by_row_key.get(row_key_value)
+        if not anchor:
+            return False
+
+        anchor_key = str(anchor.get("anchorKey", ""))
+        selected_key = str(self._selected_line_anchor.get("anchorKey", "")) if self._selected_line_anchor else ""
+        if anchor_key and anchor_key == selected_key:
+            return False
+        self._selected_line_anchor = dict(anchor)
+        if self.selected_chunk_id and not self.group_report_mode:
+            self._update_chunk_meta(self.selected_chunk_id)
         return True
 
     def _select_chunk_row(self, chunk_id: str) -> None:
@@ -927,18 +1696,31 @@ class DiffgrTextualApp(App[None]):
         finally:
             self._suppress_chunk_table_events = False
 
-    def _show_chunk(self, chunk_id: str) -> None:
+    def _select_lines_row(self, row_key_value: str) -> None:
+        lines_table = self.query_one("#lines", DataTable)
+        try:
+            for row_index, row_key in enumerate(lines_table.rows.keys()):
+                if str(row_key.value) == row_key_value:
+                    lines_table.cursor_coordinate = (row_index, 0)
+                    break
+        except Exception:
+            pass
+
+    def _build_chunk_meta_lines(self, chunk_id: str) -> list[str]:
         chunk = self.chunk_map.get(chunk_id)
         if chunk is None:
-            return
+            return ["No chunk selected."]
         status = self.status_map.get(chunk_id, "unreviewed")
         group_name = self._group_display_name(self.current_group_id)
         assigned_groups = self._groups_for_chunk(chunk_id)
         file_path = str(chunk.get("filePath", "-"))
+
         meta_lines = [
             f"[b]group[/b] {group_name}",
             f"[b]chunk[/b] {chunk_id}",
             f"[b]status[/b] {status}",
+            f"[b]comment[/b] {self._comment_for_chunk(chunk_id) or '(none)'}",
+            f"[b]line comments[/b] {self._line_comment_count_for_chunk(chunk_id)}",
             f"[b]file[/b] {format_file_label(file_path)}",
             f"[b]path[/b] {file_path}",
             f"[b]old[/b] {chunk.get('old', {})}",
@@ -947,19 +1729,107 @@ class DiffgrTextualApp(App[None]):
             f"[b]assigned groups[/b] {', '.join(assigned_groups) if assigned_groups else '(none)'}",
             f"[b]scope[/b] chunk-level assignment (line-level ownership is not tracked)",
         ]
-        self.query_one("#meta", Static).update("\n".join(meta_lines))
+
+        if self._selected_line_anchor:
+            selected = self._selected_line_anchor
+            old_line = normalize_line_number(selected.get("oldLine"))
+            new_line = normalize_line_number(selected.get("newLine"))
+            line_type = str(selected.get("lineType", "context"))
+            old_text = "-" if old_line is None else str(old_line)
+            new_text = "-" if new_line is None else str(new_line)
+            anchor_comment = self._line_comment_for_anchor(chunk_id, old_line, new_line, line_type)
+            meta_lines.append(f"[b]selected line[/b] old {old_text} / new {new_text} ({line_type})")
+            meta_lines.append(f"[b]selected line comment[/b] {anchor_comment or '(none)'}")
+
+        return meta_lines
+
+    def _update_chunk_meta(self, chunk_id: str) -> None:
+        self.query_one("#meta", Static).update("\n".join(self._build_chunk_meta_lines(chunk_id)))
+
+    def _show_chunk(self, chunk_id: str) -> None:
+        chunk = self.chunk_map.get(chunk_id)
+        if chunk is None:
+            return
+        previous_anchor_key = ""
+        if self._selected_line_anchor:
+            previous_anchor_key = str(self._selected_line_anchor.get("anchorKey", ""))
+        self._chunk_line_anchor_by_row_key = {}
+        self._selected_line_anchor = None
 
         lines_table = self._switch_lines_table_mode("chunk")
-        for line in chunk.get("lines", [])[: max(200, self.page_size * 30)]:
+        comment_lines = format_comment_lines(self._comment_for_chunk(chunk_id), max_width=110, max_lines=10)
+        if comment_lines:
+            for index, comment_line in enumerate(comment_lines):
+                if index == 0:
+                    text = f"COMMENT: {comment_line}"
+                else:
+                    text = f"         {comment_line}"
+                lines_table.add_row(
+                    "",
+                    "",
+                    self._render_chunk_kind_badge("comment"),
+                    self._render_chunk_content_text("comment", text),
+                    key=f"chunk-comment-{index}",
+                )
+            lines_table.add_row("", "", self._render_chunk_kind_badge("meta"), Text(""), key="chunk-comment-sep")
+
+        line_comment_map = self._line_comment_map_for_chunk(chunk_id)
+        lines = list(chunk.get("lines", [])[: max(200, self.page_size * 30)])
+        pair_map = self._build_intraline_pair_map(lines)
+        selected_row_key: str | None = None
+        first_line_row_key: str | None = None
+        for line_index, line in enumerate(lines):
             kind = line.get("kind", "")
-            prefix = {"context": " ", "add": "+", "delete": "-", "meta": "\\"}.get(kind, "?")
-            content = f"{prefix}{line.get('text', '')}"
+            old_line = normalize_line_number(line.get("oldLine"))
+            new_line = normalize_line_number(line.get("newLine"))
+            anchor_key = line_anchor_key(old_line, new_line, str(kind))
+            row_key_value = f"line-{line_index}"
+            if first_line_row_key is None:
+                first_line_row_key = row_key_value
+            self._chunk_line_anchor_by_row_key[row_key_value] = {
+                "anchorKey": anchor_key,
+                "oldLine": old_line,
+                "newLine": new_line,
+                "lineType": str(kind),
+            }
+            content = self._render_chunk_content_text(
+                str(kind),
+                str(line.get("text", "")),
+                pair_text=pair_map.get(line_index),
+            )
             lines_table.add_row(
                 "" if line.get("oldLine") is None else str(line.get("oldLine")),
                 "" if line.get("newLine") is None else str(line.get("newLine")),
-                kind,
+                self._render_chunk_kind_badge(str(kind)),
                 content,
+                key=row_key_value,
             )
+            if previous_anchor_key and previous_anchor_key == anchor_key:
+                selected_row_key = row_key_value
+                self._selected_line_anchor = dict(self._chunk_line_anchor_by_row_key[row_key_value])
+
+            line_comments = line_comment_map.get(anchor_key, [])
+            for comment_index, line_comment in enumerate(line_comments):
+                wrapped_comments = format_comment_lines(line_comment, max_width=110, max_lines=6)
+                for wrapped_index, wrapped_line in enumerate(wrapped_comments):
+                    if wrapped_index == 0:
+                        comment_text = f"COMMENT: {wrapped_line}"
+                    else:
+                        comment_text = f"         {wrapped_line}"
+                    lines_table.add_row(
+                        "",
+                        "",
+                        self._render_chunk_kind_badge("line-comment"),
+                        self._render_chunk_content_text("line-comment", comment_text),
+                        key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
+                    )
+
+        if selected_row_key:
+            self._select_lines_row(selected_row_key)
+        elif first_line_row_key:
+            self._select_lines_row(first_line_row_key)
+            self._selected_line_anchor = dict(self._chunk_line_anchor_by_row_key[first_line_row_key])
+        self._update_chunk_meta(chunk_id)
 
 
 def launch_textual_viewer(
