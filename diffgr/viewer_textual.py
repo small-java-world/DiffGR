@@ -400,7 +400,7 @@ class DiffgrTextualApp(App[None]):
     MAX_DIFF_OLD_RATIO = 0.75
     DIFF_RATIO_STEP = 0.05
     AUTOSAVE_INTERVAL_SEC = 20
-    KEYMAP_REV = "km-20260223-1"
+    KEYMAP_REV = "km-20260223-2"
 
     CSS = """
     Screen { layout: vertical; }
@@ -428,6 +428,7 @@ class DiffgrTextualApp(App[None]):
         Binding("u", "unassign_chunk", "Unassign"),
         Binding("m", "edit_comment", "Comment"),
         Binding("d", "toggle_group_report", "Diff Report"),
+        Binding("v", "toggle_chunk_detail_view", "Detail View"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
         Binding("2", "set_status('reviewed')", "Reviewed"),
         Binding("3", "set_status('needsReReview')", "ReReview"),
@@ -472,6 +473,7 @@ class DiffgrTextualApp(App[None]):
         self.selected_chunk_id: str | None = None
         self.selected_chunk_ids: set[str] = set()
         self._chunk_selection_anchor_index: int | None = None
+        self.chunk_detail_view_mode = "compact"
         self.group_report_mode = False
         self._lines_table_mode: str | None = None
         self.left_pane_pct = 52
@@ -543,6 +545,18 @@ class DiffgrTextualApp(App[None]):
             self.notify("Group diff report: OFF", timeout=1.2)
         self._refresh_topbar()
 
+    def action_toggle_chunk_detail_view(self) -> None:
+        if self.group_report_mode:
+            return
+        self.chunk_detail_view_mode = "side_by_side" if self.chunk_detail_view_mode == "compact" else "compact"
+        if self.selected_chunk_id:
+            self._show_chunk(self.selected_chunk_id)
+        self.notify(
+            f"Detail view: {'old/new side-by-side' if self.chunk_detail_view_mode == 'side_by_side' else 'compact'}",
+            timeout=1.0,
+        )
+        self._refresh_topbar()
+
     def action_move_split_left(self) -> None:
         self._nudge_main_split(-self.SPLIT_STEP_PCT)
 
@@ -586,6 +600,8 @@ class DiffgrTextualApp(App[None]):
         self.diff_old_ratio = next_ratio
         if self.group_report_mode:
             self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+        elif self.chunk_detail_view_mode == "side_by_side" and self.selected_chunk_id:
+            self._show_chunk(self.selected_chunk_id)
         self._refresh_topbar()
 
     def _group_report_text_widths(self, total_width: int | None = None) -> tuple[int, int]:
@@ -604,9 +620,17 @@ class DiffgrTextualApp(App[None]):
         lines_table = self.query_one("#lines", DataTable)
         expected_column_count = 4
         has_expected_columns = len(lines_table.ordered_columns) == expected_column_count
+        if mode == "chunk":
+            mode = "chunk_compact"
         if self._lines_table_mode != mode or not has_expected_columns:
             lines_table.clear(columns=True)
             if mode == "group_report":
+                old_width, new_width = self._group_report_text_widths()
+                lines_table.add_column("old#", width=5)
+                lines_table.add_column("old", width=old_width)
+                lines_table.add_column("new#", width=5)
+                lines_table.add_column("new", width=new_width)
+            elif mode == "chunk_side_by_side":
                 old_width, new_width = self._group_report_text_widths()
                 lines_table.add_column("old#", width=5)
                 lines_table.add_column("old", width=old_width)
@@ -1501,6 +1525,7 @@ class DiffgrTextualApp(App[None]):
         all_rate = self._reviewed_rate(m_all)
         selected_count = len(self._effective_chunk_selection())
         save_state = self._save_state_label()
+        detail_view = "side-by-side" if self.chunk_detail_view_mode == "side_by_side" else "compact"
         warnings_text = f"warnings={len(self.warnings)}"
         filter_display = self.filter_text if self.filter_text else "none"
         text = (
@@ -1514,9 +1539,9 @@ class DiffgrTextualApp(App[None]):
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
-            f"view={'group-diff' if self.group_report_mode else 'chunk'}  "
+            f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), d=report, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), d=report, v=view, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
@@ -1829,7 +1854,9 @@ class DiffgrTextualApp(App[None]):
         self._chunk_line_anchor_by_row_key = {}
         self._selected_line_anchor = None
 
-        lines_table = self._switch_lines_table_mode("chunk")
+        side_by_side = self.chunk_detail_view_mode == "side_by_side"
+        lines_table_mode = "chunk_side_by_side" if side_by_side else "chunk_compact"
+        lines_table = self._switch_lines_table_mode(lines_table_mode)
         comment_lines = format_comment_lines(self._comment_for_chunk(chunk_id), max_width=110, max_lines=10)
         if comment_lines:
             for index, comment_line in enumerate(comment_lines):
@@ -1837,14 +1864,26 @@ class DiffgrTextualApp(App[None]):
                     text = f"COMMENT: {comment_line}"
                 else:
                     text = f"         {comment_line}"
-                lines_table.add_row(
-                    "",
-                    "",
-                    self._render_chunk_kind_badge("comment"),
-                    self._render_chunk_content_text("comment", text),
-                    key=f"chunk-comment-{index}",
-                )
-            lines_table.add_row("", "", self._render_chunk_kind_badge("meta"), Text(""), key="chunk-comment-sep")
+                if side_by_side:
+                    lines_table.add_row(
+                        "",
+                        Text(""),
+                        "",
+                        self._render_chunk_content_text("comment", text),
+                        key=f"chunk-comment-{index}",
+                    )
+                else:
+                    lines_table.add_row(
+                        "",
+                        "",
+                        self._render_chunk_kind_badge("comment"),
+                        self._render_chunk_content_text("comment", text),
+                        key=f"chunk-comment-{index}",
+                    )
+            if side_by_side:
+                lines_table.add_row("", Text(""), "", Text(""), key="chunk-comment-sep")
+            else:
+                lines_table.add_row("", "", self._render_chunk_kind_badge("meta"), Text(""), key="chunk-comment-sep")
 
         line_comment_map = self._line_comment_map_for_chunk(chunk_id)
         lines = list(chunk.get("lines", [])[: max(200, self.page_size * 30)])
@@ -1870,13 +1909,36 @@ class DiffgrTextualApp(App[None]):
                 str(line.get("text", "")),
                 pair_text=pair_map.get(line_index),
             )
-            lines_table.add_row(
-                "" if line.get("oldLine") is None else str(line.get("oldLine")),
-                "" if line.get("newLine") is None else str(line.get("newLine")),
-                self._render_chunk_kind_badge(str(kind)),
-                content,
-                key=row_key_value,
-            )
+            old_number = "" if line.get("oldLine") is None else str(line.get("oldLine"))
+            new_number = "" if line.get("newLine") is None else str(line.get("newLine"))
+            if side_by_side:
+                if str(kind) == "add":
+                    old_cell = Text("", style="dim #47715a")
+                    new_cell = content
+                elif str(kind) == "delete":
+                    old_cell = content
+                    new_cell = Text("", style="dim #47715a")
+                elif str(kind) == "context":
+                    old_cell = self._render_chunk_content_text("context", str(line.get("text", "")))
+                    new_cell = self._render_chunk_content_text("context", str(line.get("text", "")))
+                else:
+                    old_cell = self._render_chunk_content_text("meta", str(line.get("text", "")))
+                    new_cell = self._render_chunk_content_text("meta", str(line.get("text", "")))
+                lines_table.add_row(
+                    old_number,
+                    old_cell,
+                    new_number,
+                    new_cell,
+                    key=row_key_value,
+                )
+            else:
+                lines_table.add_row(
+                    old_number,
+                    new_number,
+                    self._render_chunk_kind_badge(str(kind)),
+                    content,
+                    key=row_key_value,
+                )
             if previous_anchor_key and previous_anchor_key == anchor_key:
                 selected_row_key = row_key_value
                 self._selected_line_anchor = dict(self._chunk_line_anchor_by_row_key[row_key_value])
@@ -1889,13 +1951,22 @@ class DiffgrTextualApp(App[None]):
                         comment_text = f"COMMENT: {wrapped_line}"
                     else:
                         comment_text = f"         {wrapped_line}"
-                    lines_table.add_row(
-                        "",
-                        "",
-                        self._render_chunk_kind_badge("line-comment"),
-                        self._render_chunk_content_text("line-comment", comment_text),
-                        key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
-                    )
+                    if side_by_side:
+                        lines_table.add_row(
+                            "",
+                            Text(""),
+                            "",
+                            self._render_chunk_content_text("line-comment", comment_text),
+                            key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
+                        )
+                    else:
+                        lines_table.add_row(
+                            "",
+                            "",
+                            self._render_chunk_kind_badge("line-comment"),
+                            self._render_chunk_content_text("line-comment", comment_text),
+                            key=f"line-comment-{line_index}-{comment_index}-{wrapped_index}",
+                        )
 
         if selected_row_key:
             self._select_lines_row(selected_row_key)

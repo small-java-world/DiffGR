@@ -306,6 +306,84 @@ class TestViewerTextualReport(unittest.TestCase):
         self.assertEqual(table.ordered_columns, ["old", "new", "kind", "content"])
         self.assertEqual(table.clear_calls, [True])
 
+    def test_switch_lines_table_mode_side_by_side_uses_old_new_four_columns(self):
+        class StubTable:
+            def __init__(self) -> None:
+                self.ordered_columns: list[str] = []
+                self.clear_calls: list[bool] = []
+
+            def clear(self, *, columns: bool) -> None:
+                self.clear_calls.append(columns)
+                if columns:
+                    self.ordered_columns = []
+
+            def add_columns(self, *names: str) -> None:
+                self.ordered_columns = list(names)
+
+            def add_column(self, name: str, **_kwargs) -> None:
+                self.ordered_columns.append(name)
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        table = StubTable()
+        app.query_one = lambda *_args, **_kwargs: table  # type: ignore[method-assign]
+        app._group_report_text_widths = lambda *_args, **_kwargs: (42, 42)  # type: ignore[method-assign]
+
+        app._lines_table_mode = "chunk_compact"
+        app._switch_lines_table_mode("chunk_side_by_side")
+
+        self.assertEqual(table.ordered_columns, ["old#", "old", "new#", "new"])
+        self.assertEqual(table.clear_calls, [True])
+
+    def test_toggle_chunk_detail_view_toggles_and_rerenders_chunk(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        show_calls: list[str] = []
+        app._show_chunk = lambda cid: show_calls.append(cid)  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+        app.notify = lambda *_args, **_kwargs: None  # type: ignore[method-assign]
+
+        self.assertEqual(app.chunk_detail_view_mode, "compact")
+        app.action_toggle_chunk_detail_view()
+        self.assertEqual(app.chunk_detail_view_mode, "side_by_side")
+        self.assertEqual(show_calls, ["c1"])
+
+        app.action_toggle_chunk_detail_view()
+        self.assertEqual(app.chunk_detail_view_mode, "compact")
+        self.assertEqual(show_calls, ["c1", "c1"])
+
+    def test_toggle_chunk_detail_view_noop_in_group_report_mode(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {}, "new": {}, "header": "", "lines": []}},
+            {},
+            15,
+        )
+        app.group_report_mode = True
+        app.selected_chunk_id = "c1"
+        app._show_chunk = lambda *_args, **_kwargs: self.fail("must not rerender in group mode")  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+        app.notify = lambda *_args, **_kwargs: None  # type: ignore[method-assign]
+
+        app.action_toggle_chunk_detail_view()
+
+        self.assertEqual(app.chunk_detail_view_mode, "compact")
+
     def test_clamp_left_pane_pct_respects_min_max(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),
@@ -620,6 +698,7 @@ class TestViewerTextualReport(unittest.TestCase):
 
         self.assertIn("cur(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
         self.assertIn("all(total=2 pending=1 reviewed=1 rate=50.0%)", topbar.value)
+        self.assertIn("detailView=compact", topbar.value)
 
     def test_set_comment_for_chunk_marks_dirty(self):
         app = DiffgrTextualApp(
