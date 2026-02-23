@@ -343,6 +343,98 @@ class TestViewerTextualReport(unittest.TestCase):
         self.assertEqual(table.ordered_columns, ["old#", "old", "new#", "new"])
         self.assertEqual(table.clear_calls, [True])
 
+    def test_switch_lines_table_mode_side_by_side_rebuilds_when_width_changes(self):
+        class StubTable:
+            def __init__(self) -> None:
+                self.ordered_columns: list[str] = []
+                self.clear_calls: list[bool] = []
+
+            def clear(self, *, columns: bool) -> None:
+                self.clear_calls.append(columns)
+                if columns:
+                    self.ordered_columns = []
+
+            def add_columns(self, *names: str) -> None:
+                self.ordered_columns = list(names)
+
+            def add_column(self, name: str, **_kwargs) -> None:
+                self.ordered_columns.append(name)
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        table = StubTable()
+        table.ordered_columns = ["old#", "old", "new#", "new"]
+        app.query_one = lambda *_args, **_kwargs: table  # type: ignore[method-assign]
+        app._group_report_text_widths = lambda *_args, **_kwargs: (46, 34)  # type: ignore[method-assign]
+        app._lines_table_mode = "chunk_side_by_side"
+        app._lines_side_by_side_widths = (40, 40)
+
+        app._switch_lines_table_mode("chunk_side_by_side")
+
+        self.assertEqual(table.clear_calls, [True])
+        self.assertEqual(table.ordered_columns, ["old#", "old", "new#", "new"])
+        self.assertEqual(app._lines_side_by_side_widths, (46, 34))
+
+    def test_switch_lines_table_mode_side_by_side_skips_rebuild_when_width_same(self):
+        class StubTable:
+            def __init__(self) -> None:
+                self.ordered_columns: list[str] = []
+                self.clear_calls: list[bool] = []
+
+            def clear(self, *, columns: bool) -> None:
+                self.clear_calls.append(columns)
+                if columns:
+                    self.ordered_columns = []
+
+            def add_columns(self, *names: str) -> None:
+                self.ordered_columns = list(names)
+
+            def add_column(self, name: str, **_kwargs) -> None:
+                self.ordered_columns.append(name)
+
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        table = StubTable()
+        table.ordered_columns = ["old#", "old", "new#", "new"]
+        app.query_one = lambda *_args, **_kwargs: table  # type: ignore[method-assign]
+        app._group_report_text_widths = lambda *_args, **_kwargs: (40, 40)  # type: ignore[method-assign]
+        app._lines_table_mode = "chunk_side_by_side"
+        app._lines_side_by_side_widths = (40, 40)
+
+        app._switch_lines_table_mode("chunk_side_by_side")
+
+        self.assertEqual(table.clear_calls, [False])
+        self.assertEqual(table.ordered_columns, ["old#", "old", "new#", "new"])
+        self.assertEqual(app._lines_side_by_side_widths, (40, 40))
+
+    def test_on_resize_rerenders_width_sensitive_view(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        calls: list[str] = []
+        app._rerender_lines_if_width_sensitive = lambda: calls.append("rerender")  # type: ignore[method-assign]
+
+        app.on_resize(mock.Mock())
+
+        self.assertEqual(calls, ["rerender"])
+
     def test_toggle_chunk_detail_view_toggles_and_rerenders_chunk(self):
         app = DiffgrTextualApp(
             Path("dummy.diffgr.json"),

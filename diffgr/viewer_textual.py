@@ -571,7 +571,7 @@ class DiffgrTextualApp(App[None]):
     #groups { height: 10; }
     #filter { height: 3; border: round #2ec4b6; margin: 1 1; }
     #chunks { height: 1fr; }
-    #meta { height: 10; border: none; padding: 0 1; background: #0b0f19; }
+    #meta { height: 14; border: none; padding: 0 1; background: #0b0f19; }
     #right_sep { color: #1a2232; }
     #lines { height: 1fr; }
     #lines .datatable--cursor {
@@ -667,6 +667,7 @@ class DiffgrTextualApp(App[None]):
         self.group_report_mode = False
         self.show_context_lines = True
         self._lines_table_mode: str | None = None
+        self._lines_side_by_side_widths: tuple[int, int] | None = None
         self.left_pane_pct = 52
         self.diff_old_ratio = 0.50
         self._group_report_row_chunk_by_key: dict[str, str] = {}
@@ -859,6 +860,7 @@ class DiffgrTextualApp(App[None]):
         idx = order.index(current) if current in order else 1
         self.ui_density = order[min(len(order) - 1, idx + 1)]
         self._apply_ui_density()
+        self._rerender_lines_if_width_sensitive()
         self._save_viewer_settings()
         self.notify(f"UI density: {self.ui_density}", timeout=1.0)
         self._refresh_topbar()
@@ -869,6 +871,7 @@ class DiffgrTextualApp(App[None]):
         idx = order.index(current) if current in order else 1
         self.ui_density = order[max(0, idx - 1)]
         self._apply_ui_density()
+        self._rerender_lines_if_width_sensitive()
         self._save_viewer_settings()
         self.notify(f"UI density: {self.ui_density}", timeout=1.0)
         self._refresh_topbar()
@@ -1106,8 +1109,7 @@ class DiffgrTextualApp(App[None]):
             return
         self.left_pane_pct = next_pct
         self._apply_main_split_widths()
-        if self.group_report_mode:
-            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+        self._rerender_lines_if_width_sensitive()
         self._refresh_topbar()
 
     def _clamp_diff_old_ratio(self, value: float) -> float:
@@ -1118,10 +1120,7 @@ class DiffgrTextualApp(App[None]):
         if abs(next_ratio - self.diff_old_ratio) < 1e-9:
             return
         self.diff_old_ratio = next_ratio
-        if self.group_report_mode:
-            self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
-        elif self.chunk_detail_view_mode == "side_by_side" and self.selected_chunk_id:
-            self._show_chunk(self.selected_chunk_id)
+        self._rerender_lines_if_width_sensitive()
         self._refresh_topbar()
 
     def _group_report_text_widths(self, total_width: int | None = None) -> tuple[int, int]:
@@ -1153,26 +1152,50 @@ class DiffgrTextualApp(App[None]):
         has_expected_columns = len(lines_table.ordered_columns) == expected_column_count
         if mode == "chunk":
             mode = "chunk_compact"
-        if self._lines_table_mode != mode or not has_expected_columns:
+        needs_width_columns = mode in {"group_report", "chunk_side_by_side"}
+        desired_widths: tuple[int, int] | None = None
+        if needs_width_columns:
+            desired_widths = self._group_report_text_widths()
+        width_changed = bool(needs_width_columns and desired_widths and desired_widths != self._lines_side_by_side_widths)
+
+        if self._lines_table_mode != mode or not has_expected_columns or width_changed:
             lines_table.clear(columns=True)
             if mode == "group_report":
-                old_width, new_width = self._group_report_text_widths()
+                old_width, new_width = desired_widths if desired_widths is not None else self._group_report_text_widths()
                 lines_table.add_column("old#", width=5)
                 lines_table.add_column("old", width=old_width)
                 lines_table.add_column("new#", width=5)
                 lines_table.add_column("new", width=new_width)
+                self._lines_side_by_side_widths = (old_width, new_width)
             elif mode == "chunk_side_by_side":
-                old_width, new_width = self._group_report_text_widths()
+                old_width, new_width = desired_widths if desired_widths is not None else self._group_report_text_widths()
                 lines_table.add_column("old#", width=5)
                 lines_table.add_column("old", width=old_width)
                 lines_table.add_column("new#", width=5)
                 lines_table.add_column("new", width=new_width)
+                self._lines_side_by_side_widths = (old_width, new_width)
             else:
                 lines_table.add_columns("old", "new", "kind", "content")
+                self._lines_side_by_side_widths = None
             self._lines_table_mode = mode
         else:
             lines_table.clear(columns=False)
         return lines_table
+
+    def _rerender_lines_if_width_sensitive(self) -> None:
+        try:
+            if self.group_report_mode:
+                self._show_current_group_report(target_chunk_id=self.selected_chunk_id)
+                return
+            if self.chunk_detail_view_mode == "side_by_side" and self.selected_chunk_id:
+                self._show_chunk(self.selected_chunk_id)
+        except Exception:
+            # Ignore transient layout-time errors; normal rendering path will repaint.
+            return
+
+    def on_resize(self, _event: events.Resize) -> None:
+        # Keep side-by-side/group-report column widths aligned with current terminal size.
+        self._rerender_lines_if_width_sensitive()
 
     def _render_report_number(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
