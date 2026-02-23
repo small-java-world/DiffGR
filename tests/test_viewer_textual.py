@@ -1,11 +1,13 @@
 import asyncio
 import datetime as dt
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from diffgr.viewer_textual import DiffgrTextualApp, build_group_diff_report_rows, format_file_label
+from diffgr.viewer_textual import DiffgrTextualApp, build_group_diff_report_rows, format_file_label, normalize_editor_mode
 from textual.widgets import DataTable
 
 
@@ -83,7 +85,7 @@ class TestViewerTextualReport(unittest.TestCase):
 
         asyncio.run(_run())
         self.assertEqual(status_map["c1"], "reviewed")
-        self.assertEqual(done_cell, "[x]")
+        self.assertEqual(done_cell, "[✅]")
 
     def test_shift_space_key_marks_done_in_runtime(self):
         app, status_map = self._make_key_test_app(initial_status="unreviewed")
@@ -136,7 +138,7 @@ class TestViewerTextualReport(unittest.TestCase):
 
         asyncio.run(_run())
         self.assertEqual(status_map["c1"], "unreviewed")
-        self.assertEqual(done_cell, "[ ]")
+        self.assertEqual(done_cell, "[  ]")
 
     def test_space_marks_selected_range_done_in_runtime(self):
         app, status_map = self._make_key_test_app(initial_status="unreviewed")
@@ -383,6 +385,289 @@ class TestViewerTextualReport(unittest.TestCase):
         app.action_toggle_chunk_detail_view()
 
         self.assertEqual(app.chunk_detail_view_mode, "compact")
+
+    def test_resolve_chunk_file_path_resolves_relative_from_source_parent_parent(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            source_dir = root / "samples" / "diffgr"
+            source_dir.mkdir(parents=True, exist_ok=True)
+            source_path = source_dir / "sample.diffgr.json"
+            source_path.write_text("{}", encoding="utf-8")
+            target = root / "src" / "mod.ts"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("export const x = 1;\n", encoding="utf-8")
+            app = DiffgrTextualApp(
+                source_path,
+                {"groups": [], "assignments": {}, "meta": {}},
+                [],
+                {},
+                {},
+                15,
+            )
+            previous_cwd = Path.cwd()
+            try:
+                os.chdir(root)
+                resolved = app._resolve_chunk_file_path("src/mod.ts")
+            finally:
+                os.chdir(previous_cwd)
+
+            self.assertEqual(resolved, (root / "src" / "mod.ts").resolve())
+
+    def test_preferred_open_line_uses_selected_anchor_then_chunk_new(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 7}, "new": {"start": 11}, "lines": []}},
+            {},
+            15,
+        )
+        app._selected_line_anchor = {"newLine": 33, "oldLine": 22}
+        self.assertEqual(app._preferred_open_line("c1"), 33)
+
+        app._selected_line_anchor = {"newLine": None, "oldLine": 22}
+        self.assertEqual(app._preferred_open_line("c1"), 22)
+
+        app._selected_line_anchor = None
+        self.assertEqual(app._preferred_open_line("c1"), 11)
+
+    def test_action_open_chunk_file_opens_resolved_path_with_line(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 7}, "new": {"start": 11}, "lines": []}},
+            {},
+            15,
+        )
+        app.selected_chunk_id = "c1"
+        expected = Path("C:/temp/a.ts")
+        app._resolve_chunk_file_path = lambda _raw: expected  # type: ignore[method-assign]
+        calls: list[tuple[Path, int | None]] = []
+        app._open_file_path = lambda path, line=None: calls.append((path, line)) or True  # type: ignore[method-assign]
+        app.notify = lambda *_args, **_kwargs: None  # type: ignore[method-assign]
+
+        app.action_open_chunk_file()
+
+        self.assertEqual(calls, [(expected, 11)])
+
+    def test_load_viewer_settings_reads_mode_and_custom_command(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            settings_path = Path(tmpdir) / "viewer_settings.json"
+            settings_path.write_text(
+                json.dumps(
+                    {
+                        "editorMode": "custom",
+                        "customEditorCommand": "code -g {path}:{line}",
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            previous_env = os.environ.get("DIFFGR_VIEWER_SETTINGS")
+            os.environ["DIFFGR_VIEWER_SETTINGS"] = str(settings_path)
+            try:
+                app = DiffgrTextualApp(
+                    Path("dummy.diffgr.json"),
+                    {"groups": [], "assignments": {}, "meta": {}},
+                    [],
+                    {},
+                    {},
+                    15,
+                )
+            finally:
+                if previous_env is None:
+                    os.environ.pop("DIFFGR_VIEWER_SETTINGS", None)
+                else:
+                    os.environ["DIFFGR_VIEWER_SETTINGS"] = previous_env
+
+            self.assertEqual(app.editor_mode, "custom")
+            self.assertEqual(app.custom_editor_command, "code -g {path}:{line}")
+
+    def test_save_viewer_settings_writes_json_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            settings_path = Path(tmpdir) / "viewer_settings.json"
+            previous_env = os.environ.get("DIFFGR_VIEWER_SETTINGS")
+            os.environ["DIFFGR_VIEWER_SETTINGS"] = str(settings_path)
+            try:
+                app = DiffgrTextualApp(
+                    Path("dummy.diffgr.json"),
+                    {"groups": [], "assignments": {}, "meta": {}},
+                    [],
+                    {},
+                    {},
+                    15,
+                )
+                app.editor_mode = "cursor"
+                app.custom_editor_command = "cursor {path}"
+                saved = app._save_viewer_settings()
+            finally:
+                if previous_env is None:
+                    os.environ.pop("DIFFGR_VIEWER_SETTINGS", None)
+                else:
+                    os.environ["DIFFGR_VIEWER_SETTINGS"] = previous_env
+
+            self.assertTrue(saved)
+            payload = json.loads(settings_path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["editorMode"], "cursor")
+            self.assertEqual(payload["customEditorCommand"], "cursor {path}")
+
+    def test_open_file_path_uses_custom_editor_template(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.editor_mode = "custom"
+        app.custom_editor_command = "my-editor --line {line} {path}"
+        target = Path("C:/tmp/my file.ts")
+
+        with mock.patch("diffgr.viewer_textual.subprocess.Popen") as popen_mock:
+            opened = app._open_file_path(target, line=42)
+
+        self.assertTrue(opened)
+        popen_mock.assert_called_once_with(["my-editor", "--line", "42", str(target)])
+
+    def test_open_with_custom_editor_appends_path_when_placeholder_missing(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.custom_editor_command = "my-editor --wait"
+        target = Path("C:/tmp/a.ts")
+
+        with mock.patch("diffgr.viewer_textual.subprocess.Popen") as popen_mock:
+            opened = app._open_with_custom_editor(target, line=None)
+
+        self.assertTrue(opened)
+        popen_mock.assert_called_once_with(["my-editor", "--wait", str(target)])
+
+    def test_open_file_path_auto_fallback_uses_code_cursor_then_default(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.editor_mode = "auto"
+        target = Path("C:/tmp/f.ts")
+        app._open_with_editor_command = mock.Mock(side_effect=[False, False])  # type: ignore[method-assign]
+        app._open_default_app = mock.Mock(return_value=True)  # type: ignore[method-assign]
+
+        opened = app._open_file_path(target, line=10)
+
+        self.assertTrue(opened)
+        self.assertEqual(
+            app._open_with_editor_command.call_args_list,
+            [
+                mock.call("code", target, line=10),
+                mock.call("cursor", target, line=10),
+            ],
+        )
+        app._open_default_app.assert_called_once_with(target)
+
+    def test_action_open_settings_rejects_custom_without_command(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.editor_mode = "vscode"
+        app.custom_editor_command = "code -g {path}:{line}"
+        app._save_viewer_settings = lambda: self.fail("must not save invalid custom settings")  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: None  # type: ignore[method-assign]
+        notices: list[str] = []
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+
+        def _push_screen(_screen, callback):
+            callback({"editor_mode": "custom", "custom_editor_command": "   "})
+
+        app.push_screen = _push_screen  # type: ignore[method-assign]
+
+        app.action_open_settings()
+
+        self.assertEqual(app.editor_mode, "vscode")
+        self.assertEqual(app.custom_editor_command, "code -g {path}:{line}")
+        self.assertTrue(any("custom mode requires command template" in item for item in notices))
+
+    def test_action_open_settings_saves_mode_and_command(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        app.editor_mode = "auto"
+        app.custom_editor_command = ""
+        save_called: list[bool] = []
+        refresh_called: list[bool] = []
+        notices: list[str] = []
+        app._save_viewer_settings = lambda: save_called.append(True) or True  # type: ignore[method-assign]
+        app._refresh_topbar = lambda: refresh_called.append(True)  # type: ignore[method-assign]
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+
+        def _push_screen(_screen, callback):
+            callback({"editor_mode": "custom", "custom_editor_command": "zed {path}:{line}"})
+
+        app.push_screen = _push_screen  # type: ignore[method-assign]
+
+        app.action_open_settings()
+
+        self.assertEqual(app.editor_mode, "custom")
+        self.assertEqual(app.custom_editor_command, "zed {path}:{line}")
+        self.assertEqual(save_called, [True])
+        self.assertEqual(refresh_called, [True])
+        self.assertTrue(any("Settings saved: editor=custom" in item for item in notices))
+
+    def test_done_checkbox_symbols_are_fixed(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+        self.assertEqual(app._done_checkbox_for_status("reviewed"), "[✅]")
+        self.assertEqual(app._done_checkbox_for_status("unreviewed"), "[  ]")
+
+    def test_normalize_editor_mode_defaults_to_auto_on_invalid(self):
+        self.assertEqual(normalize_editor_mode("vscode"), "vscode")
+        self.assertEqual(normalize_editor_mode("  cursor  "), "cursor")
+        self.assertEqual(normalize_editor_mode("unknown-editor"), "auto")
+        self.assertEqual(normalize_editor_mode(None), "auto")
+
+    def test_render_report_selected_styles_use_underline_not_background_fill(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+        )
+
+        number = app._render_report_number("10", "add", "new", selected=True)
+        text = app._render_report_text("sample", "add", "new", selected=True)
+
+        self.assertIn("underline", number.style)
+        self.assertNotIn(" on ", number.style)
+        self.assertIn("underline", text.style)
+        self.assertNotIn(" on ", text.style)
 
     def test_clamp_left_pane_pct_respects_min_max(self):
         app = DiffgrTextualApp(

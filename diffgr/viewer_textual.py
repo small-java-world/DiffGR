@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import re
+import shlex
+import shutil
+import subprocess
+import sys
 import textwrap
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -33,6 +38,18 @@ except Exception:  # noqa: BLE001
 PSEUDO_ALL = "__all__"
 PSEUDO_UNASSIGNED = "__unassigned__"
 RESERVED_GROUP_IDS = {"unassigned"}
+EDITOR_MODE_AUTO = "auto"
+EDITOR_MODE_VSCODE = "vscode"
+EDITOR_MODE_CURSOR = "cursor"
+EDITOR_MODE_DEFAULT_APP = "default-app"
+EDITOR_MODE_CUSTOM = "custom"
+VALID_EDITOR_MODES = {
+    EDITOR_MODE_AUTO,
+    EDITOR_MODE_VSCODE,
+    EDITOR_MODE_CURSOR,
+    EDITOR_MODE_DEFAULT_APP,
+    EDITOR_MODE_CUSTOM,
+}
 
 
 def iso_utc_now() -> str:
@@ -112,6 +129,13 @@ def line_anchor_key(old_line: Any, new_line: Any, line_type: str) -> str:
     old_token = "" if old_value is None else str(old_value)
     new_token = "" if new_value is None else str(new_value)
     return f"{line_type}:{old_token}:{new_token}"
+
+
+def normalize_editor_mode(value: Any) -> str:
+    mode = str(value or "").strip().lower()
+    if mode not in VALID_EDITOR_MODES:
+        return EDITOR_MODE_AUTO
+    return mode
 
 
 @dataclass(frozen=True)
@@ -361,6 +385,68 @@ class NameModal(ModalScreen[str | None]):
         self.dismiss(stripped if stripped else None)
 
 
+class SettingsModal(ModalScreen[dict[str, str] | None]):
+    CSS = """
+    SettingsModal {
+        align: center middle;
+    }
+    #settings-dialog {
+        width: 88%;
+        max-width: 110;
+        border: round #2ec4b6;
+        padding: 1 2;
+        background: #0b0f19;
+    }
+    #settings-buttons {
+        height: auto;
+        layout: horizontal;
+        align: right middle;
+        padding-top: 1;
+    }
+    #settings-hint {
+        color: #9db0c8;
+        padding-bottom: 1;
+    }
+    """
+
+    def __init__(self, editor_mode: str, custom_editor_command: str) -> None:
+        super().__init__()
+        self.editor_mode = normalize_editor_mode(editor_mode)
+        self.custom_editor_command = str(custom_editor_command)
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="settings-dialog"):
+            yield Static("[b]Viewer Settings[/b]")
+            yield Static(
+                "editor mode: auto / vscode / cursor / default-app / custom\n"
+                "custom command supports placeholders: {path} and optional {line}",
+                id="settings-hint",
+            )
+            yield Input(value=self.editor_mode, placeholder="editor mode", id="editor_mode")
+            yield Input(
+                value=self.custom_editor_command,
+                placeholder="custom command (used only when mode=custom)",
+                id="editor_command",
+            )
+            with Horizontal(id="settings-buttons"):
+                yield Button("Cancel", id="cancel")
+                yield Button("Save", id="save", variant="primary")
+
+    def on_mount(self) -> None:
+        self.query_one("#editor_mode", Input).focus()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "cancel":
+            self.dismiss(None)
+            return
+        self.dismiss(
+            {
+                "editor_mode": self.query_one("#editor_mode", Input).value.strip(),
+                "custom_editor_command": self.query_one("#editor_command", Input).value.strip(),
+            }
+        )
+
+
 class ChunkTable(DataTable):
     def _app_mark_reviewed(self) -> None:
         mark = getattr(self.app, "action_mark_selected_reviewed", None)
@@ -400,7 +486,7 @@ class DiffgrTextualApp(App[None]):
     MAX_DIFF_OLD_RATIO = 0.75
     DIFF_RATIO_STEP = 0.05
     AUTOSAVE_INTERVAL_SEC = 20
-    KEYMAP_REV = "km-20260223-2"
+    KEYMAP_REV = "km-20260223-4"
 
     CSS = """
     Screen { layout: vertical; }
@@ -413,6 +499,18 @@ class DiffgrTextualApp(App[None]):
     #chunks { height: 1fr; }
     #meta { height: 10; border: round #8338ec; padding: 0 1; }
     #lines { height: 1fr; }
+    #lines > .datatable--cursor {
+        background: transparent;
+        text-style: bold underline;
+    }
+    #lines:focus > .datatable--cursor {
+        background: transparent;
+        text-style: bold underline;
+    }
+    #lines > .datatable--fixed-cursor {
+        background: transparent;
+        text-style: bold underline;
+    }
     """
 
     BINDINGS = [
@@ -427,6 +525,8 @@ class DiffgrTextualApp(App[None]):
         Binding("a", "assign_chunk", "Assign"),
         Binding("u", "unassign_chunk", "Unassign"),
         Binding("m", "edit_comment", "Comment"),
+        Binding("o", "open_chunk_file", "Open File"),
+        Binding("t", "open_settings", "Settings"),
         Binding("d", "toggle_group_report", "Diff Report"),
         Binding("v", "toggle_chunk_detail_view", "Detail View"),
         Binding("1", "set_status('unreviewed')", "Unreviewed"),
@@ -485,9 +585,14 @@ class DiffgrTextualApp(App[None]):
         self._has_unsaved_changes = False
         self._last_saved_at: dt.datetime | None = None
         self._last_save_kind = "-"
+        self.editor_mode = EDITOR_MODE_AUTO
+        self.custom_editor_command = ""
+        self.settings_path = self._viewer_settings_path()
+        self._settings_load_error: str | None = None
         self._dmp_engine = diff_match_patch() if diff_match_patch is not None else None
         if self._dmp_engine is not None:
             self._dmp_engine.Diff_Timeout = 0
+        self._load_viewer_settings()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -513,7 +618,66 @@ class DiffgrTextualApp(App[None]):
         self._refresh_groups()
         self._apply_chunk_filter()
         self.query_one("#groups", DataTable).focus()
+        if self._settings_load_error:
+            self.notify(f"Settings load failed: {self._settings_load_error}", severity="warning", timeout=2.4)
         self.set_interval(self.AUTOSAVE_INTERVAL_SEC, self._auto_save_tick)
+
+    def _viewer_settings_path(self) -> Path:
+        configured = str(os.environ.get("DIFFGR_VIEWER_SETTINGS", "")).strip()
+        if configured:
+            return Path(configured).expanduser()
+        return Path.home() / ".diffgr" / "viewer_settings.json"
+
+    def _load_viewer_settings(self) -> None:
+        self.editor_mode = EDITOR_MODE_AUTO
+        self.custom_editor_command = ""
+        path = self.settings_path
+        if not path.exists():
+            return
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, dict):
+                return
+            self.editor_mode = normalize_editor_mode(payload.get("editorMode"))
+            self.custom_editor_command = str(payload.get("customEditorCommand", "")).strip()
+        except Exception as error:  # noqa: BLE001
+            self._settings_load_error = str(error)
+
+    def _save_viewer_settings(self) -> bool:
+        try:
+            payload = {
+                "editorMode": normalize_editor_mode(self.editor_mode),
+                "customEditorCommand": str(self.custom_editor_command).strip(),
+            }
+            self.settings_path.parent.mkdir(parents=True, exist_ok=True)
+            self.settings_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            return True
+        except Exception as error:  # noqa: BLE001
+            self.notify(f"Settings save failed: {error}", severity="error", timeout=2.4)
+            return False
+
+    def _editor_setting_label(self) -> str:
+        if self.editor_mode == EDITOR_MODE_CUSTOM:
+            return "custom" if self.custom_editor_command else "custom(!)"
+        return self.editor_mode
+
+    def action_open_settings(self) -> None:
+        def _on_dismiss(value: dict[str, str] | None) -> None:
+            if not isinstance(value, dict):
+                return
+            next_mode = normalize_editor_mode(value.get("editor_mode"))
+            next_custom = str(value.get("custom_editor_command", "")).strip()
+            if next_mode == EDITOR_MODE_CUSTOM and not next_custom:
+                self.notify("custom mode requires command template", severity="warning", timeout=2.0)
+                return
+            changed = next_mode != self.editor_mode or next_custom != self.custom_editor_command
+            self.editor_mode = next_mode
+            self.custom_editor_command = next_custom
+            if changed and self._save_viewer_settings():
+                self.notify(f"Settings saved: editor={self._editor_setting_label()}", timeout=1.5)
+            self._refresh_topbar()
+
+        self.push_screen(SettingsModal(self.editor_mode, self.custom_editor_command), callback=_on_dismiss)
 
     def action_focus_filter(self) -> None:
         self.query_one("#filter", Input).focus()
@@ -556,6 +720,132 @@ class DiffgrTextualApp(App[None]):
             timeout=1.0,
         )
         self._refresh_topbar()
+
+    def _resolve_chunk_file_path(self, raw_path: str) -> Path | None:
+        normalized = str(raw_path).strip()
+        if not normalized or normalized == "-":
+            return None
+        candidate = Path(normalized)
+        if candidate.is_absolute():
+            return candidate
+
+        search_roots: list[Path] = [Path.cwd()]
+        source_parent = self.source_path.parent
+        search_roots.append(source_parent)
+        if source_parent.parent != source_parent:
+            search_roots.append(source_parent.parent)
+
+        seen: set[str] = set()
+        resolved_candidates: list[Path] = []
+        for root in search_roots:
+            resolved = (root / candidate).resolve()
+            key = str(resolved).lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            resolved_candidates.append(resolved)
+            if resolved.exists():
+                return resolved
+        return resolved_candidates[0] if resolved_candidates else candidate.resolve()
+
+    def _preferred_open_line(self, chunk_id: str) -> int | None:
+        if self._selected_line_anchor:
+            new_line = normalize_line_number(self._selected_line_anchor.get("newLine"))
+            old_line = normalize_line_number(self._selected_line_anchor.get("oldLine"))
+            if new_line and new_line > 0:
+                return new_line
+            if old_line and old_line > 0:
+                return old_line
+        chunk = self.chunk_map.get(chunk_id) or {}
+        new_start = normalize_line_number((chunk.get("new") or {}).get("start"))
+        old_start = normalize_line_number((chunk.get("old") or {}).get("start"))
+        if new_start and new_start > 0:
+            return new_start
+        if old_start and old_start > 0:
+            return old_start
+        return None
+
+    def _open_default_app(self, path: Path) -> bool:
+        if os.name == "nt":
+            os.startfile(str(path))  # type: ignore[attr-defined]
+            return True
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", str(path)])  # noqa: S603
+            return True
+        subprocess.Popen(["xdg-open", str(path)])  # noqa: S603
+        return True
+
+    def _open_with_custom_editor(self, path: Path, *, line: int | None = None) -> bool:
+        template = self.custom_editor_command.strip()
+        if not template:
+            return False
+        tokens = shlex.split(template, posix=(os.name != "nt"))
+        if not tokens:
+            return False
+        line_token = "" if line is None or line <= 0 else str(line)
+        includes_path = False
+        args: list[str] = []
+        for token in tokens:
+            if "{path}" in token:
+                includes_path = True
+            args.append(token.replace("{path}", str(path)).replace("{line}", line_token))
+        if not includes_path:
+            args.append(str(path))
+        subprocess.Popen(args)  # noqa: S603
+        return True
+
+    def _open_with_editor_command(self, executable: str, path: Path, *, line: int | None = None) -> bool:
+        editor_cmd = shutil.which(executable)
+        if not editor_cmd:
+            return False
+        if line is not None and line > 0:
+            subprocess.Popen([editor_cmd, "-g", f"{path}:{line}"])  # noqa: S603
+        else:
+            subprocess.Popen([editor_cmd, str(path)])  # noqa: S603
+        return True
+
+    def _open_file_path(self, path: Path, *, line: int | None = None) -> bool:
+        mode = normalize_editor_mode(self.editor_mode)
+        if mode == EDITOR_MODE_CUSTOM:
+            return self._open_with_custom_editor(path, line=line)
+        if mode == EDITOR_MODE_VSCODE:
+            return self._open_with_editor_command("code", path, line=line)
+        if mode == EDITOR_MODE_CURSOR:
+            return self._open_with_editor_command("cursor", path, line=line)
+        if mode == EDITOR_MODE_DEFAULT_APP:
+            return self._open_default_app(path)
+
+        if self._open_with_editor_command("code", path, line=line):
+            return True
+        if self._open_with_editor_command("cursor", path, line=line):
+            return True
+        return self._open_default_app(path)
+
+    def action_open_chunk_file(self) -> None:
+        if not self.selected_chunk_id:
+            self.notify("No chunk selected.", timeout=1.2)
+            return
+        chunk_id = self.selected_chunk_id
+        chunk = self.chunk_map.get(chunk_id)
+        if not isinstance(chunk, dict):
+            self.notify("Selected chunk is not available.", severity="error", timeout=1.8)
+            return
+        raw_path = str(chunk.get("filePath", "")).strip()
+        path = self._resolve_chunk_file_path(raw_path)
+        if path is None:
+            self.notify("No file path in selected chunk.", severity="warning", timeout=1.8)
+            return
+        line = self._preferred_open_line(chunk_id)
+        try:
+            opened = self._open_file_path(path, line=line)
+        except Exception as error:  # noqa: BLE001
+            self.notify(f"Open failed: {error}", severity="error", timeout=2.2)
+            return
+        if not opened:
+            self.notify(f"Open failed: {path}", severity="error", timeout=2.2)
+            return
+        suffix = f":{line}" if line else ""
+        self.notify(f"Opened: {path}{suffix}", timeout=1.2)
 
     def action_move_split_left(self) -> None:
         self._nudge_main_split(-self.SPLIT_STEP_PCT)
@@ -645,7 +935,7 @@ class DiffgrTextualApp(App[None]):
 
     def _render_report_number(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
-            return Text(value, style="bold #13231a on #aef2be")
+            return Text(value, style="bold underline #ffe5a6")
         style = "dim #91a2bb"
         if row_type == "add" and side == "new":
             style = "bold #1f8f49"
@@ -657,7 +947,7 @@ class DiffgrTextualApp(App[None]):
 
     def _render_report_text(self, value: str, row_type: str, side: str, selected: bool = False) -> Text:
         if selected:
-            return Text(value, style="bold #13231a on #aef2be")
+            return Text(value, style="bold underline #ffe5a6")
         if row_type == "file_border":
             return Text(value, style="bold #8fb4ff on #11213a")
         if row_type == "file":
@@ -1528,6 +1818,7 @@ class DiffgrTextualApp(App[None]):
         detail_view = "side-by-side" if self.chunk_detail_view_mode == "side_by_side" else "compact"
         warnings_text = f"warnings={len(self.warnings)}"
         filter_display = self.filter_text if self.filter_text else "none"
+        editor_label = self._editor_setting_label()
         text = (
             f"[b]{title}[/b]  "
             f"group={group_name}  "
@@ -1535,13 +1826,14 @@ class DiffgrTextualApp(App[None]):
             f"all(total={m_all['total']} pending={m_all['pending']} reviewed={m_all['reviewed']} rate={all_rate:.1f}%)  "
             f"selected={selected_count}  "
             f"{save_state}  "
+            f"editor={editor_label}  "
             f"autosave={self.AUTOSAVE_INTERVAL_SEC}s  "
             f"{self.KEYMAP_REV}  "
             f"split={self.left_pane_pct}:{100 - self.left_pane_pct}  "
             f"diff={self.diff_old_ratio * 100:.0f}:{(1 - self.diff_old_ratio) * 100:.0f}  "
             f"view={'group-diff' if self.group_report_mode else 'chunk'}  detailView={detail_view}  "
             f"{warnings_text}  filter={filter_display}  "
-            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), d=report, v=view, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
+            f"[dim]keys: n/e=group, a/u=assign, l=lines, m=comment(line/chunk), o=open-file, t=settings, d=report, v=view, h=html, 1-4=status, Shift+Up/Down or j/k=range-select, Space=toggle done<->undone, Shift+Space=done(reviewed), Backspace or 1=undone(unreviewed), x=toggle-select, Ctrl+A=select-all, Esc=clear-select, [ ]/Ctrl+Arrows=split, Alt+Arrows=diff, s=save[/dim]"
         )
         self.query_one("#topbar", Static).update(text)
 
@@ -1553,7 +1845,7 @@ class DiffgrTextualApp(App[None]):
         return (reviewed / total) * 100.0
 
     def _done_checkbox_for_status(self, status: str) -> str:
-        return "[x]" if status == "reviewed" else "[ ]"
+        return "[✅]" if status == "reviewed" else "[  ]"
 
     def _group_display_name(self, group_id: str) -> str:
         if group_id == PSEUDO_ALL:
