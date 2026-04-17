@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import datetime as dt
 from typing import Any
 
-
-def iso_utc_now() -> str:
-    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+from diffgr.generator import iso_utc_now
 
 
 def _source_meta(doc: dict[str, Any]) -> dict[str, Any]:

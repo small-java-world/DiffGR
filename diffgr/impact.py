@@ -3,32 +3,10 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from diffgr.group_utils import chunk_change_preview as _chunk_change_preview, ordered_groups
 from diffgr.review_rebase import ChunkMatch, match_chunks
+from diffgr.viewer_core import build_chunk_map
 from diffgr.virtual_pr_coverage import CoverageIssue, analyze_virtual_pr_coverage
-
-
-def _group_sort_key(group: dict[str, Any]) -> tuple:
-    return (
-        group.get("order") is None,
-        group.get("order", 0),
-        str(group.get("name", "")),
-        str(group.get("id", "")),
-    )
-
-
-def _chunk_change_preview(chunk: dict[str, Any], *, max_lines: int = 6) -> str:
-    lines: list[str] = []
-    for ln in chunk.get("lines") or []:
-        kind = ln.get("kind")
-        if kind not in {"add", "delete"}:
-            continue
-        text = str(ln.get("text", ""))
-        if text.strip() == "":
-            continue
-        lines.append(f"{kind}: {text}")
-        if len(lines) >= max_lines:
-            break
-    return " / ".join(lines) if lines else "(no add/delete lines)"
 
 
 def _coverage_to_dict(issue: CoverageIssue) -> dict[str, Any]:
@@ -61,16 +39,8 @@ def build_impact_report(
         raise ValueError("grouping must be 'old' or 'new'")
 
     matches, warnings = match_chunks(old_doc, new_doc, similarity_threshold=similarity_threshold)
-    old_chunk_by_id = {
-        str(chunk.get("id")): chunk
-        for chunk in old_doc.get("chunks", []) or []
-        if isinstance(chunk, dict) and str(chunk.get("id", ""))
-    }
-    new_chunk_by_id = {
-        str(chunk.get("id")): chunk
-        for chunk in new_doc.get("chunks", []) or []
-        if isinstance(chunk, dict) and str(chunk.get("id", ""))
-    }
+    old_chunk_by_id = build_chunk_map(old_doc)
+    new_chunk_by_id = build_chunk_map(new_doc)
 
     old_to_new: dict[str, ChunkMatch] = {m.old_id: m for m in matches}
     new_to_old: dict[str, ChunkMatch] = {m.new_id: m for m in matches}
@@ -96,11 +66,6 @@ def build_impact_report(
 
     coverage_new = _coverage_to_dict(analyze_virtual_pr_coverage(new_doc))
 
-    def _group_items_from(doc: dict[str, Any]) -> list[dict[str, Any]]:
-        groups = [g for g in doc.get("groups", []) or [] if isinstance(g, dict)]
-        groups.sort(key=_group_sort_key)
-        return groups
-
     def _assigned_ids(doc: dict[str, Any], group_id: str) -> list[str]:
         assignments = doc.get("assignments", {})
         if not isinstance(assignments, dict):
@@ -112,7 +77,7 @@ def build_impact_report(
 
     report_groups: list[dict[str, Any]] = []
     if grouping == "old":
-        groups = _group_items_from(old_doc)
+        groups = ordered_groups(old_doc)
         for group in groups:
             gid = str(group.get("id", "")).strip()
             if not gid:
@@ -158,7 +123,7 @@ def build_impact_report(
                 }
             )
     else:
-        groups = _group_items_from(new_doc)
+        groups = ordered_groups(new_doc)
         for group in groups:
             gid = str(group.get("id", "")).strip()
             if not gid:

@@ -44,6 +44,9 @@ Status: Stable (v1)
 ### 4.2 任意フィールド
 
 - `patch` (string, OPTIONAL): unified diff テキスト（§10）
+- `groupBriefs` (object, OPTIONAL): group 単位の review handoff / brief 情報
+- `analysisState` (object, OPTIONAL): AI finding 等の state
+- `threadState` (object, OPTIONAL): chunk comment / line comment 以外の thread state
 
 ### 4.3 不明フィールド / 拡張ポイント
 
@@ -258,6 +261,45 @@ chunk ID が `reviews` に存在しない場合、`"unreviewed"` と見なす。
 - `reviewed`: レビュー済み（当該スナップショット）
 - `ignored`: カバレッジ計算から除外（生成物やノイズ差分など）
 - `needsReReview`: 以前レビュー済みだが変更/不確実のため再確認要
+
+### 9.4 Mutable review state の責務境界
+
+`DiffGR v1` は自己完結 JSON を基本とするが、運用上は次の区分で考えることを推奨する。
+
+- `bundle` 的な情報
+  - `meta`
+  - `groups`
+  - `chunks`
+  - `assignments`
+  - `patch`
+- `mutable review state`
+  - `reviews`
+  - `groupBriefs`
+  - `analysisState`
+  - `threadState`
+
+運用上の推奨:
+
+- viewer / save API / merge / rebase は、`mutable review state` を独立責務として扱うべき
+- v1 では同一 JSON に同居してよい
+- 将来的に bundle/state 分離を行う場合も、上記境界を維持するのが望ましい
+
+### 9.5 `groupBriefs` の位置付け
+
+`groupBriefs` は chunk comment ではなく、group 単位で保持される review 前提情報である。
+
+想定用途:
+
+- 変更者からレビュアーへの handoff
+- 重点確認ポイント
+- テスト証跡メモ
+- 既知の tradeoff
+
+推奨規則:
+
+- key は `groups[].id`
+- chunk-level `reviews` とは別 object に置く
+- split / merge / rebase の対象に含めてよい
 
 ### 9.4 状態遷移（規範）
 

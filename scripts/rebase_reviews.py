@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -13,7 +12,7 @@ if str(ROOT) not in sys.path:
 from diffgr.impact import build_impact_report  # noqa: E402
 from diffgr.review_history import append_review_history, build_rebase_history_entry  # noqa: E402
 from diffgr.review_rebase import rebase_review_state  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, print_json, print_warning, validate_document, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -127,9 +126,9 @@ def main(argv: list[str]) -> int:
             append_review_history(out_doc, entry, max_entries=int(args.history_max_entries))
         validate_document(out_doc)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(out_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_json(output_path, out_doc)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     impact_scope = out_doc.get("meta", {}).get("x-impactScope", {})
@@ -149,25 +148,19 @@ def main(argv: list[str]) -> int:
             unaffected_groups = [g for g in groups if isinstance(g, dict) and str(g.get("action", "")) != "review"]
 
     if args.json_summary:
-        print(
-            json.dumps(
-                {
-                    "matchedStrong": summary.matched_strong,
-                    "matchedStable": summary.matched_stable,
-                    "matchedDelta": summary.matched_delta,
-                    "matchedSimilar": summary.matched_similar,
-                    "carriedReviews": summary.carried_reviews,
-                    "carriedReviewed": summary.carried_reviewed,
-                    "changedToNeedsReReview": summary.changed_to_needs_rereview,
-                    "unmappedNewChunks": summary.unmapped_new_chunks,
-                    "impactedGroupCount": len(impacted_groups) if isinstance(impacted_groups, list) else 0,
-                    "unaffectedGroupCount": len(unaffected_groups) if isinstance(unaffected_groups, list) else 0,
-                    "warnings": warnings,
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        print_json({
+            "matchedStrong": summary.matched_strong,
+            "matchedStable": summary.matched_stable,
+            "matchedDelta": summary.matched_delta,
+            "matchedSimilar": summary.matched_similar,
+            "carriedReviews": summary.carried_reviews,
+            "carriedReviewed": summary.carried_reviewed,
+            "changedToNeedsReReview": summary.changed_to_needs_rereview,
+            "unmappedNewChunks": summary.unmapped_new_chunks,
+            "impactedGroupCount": len(impacted_groups) if isinstance(impacted_groups, list) else 0,
+            "unaffectedGroupCount": len(unaffected_groups) if isinstance(unaffected_groups, list) else 0,
+            "warnings": warnings,
+        })
     else:
         print(f"Wrote: {output_path}")
         print(f"Matched (strong): {summary.matched_strong}")
@@ -182,7 +175,7 @@ def main(argv: list[str]) -> int:
             print(f"Unaffected groups: {len(unaffected_groups)}")
         if warnings:
             for warning in warnings:
-                print(f"[warning] {warning}", file=sys.stderr)
+                print_warning(warning)
 
     return 0
 

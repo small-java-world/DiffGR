@@ -148,6 +148,16 @@ def _normalize_codex_exec_args(args: tuple[str, ...]) -> tuple[str, ...]:
     return tuple([*head, *moved, "exec", *kept])
 
 
+def _build_codex_resume_args(args: tuple[str, ...]) -> tuple[str, ...]:
+    values = list(_normalize_codex_exec_args(args))
+    if "exec" not in values:
+        return ("resume", "--last")
+    exec_index = values.index("exec")
+    head = values[:exec_index]
+    tail = values[exec_index + 1 :]
+    return tuple([*head, "resume", "--last", *tail])
+
+
 def _is_windows() -> bool:
     return os.name == "nt"
 
@@ -252,7 +262,8 @@ def _run_codex_with_profile(
     resume_last_session: bool,
 ) -> dict[str, Any]:
     output_path: Path | None = None
-    cmd = [resolved_command, *normalized_args, "--output-schema", str(profile.schema_path)]
+    command_args = _build_codex_resume_args(normalized_args) if resume_last_session else normalized_args
+    cmd = [resolved_command, *command_args, "--output-schema", str(profile.schema_path)]
 
     if profile.use_output_last_message:
         out_fd, output_path_raw = tempfile.mkstemp(prefix="codex-last-message-", suffix=".txt")
@@ -260,10 +271,7 @@ def _run_codex_with_profile(
         output_path = Path(output_path_raw)
         cmd.extend(["--output-last-message", str(output_path)])
 
-    if resume_last_session:
-        cmd.extend(["resume", "--last", "-"])
-    else:
-        cmd.append("-")
+    cmd.append("-")
 
     try:
         result = subprocess.run(

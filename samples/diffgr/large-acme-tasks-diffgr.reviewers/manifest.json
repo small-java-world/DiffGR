@@ -1,0 +1,79 @@
+{
+  "source": "/Users/f.kawano/workspace/DiffGR-main/samples/diffgr/large-acme-tasks.diffgr.json",
+  "fileCount": 12,
+  "files": [
+    {
+      "groupId": "g-auth",
+      "groupName": "認証・認可 (Auth)",
+      "chunkCount": 6,
+      "path": "01-g-auth-Auth.diffgr.json"
+    },
+    {
+      "groupId": "g-api",
+      "groupName": "API / Routes / Services",
+      "chunkCount": 7,
+      "path": "02-g-api-API-Routes-Services.diffgr.json"
+    },
+    {
+      "groupId": "g-db",
+      "groupName": "DB / マイグレーション",
+      "chunkCount": 6,
+      "path": "03-g-db-DB.diffgr.json"
+    },
+    {
+      "groupId": "g-frontend",
+      "groupName": "フロントエンド (React)",
+      "chunkCount": 6,
+      "path": "04-g-frontend-React.diffgr.json"
+    },
+    {
+      "groupId": "g-config",
+      "groupName": "設定・環境変数",
+      "chunkCount": 5,
+      "path": "05-g-config-group.diffgr.json"
+    },
+    {
+      "groupId": "g-infra",
+      "groupName": "CI / Infra / Deploy",
+      "chunkCount": 4,
+      "path": "06-g-infra-CI-Infra-Deploy.diffgr.json"
+    },
+    {
+      "groupId": "g-monitoring",
+      "groupName": "ロギング・エラーハンドリング",
+      "chunkCount": 3,
+      "path": "07-g-monitoring-group.diffgr.json"
+    },
+    {
+      "groupId": "g-tests",
+      "groupName": "テスト (Integration)",
+      "chunkCount": 3,
+      "path": "08-g-tests-Integration.diffgr.json"
+    },
+    {
+      "groupId": "g-docs",
+      "groupName": "ドキュメント・ADR",
+      "chunkCount": 4,
+      "path": "09-g-docs-ADR.diffgr.json"
+    },
+    {
+      "groupId": "g-mobile",
+      "groupName": "モバイル (Expo/RN)",
+      "chunkCount": 3,
+      "path": "10-g-mobile-Expo-RN.diffgr.json"
+    },
+    {
+      "groupId": "g-tools",
+      "groupName": "開発ツール・スクリプト",
+      "chunkCount": 4,
+      "path": "11-g-tools-group.diffgr.json"
+    },
+    {
+      "groupId": "g-perf",
+      "groupName": "パフォーマンス改善",
+      "chunkCount": 4,
+      "path": "12-g-perf-group.diffgr.json"
+    }
+  ],
+  "updatedAt": "2026-03-15T23:33:52Z"
+}

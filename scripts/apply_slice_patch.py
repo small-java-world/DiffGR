@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -11,7 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from diffgr.slice_patch import apply_slice_patch  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, validate_document, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -24,27 +23,26 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
-    repo = ROOT
     input_path = Path(args.input)
     if not input_path.is_absolute():
-        input_path = repo / input_path
+        input_path = ROOT / input_path
     patch_path = Path(args.patch)
     if not patch_path.is_absolute():
-        patch_path = repo / patch_path
+        patch_path = ROOT / patch_path
     output_path = Path(args.output)
     if not output_path.is_absolute():
-        output_path = repo / output_path
+        output_path = ROOT / output_path
 
     try:
         doc = load_json(input_path)
         validate_document(doc)
-        patch = json.loads(patch_path.read_text(encoding="utf-8"))
+        patch = load_json(patch_path)
         new_doc = apply_slice_patch(doc, patch)
         validate_document(new_doc)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(new_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_json(output_path, new_doc)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     print(f"Wrote: {output_path}")

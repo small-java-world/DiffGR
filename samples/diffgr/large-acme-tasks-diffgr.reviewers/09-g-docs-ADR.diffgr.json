@@ -1,0 +1,621 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [ドキュメント・ADR]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-docs",
+      "groupName": "ドキュメント・ADR",
+      "chunkCount": 4
+    }
+  },
+  "groups": [
+    {
+      "id": "g-docs",
+      "name": "ドキュメント・ADR",
+      "order": 9,
+      "tags": [
+        "docs"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca",
+      "filePath": "README.md",
+      "old": {
+        "start": 1,
+        "count": 15
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "# Acme Tasks",
+          "oldLine": 1,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "# Acme Tasks — API + Frontend monorepo",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "Simple task management app.",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "Full-stack task management app built with Express, Prisma, and React.",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "## Features",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "- JWT authentication with refresh tokens",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "- Task CRUD with validation (Zod)",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "- Status tracking (open / in_progress / done)",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "- Tags and due dates",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "- Structured logging (pino)",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "- Integration tests (Supertest + Prisma)",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "## Getting Started",
+          "oldLine": 5,
+          "newLine": 14
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 15
+        },
+        {
+          "kind": "context",
+          "text": "```",
+          "oldLine": 7,
+          "newLine": 16
+        },
+        {
+          "kind": "context",
+          "text": "cp .env.example .env",
+          "oldLine": 8,
+          "newLine": 17
+        }
+      ],
+      "fingerprints": {
+        "stable": "37951fe7751a97b414d28b1c6e3da55ff8f374aa8b5359c550e5b59cedd23715",
+        "strong": "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca"
+      },
+      "header": "README"
+    },
+    {
+      "id": "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843",
+      "filePath": "README.md",
+      "old": {
+        "start": 18,
+        "count": 5
+      },
+      "new": {
+        "start": 32,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "npm install",
+          "oldLine": 18,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "npx prisma migrate dev",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "context",
+          "text": "npm run dev",
+          "oldLine": 19,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "```",
+          "oldLine": 20,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 21,
+          "newLine": 36
+        },
+        {
+          "kind": "delete",
+          "text": "## Endpoints",
+          "oldLine": 22,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "## API",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 23,
+          "newLine": 38
+        },
+        {
+          "kind": "delete",
+          "text": "- GET /health",
+          "oldLine": 24,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "- GET /api/tasks",
+          "oldLine": 25,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/auth/login`",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/auth/refresh`",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "- `GET /api/tasks`",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/tasks`",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "- `DELETE /api/tasks/:id`",
+          "oldLine": null,
+          "newLine": 43
+        }
+      ],
+      "fingerprints": {
+        "stable": "4e28836ffbbd93d2deed27a218918095e3cf7e86c3fdbb21e9445f23263acd05",
+        "strong": "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843"
+      },
+      "header": "API section"
+    },
+    {
+      "id": "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a",
+      "filePath": "docs/architecture.md",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "# Architecture",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "## Overview",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "```",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "Browser → React SPA → Express API → PostgreSQL (Prisma)",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "```",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "## Auth Flow",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "1. `POST /api/auth/login` — returns `accessToken` (15 min) + `refreshToken` (7 days)",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "2. Client stores `refreshToken` in httpOnly cookie",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "3. On 401, client calls `POST /api/auth/refresh` to get new `accessToken`",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "4. `POST /api/auth/logout` revokes the `refreshToken`",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "## Data Model",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "- `User` — id, email, passwordHash",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "- `Task` — id, title, description, status, tags, dueAt, ownerId, createdAt, updatedAt",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "- `RefreshToken` — id, token, userId, revokedAt, createdAt",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "## Logging",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "Structured JSON via pino in production. pino-pretty in development.",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "414d7fa1e311d43b479aa147efa287146684f96473907b48b7f4f5b57197a3a1",
+        "strong": "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a"
+      }
+    },
+    {
+      "id": "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a",
+      "filePath": "docs/adr/001-use-zod-for-validation.md",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "# ADR 001 — Use Zod for request validation",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "**Status:** Accepted",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "## Context",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "Previously, request body validation was ad-hoc (manual `if` checks). This led to inconsistent error responses and missing fields silently passing through.",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "## Decision",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "Use Zod to define schemas for all request inputs. A thin `validate()` wrapper converts `ZodError` into a standardized `{ errors: FieldError[] }` response.",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "## Consequences",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "- Request shape is self-documenting and co-located with types",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "- 400 errors are consistent across all routes",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "- Runtime type safety from the boundary inward",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "674ef8376aeb473aa518f9efb6e9561e47bbaa50d7959cafd8fc008df4b86117",
+        "strong": "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a"
+      }
+    }
+  ],
+  "assignments": {
+    "g-docs": [
+      "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca",
+      "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843",
+      "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a",
+      "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a"
+    ]
+  },
+  "reviews": {
+    "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:04Z"
+    }
+  },
+  "groupBriefs": {
+    "g-docs": {
+      "status": "ready",
+      "summary": "README をフルスタックアプリとしての内容に刷新し、アーキテクチャドキュメントと ADR（Zod 採用の意思決定記録）を新規追加しました。",
+      "focusPoints": [
+        "README に Features セクションを追加。今回のリリースで追加された機能（JWT/Zod/pino/テスト）を明記しています",
+        "docs/architecture.md に認証フロー・データモデル・ロギングの概要を記載",
+        "ADR 001 として Zod 採用の背景・決定・影響を記録しています"
+      ],
+      "testEvidence": [],
+      "knownTradeoffs": [],
+      "questionsForReviewer": [
+        "API エンドポイントのリストに POST /api/auth/login と POST /api/auth/refresh を記載していますが、これらの実装は今回のスコープに含まれていますか？"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-docs",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

@@ -65,6 +65,8 @@ class TestAgentCli(unittest.TestCase):
             self.assertIn("resume", resume_args[0])
             self.assertIn("--last", resume_args[0])
             self.assertIn("--output-schema", resume_args[0])
+            self.assertNotIn("exec", resume_args[0][1:3])
+            self.assertEqual(resume_args[0][1], "resume")
             self.assertEqual(resume_kwargs["input"], "# prompt")
 
     def test_run_agent_cli_uses_resolved_command_path(self):

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import glob
-import json
 import sys
 from pathlib import Path
 
@@ -12,7 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from diffgr.review_split import merge_reviews_into_base  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, print_warning, validate_document, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -102,9 +101,9 @@ def main(argv: list[str]) -> int:
         )
         validate_document(merged_doc)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(merged_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_json(output_path, merged_doc)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     print(f"Wrote: {output_path}")
@@ -112,7 +111,7 @@ def main(argv: list[str]) -> int:
     print(f"Applied reviews: {applied}")
     if warnings:
         for warning in warnings:
-            print(f"[warning] {warning}", file=sys.stderr)
+            print_warning(warning)
     return 0
 
 

@@ -5,9 +5,12 @@ import datetime as dt
 import hashlib
 import json
 import re
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Any
+
+from diffgr.viewer_core import write_json
 
 HUNK_HEADER_RE = re.compile(
     r"^@@ -(?P<old_start>\d+)(?:,(?P<old_count>\d+))? "
@@ -52,6 +55,16 @@ def sha256_hex(value: Any) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def parse_diff_git_paths(line: str) -> tuple[str | None, str | None]:
+    try:
+        parts = shlex.split(line)
+    except ValueError as error:
+        raise RuntimeError(f"Invalid diff --git header: {line}") from error
+    a_path = normalize_diff_path(parts[2] if len(parts) > 2 else "")
+    b_path = normalize_diff_path(parts[3] if len(parts) > 3 else "")
+    return a_path, b_path
+
+
 def parse_unified_diff(diff_text: str) -> list[dict[str, Any]]:
     lines = diff_text.splitlines()
     files: list[dict[str, Any]] = []
@@ -65,9 +78,7 @@ def parse_unified_diff(diff_text: str) -> list[dict[str, Any]]:
         if line.startswith("diff --git "):
             if current_file is not None:
                 files.append(current_file)
-            parts = line.split()
-            a_path = normalize_diff_path(parts[2] if len(parts) > 2 else "")
-            b_path = normalize_diff_path(parts[3] if len(parts) > 3 else "")
+            a_path, b_path = parse_diff_git_paths(line)
             current_file = {
                 "a_path": a_path,
                 "b_path": b_path,
@@ -284,7 +295,7 @@ def build_diffgr_document(
 
 def write_document(document: dict[str, Any], output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_json(output, document)
 
 
 def parse_generate_args(argv: list[str]) -> argparse.Namespace:

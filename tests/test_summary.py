@@ -35,6 +35,24 @@ class TestSummary(unittest.TestCase):
                 "c2": {"status": "ignored"},
                 "c3": {"status": "unreviewed"},
             },
+            "groupBriefs": {
+                "g1": {"status": "ready", "summary": "auth handoff"},
+                "g2": {"status": "draft", "summary": "ui handoff"},
+            },
+            "analysisState": {
+                "currentGroupId": "g1",
+                "selectedChunkId": "c1",
+                "filterText": "auth",
+                "groupReportMode": True,
+                "chunkDetailViewMode": "side_by_side",
+                "showContextLines": False,
+            },
+            "threadState": {
+                "c1": {"open": True},
+                "c2": {"open": False},
+                "__files": {"a.txt": {"open": True}},
+                "selectedLineAnchor": {"anchorKey": "context:1:1", "oldLine": 1, "newLine": 1, "lineType": "context"},
+            },
         }
         summary = summarize_document(doc)
         self.assertEqual(summary["chunkCount"], 3)
@@ -52,14 +70,34 @@ class TestSummary(unittest.TestCase):
         self.assertEqual(review["Reviewed"], 1)
         self.assertEqual(review["Pending"], 1)
 
+        briefs = summary["briefs"]
+        self.assertEqual(briefs["total"], 2)
+        self.assertEqual(briefs["statusCounts"]["ready"], 1)
+        self.assertEqual(briefs["statusCounts"]["draft"], 1)
+
+        state = summary["state"]
+        self.assertTrue(state["hasAnalysisState"])
+        self.assertTrue(state["hasThreadState"])
+        self.assertEqual(state["currentGroupId"], "g1")
+        self.assertEqual(state["selectedChunkId"], "c1")
+        self.assertEqual(state["filterText"], "auth")
+        self.assertTrue(state["groupReportMode"])
+        self.assertEqual(state["chunkDetailViewMode"], "side_by_side")
+        self.assertFalse(state["showContextLines"])
+        self.assertEqual(state["threadChunkEntryCount"], 2)
+        self.assertEqual(state["threadFileEntryCount"], 1)
+        self.assertTrue(state["hasSelectedLineAnchor"])
+
         groups = {g["id"]: g for g in summary["groups"]}
         self.assertEqual(groups["g1"]["total"], 2)
         self.assertEqual(groups["g1"]["tracked"], 1)
         self.assertEqual(groups["g1"]["reviewed"], 1)
+        self.assertTrue(groups["g1"]["hasBrief"])
+        self.assertEqual(groups["g1"]["briefStatus"], "ready")
         self.assertEqual(groups["g2"]["total"], 1)
         self.assertEqual(groups["g2"]["tracked"], 0)  # only c2 which is ignored
+        self.assertEqual(groups["g2"]["briefStatus"], "draft")
 
 
 if __name__ == "__main__":
     unittest.main()
-

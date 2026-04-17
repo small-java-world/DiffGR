@@ -4,6 +4,9 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from diffgr.group_utils import chunk_change_preview as _chunk_change_preview_base, ordered_groups, safe_groups
+from diffgr.viewer_core import build_chunk_map
+
 
 @dataclass(frozen=True)
 class CoverageIssue:
@@ -17,32 +20,12 @@ class CoverageIssue:
         return not (self.unassigned or self.duplicated or self.unknown_groups or self.unknown_chunks)
 
 
-def _group_sort_key(group: dict[str, Any]) -> tuple:
-    return (
-        group.get("order") is None,
-        group.get("order", 0),
-        str(group.get("name", "")),
-        str(group.get("id", "")),
-    )
-
-
 def _chunk_change_preview(chunk: dict[str, Any], *, max_lines: int = 6) -> str:
-    lines: list[str] = []
-    for ln in chunk.get("lines") or []:
-        kind = ln.get("kind")
-        if not kind or kind == "context":
-            continue
-        text = str(ln.get("text", ""))
-        if kind in {"add", "delete"} and text.strip() == "":
-            continue
-        lines.append(f"{kind}: {text}")
-        if len(lines) >= max_lines:
-            break
-    return " / ".join(lines) if lines else "(meta-only)"
+    return _chunk_change_preview_base(chunk, max_lines=max_lines, include_meta=True)
 
 
 def analyze_virtual_pr_coverage(doc: dict[str, Any]) -> CoverageIssue:
-    groups = [group for group in doc.get("groups", []) if isinstance(group, dict)]
+    groups = safe_groups(doc)
     chunks = [chunk for chunk in doc.get("chunks", []) if isinstance(chunk, dict)]
     assignments = doc.get("assignments", {})
 
@@ -87,14 +70,9 @@ def build_ai_fix_coverage_prompt_markdown(
     max_chunks_per_group: int = 20,
     max_problem_chunks: int = 80,
 ) -> str:
-    groups = [group for group in doc.get("groups", []) if isinstance(group, dict)]
-    groups.sort(key=_group_sort_key)
+    groups = ordered_groups(doc)
     assignments = doc.get("assignments", {})
-    chunk_map = {
-        str(chunk.get("id")): chunk
-        for chunk in doc.get("chunks", [])
-        if isinstance(chunk, dict) and str(chunk.get("id", ""))
-    }
+    chunk_map = build_chunk_map(doc)
 
     title = str((doc.get("meta") or {}).get("title", "DiffGR"))
 

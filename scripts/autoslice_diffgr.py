@@ -10,7 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from diffgr.autoslice import autoslice_document_by_commits  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, print_warning, validate_document, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -50,6 +50,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=3,
         help="Context lines to include around each change block when splitting (default: 3).",
     )
+    parser.add_argument(
+        "--fail-on-truncate",
+        action="store_true",
+        help="Fail instead of truncating commit history when max-commits is exceeded.",
+    )
     return parser.parse_args(argv)
 
 
@@ -75,14 +80,12 @@ def main(argv: list[str]) -> int:
             name_style=args.name_style,
             split_chunks=not args.no_split,
             context_lines=args.context_lines,
+            fail_on_truncate=args.fail_on_truncate,
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(
-            __import__("json").dumps(new_doc, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        write_json(output_path, new_doc)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     meta = new_doc.get("meta", {}).get("x-autoslice", {})
@@ -93,7 +96,7 @@ def main(argv: list[str]) -> int:
     print(f"Unassigned: {unassigned_count}")
     if warnings:
         for warning in warnings:
-            print(f"[warning] {warning}", file=sys.stderr)
+            print_warning(warning)
     return 0
 
 

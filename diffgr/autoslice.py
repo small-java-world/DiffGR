@@ -21,6 +21,7 @@ def _change_fingerprint_from_parts(
 ) -> str:
     payload = {
         "filePath": file_path,
+        "header": header,
         "changes": [{"kind": kind, "text": text} for kind, text in change_lines],
     }
     return sha256_hex(payload)
@@ -35,8 +36,6 @@ def change_fingerprint_for_chunk(chunk: dict[str, Any]) -> str:
         kind = line.get("kind")
         text = line.get("text", "")
         if kind and kind != "context":
-            if kind in {"add", "delete"} and str(text).strip() == "":
-                continue
             change_lines.append((kind, text))
 
     if not change_lines:
@@ -136,8 +135,6 @@ def change_fingerprints_for_diff_text(diff_text: str, context_lines: int = 3) ->
                         kind = line.get("kind")
                         text = line.get("text", "")
                         if kind and kind != "context":
-                            if kind in {"add", "delete"} and str(text).strip() == "":
-                                continue
                             change_lines.append((kind, text))
                     fingerprints.add(
                         _change_fingerprint_from_parts(
@@ -154,14 +151,29 @@ def change_fingerprints_for_diff_text(diff_text: str, context_lines: int = 3) ->
     return fingerprints
 
 
-def list_linear_commits(repo: Path, base_ref: str, feature_ref: str, max_commits: int = 50) -> list[SliceCommit]:
+def list_linear_commits(
+    repo: Path,
+    base_ref: str,
+    feature_ref: str,
+    max_commits: int = 50,
+    *,
+    fail_on_truncate: bool = False,
+) -> tuple[list[SliceCommit], list[str]]:
     merge_base = run_git(repo, ["merge-base", base_ref, feature_ref]).strip()
     commit_shas = [
         line.strip()
         for line in run_git(repo, ["rev-list", "--reverse", f"{merge_base}..{feature_ref}"]).splitlines()
         if line.strip()
     ]
+    warnings: list[str] = []
     if max_commits and len(commit_shas) > max_commits:
+        message = (
+            f"Commit history truncated from {len(commit_shas)} to {max_commits}; "
+            "autoslice assignments may be incomplete."
+        )
+        if fail_on_truncate:
+            raise RuntimeError(message)
+        warnings.append(message)
         commit_shas = commit_shas[:max_commits]
 
     commits: list[SliceCommit] = []
@@ -171,7 +183,7 @@ def list_linear_commits(repo: Path, base_ref: str, feature_ref: str, max_commits
         parts = parent_line.split()
         parent = parts[1] if len(parts) >= 2 else None
         commits.append(SliceCommit(sha=sha, subject=subject, parent=parent))
-    return commits
+    return commits, warnings
 
 
 def autoslice_document_by_commits(
@@ -184,17 +196,23 @@ def autoslice_document_by_commits(
     name_style: str = "subject",
     split_chunks: bool = True,
     context_lines: int = 3,
+    fail_on_truncate: bool = False,
 ) -> tuple[dict[str, Any], list[str]]:
     if name_style not in {"subject", "pr"}:
         raise ValueError("name_style must be 'subject' or 'pr'")
 
-    commits = list_linear_commits(repo, base_ref, feature_ref, max_commits=max_commits)
+    commits, warnings = list_linear_commits(
+        repo,
+        base_ref,
+        feature_ref,
+        max_commits=max_commits,
+        fail_on_truncate=fail_on_truncate,
+    )
     if not commits:
         raise RuntimeError("No commits found between base and feature; cannot autoslice.")
 
     # Map change fingerprint -> first commit index that introduced it.
     fingerprint_to_commit_index: dict[str, int] = {}
-    warnings: list[str] = []
 
     for index, commit in enumerate(commits, start=1):
         if not commit.parent:
@@ -258,5 +276,6 @@ def autoslice_document_by_commits(
         "unassignedCount": len(unassigned),
         "splitChunks": bool(split_chunks),
         "contextLines": int(context_lines),
+        "failOnTruncate": bool(fail_on_truncate),
     }
     return new_doc, warnings

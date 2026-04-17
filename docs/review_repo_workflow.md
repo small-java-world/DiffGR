@@ -1,6 +1,6 @@
 # レビュー成果物の Git 運用（別repo推奨）
 
-DiffGR の `*.diffgr.json` は「差分スナップショット + レビュー状態 + コメント」を 1ファイルに集約できるため、
+DiffGR の `*.diffgr.json` は「差分スナップショット + レビュー状態 + コメント + group-level handoff」を 1ファイルに集約できるため、
 Git で履歴管理すると運用が安定します。
 
 ただし本体コード repo に成果物を置くと:
@@ -18,6 +18,8 @@ Git で履歴管理すると運用が安定します。
 - レビュー成果物 repo: `*.diffgr.json` / AIパッチ / 最小限のメモのみをコミット
 - 複数レビューア: **仮想PR（group）単位に 1ファイルずつ分割**して、担当者ごとに編集ファイルを分ける
 - コード修正後: `rebase_reviews.py` で「未変更はreviewed維持、変更はneedsReReview」に寄せて再レビュー最小化
+- 変更者からレビュアーへ渡す group-level 文脈は `groupBriefs`（`Review Handoff`）として同じ成果物に保存する
+- UI の表示状態も必要なら `analysisState / threadState` を含む review state として持ち回せる
 
 ### 1.1 全体フロー（図）
 
@@ -91,6 +93,8 @@ diffgr-reviews/
   - AIブラッシュアップを適用したものを配布ベースにするなら `bundle.ai.diffgr.json`
 - `reviewers/*.diffgr.json`（分担レビューの成果物）
 - `merged.diffgr.json`（最終集約）
+- `groupBriefs` を含む review state（group-level handoff）
+- 必要なら `extract_diffgr_state.py` で切り出した state JSON
 - `ai/*.md` / `ai/*.json`（AIブラッシュアップの再現性）
 - `bundle.md`（リンク・PR番号・注意点などの人間向けメモ）
 
@@ -204,6 +208,73 @@ python <diffgr-repo>\scripts\split_group_reviews.py `
 ### 4.5 初期コミット
 
 レビュー成果物 repo で `<bundle-base.diffgr.json>` と `reviewers/*` をコミットします。
+
+### 4.6 review state を別ファイルで持ち回す場合
+
+HTML の `Copy State` / `Download JSON` や、別 repo で state だけ管理したい場合は、bundle 本体から state を切り出して扱えます。
+
+```powershell
+python <diffgr-repo>\scripts\extract_diffgr_state.py `
+  --input <review-repo>\bundles\<code-repo-name>\<bundle-id>\<bundle-base.diffgr.json> `
+  --output <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.json
+```
+
+この `review-state.json` には `reviews / groupBriefs / analysisState / threadState` が入ります。
+
+- `reviews`: chunk review status / comment / line comment
+- `groupBriefs`: group-level handoff
+- `analysisState`: filter, selected chunk, group diff mode などの UI state
+- `threadState`: file/chunk open 状態、selected line anchor などの UI state
+
+抽出済み state を別の DiffGR JSON へ戻したい場合:
+
+```powershell
+python <diffgr-repo>\scripts\apply_diffgr_state.py `
+  --input <review-repo>\bundles\<code-repo-name>\<bundle-id>\<bundle-base.diffgr.json> `
+  --state <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.json `
+  --output <review-repo>\bundles\<code-repo-name>\<bundle-id>\bundle.with-state.diffgr.json
+```
+
+補足:
+
+- 複数レビュアの最終集約は、原則 `merge_group_reviews.py` を優先する
+- state JSON 同士をまとめたい場合は `merge_diffgr_state.py` を使える
+- state JSON は「UI から抜いた review state の受け渡し」や「bundle への再適用」に向く
+- state JSON を次ラウンドへ引き継ぐ場合は `rebase_diffgr_state.py` を使える
+- partial に戻したい場合は `diff_diffgr_state.py --tokens-only` で selection token を出し、`apply_diffgr_state_diff.py` や UI の selective apply を使う
+- impact preview からそのまま戻したい場合は `preview_rebased_merge.py --tokens-only <plan>` または `apply_diffgr_state_diff.py --impact-old --impact-new --impact-plan <plan>` を使う
+
+### 4.7 selective apply を使う場面
+
+full merge ではなく selective apply を使うのは、次のような場面です。
+
+- reviewer A の `reviews:c1,c2` だけを bundle に戻したい
+- `groupBriefs:g-auth` だけ別 state から反映したい
+- `analysisState:selectedChunkId` や `threadState.__files:src/a.ts` のように UI state の一部だけ持ち回したい
+
+CLI 例:
+
+```powershell
+python <diffgr-repo>\scripts\diff_diffgr_state.py `
+  --base <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.json `
+  --other <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.incoming.json `
+  --tokens-only
+```
+
+```powershell
+python <diffgr-repo>\scripts\apply_diffgr_state_diff.py `
+  --base <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.json `
+  --other <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.incoming.json `
+  --select reviews:c1 `
+  --select groupBriefs:g1 `
+  --output <review-repo>\bundles\<code-repo-name>\<bundle-id>\review-state.selected.json
+```
+
+運用上の原則:
+
+- reviewer 成果の最終集約は `merge_group_reviews.py` を優先する
+- selective apply は「state JSON の一部だけ戻したい」「UI state だけ持ち回したい」場合に使う
+- full merge と selective apply を混ぜる場合は、どちらを source of truth にするかを bundle ごとに決める
 
 ---
 
@@ -399,6 +470,7 @@ python <diffgr-repo>\scripts\merge_group_reviews.py `
 ポイント:
 
 - 「merged を手で直す」より「reviewers を直して再マージ」を基本にすると破綻しにくいです。
+- `groupBriefs` も同様に、merged 側を直接直すより担当 group の reviewer ファイルを更新して再マージする方が安全です。
 
 ---
 

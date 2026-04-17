@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import shutil
 import sys
@@ -19,6 +18,7 @@ from diffgr.agent_cli import (  # noqa: E402
     run_agent_cli_from_last_session,
     start_interactive_session,
 )
+from diffgr.viewer_core import print_error, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -243,20 +243,18 @@ def _retry_noninteractive_prompt_for_split_policy(original_prompt: str, conflict
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
-    repo = ROOT
-
     config_path = Path(args.config)
     if not config_path.is_absolute():
-        config_path = repo / config_path
+        config_path = ROOT / config_path
     prompt_path = Path(args.prompt)
     if not prompt_path.is_absolute():
-        prompt_path = repo / prompt_path
+        prompt_path = ROOT / prompt_path
     schema_path = Path(args.schema)
     if not schema_path.is_absolute():
-        schema_path = repo / schema_path
+        schema_path = ROOT / schema_path
     output_path = Path(args.output)
     if not output_path.is_absolute():
-        output_path = repo / output_path
+        output_path = ROOT / output_path
 
     try:
         config = load_agent_cli_config(config_path)
@@ -298,7 +296,7 @@ def main(argv: list[str]) -> int:
                     )
                     print(f"Copied prompt to clipboard: {prompt_path}")
             note_path = _write_interactive_session_note(
-                repo=repo,
+                repo=ROOT,
                 prompt_path=prompt_path,
                 schema_path=schema_path,
                 prompt_markdown=prompt_markdown,
@@ -309,17 +307,17 @@ def main(argv: list[str]) -> int:
             print("When done, exit the session; then this tool will resume the last session to output JSON patch.")
 
             initial_prompt = _build_interactive_initial_prompt(
-                repo=repo,
+                repo=ROOT,
                 note_path=note_path,
             )
-            code = start_interactive_session(repo=repo, config=config, initial_prompt=initial_prompt)
+            code = start_interactive_session(repo=ROOT, config=config, initial_prompt=initial_prompt)
             # Many CLIs exit with 130 when the user presses Ctrl+C to leave the interactive session.
             # Treat that as a normal, user-driven exit so we can still resume and emit the final patch JSON.
             if code not in (0, 130):
                 return code
             finalize_prompt = _build_finalize_prompt()
             patch = run_agent_cli_from_last_session(
-                repo=repo,
+                repo=ROOT,
                 config=config,
                 prompt_text=finalize_prompt,
                 schema_path=schema_path,
@@ -332,7 +330,7 @@ def main(argv: list[str]) -> int:
                     file=sys.stderr,
                 )
                 patch = run_agent_cli_from_last_session(
-                    repo=repo,
+                    repo=ROOT,
                     config=config,
                     prompt_text=_build_split_policy_retry_prompt(split_conflicts),
                     schema_path=schema_path,
@@ -346,7 +344,7 @@ def main(argv: list[str]) -> int:
                     )
         else:
             patch = run_agent_cli(
-                repo=repo,
+                repo=ROOT,
                 config=config,
                 prompt_markdown=prompt_markdown,
                 schema_path=schema_path,
@@ -360,7 +358,7 @@ def main(argv: list[str]) -> int:
                 )
                 retry_prompt = _retry_noninteractive_prompt_for_split_policy(prompt_markdown, split_conflicts)
                 patch = run_agent_cli(
-                    repo=repo,
+                    repo=ROOT,
                     config=config,
                     prompt_markdown=retry_prompt,
                     schema_path=schema_path,
@@ -372,13 +370,13 @@ def main(argv: list[str]) -> int:
                         "Patch policy violation: same function is still split across groups: "
                         + "; ".join(split_conflicts)
                     )
-        output_path.write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_json(output_path, patch)
     except FileNotFoundError as error:
         missing = error.filename or str(error)
         print(f"[error] File not found: {missing}", file=sys.stderr)
         return 1
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     print(f"Wrote: {output_path}")

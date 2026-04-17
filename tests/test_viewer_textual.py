@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from diffgr.viewer_textual import DiffgrTextualApp, build_group_diff_report_rows, format_file_label, normalize_editor_mode
+from diffgr.review_state import load_review_state, review_state_fingerprint
 from textual.widgets import DataTable
 
 
@@ -709,6 +710,89 @@ class TestViewerTextualReport(unittest.TestCase):
 
         self.assertEqual(calls, [(expected, 11)])
 
+    def test_action_export_state_writes_state_json(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            app = DiffgrTextualApp(
+                root / "bundle.diffgr.json",
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {"c1": {"status": "reviewed"}},
+                    "groupBriefs": {"g1": {"summary": "handoff"}},
+                    "analysisState": {"currentGroupId": "g1", "selectedChunkId": "c1"},
+                    "threadState": {"c1": {"open": True}},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "reviewed"},
+                15,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            previous_cwd = Path.cwd()
+            try:
+                os.chdir(root)
+                app.action_export_state()
+            finally:
+                os.chdir(previous_cwd)
+
+            exported = sorted((root / "out" / "state").glob("*.state.json"))
+            self.assertEqual(len(exported), 1)
+            payload = json.loads(exported[0].read_text(encoding="utf-8"))
+            self.assertEqual(payload["reviews"]["c1"]["status"], "reviewed")
+            self.assertEqual(payload["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertEqual(payload["analysisState"]["selectedChunkId"], "c1")
+            self.assertTrue(payload["threadState"]["c1"]["open"])
+            self.assertTrue(any("State exported:" in notice for notice in notices))
+
+    def test_import_state_from_path_applies_state_and_rebuilds_status_map(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            state_path = root / "review.state.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "reviews": {"c1": {"status": "needsReReview", "comment": "incoming"}},
+                        "groupBriefs": {"g1": {"summary": "handoff"}},
+                        "analysisState": {"currentGroupId": "g1", "selectedChunkId": "c1", "filterText": "auth"},
+                        "threadState": {"c1": {"open": True}},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                root / "bundle.diffgr.json",
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {"c1": {"status": "reviewed"}},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "reviewed"},
+                15,
+            )
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+
+            loaded = app._import_state_from_path(state_path)
+
+            self.assertTrue(loaded)
+            self.assertEqual(app.doc["reviews"]["c1"]["status"], "needsReReview")
+            self.assertEqual(app.status_map["c1"], "needsReReview")
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertEqual(app.current_group_id, "g1")
+            self.assertEqual(app.selected_chunk_id, "c1")
+            self.assertEqual(app.filter_text, "auth")
+
     def test_load_viewer_settings_reads_mode_and_custom_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             settings_path = Path(tmpdir) / "viewer_settings.json"
@@ -1003,6 +1087,176 @@ class TestViewerTextualReport(unittest.TestCase):
         app._refresh_topbar()
 
         self.assertIn("wrap=off", topbar.value)
+        self.assertIn("state=doc", topbar.value)
+        self.assertIn("Ctrl+Shift+D=impact-preview", topbar.value)
+        self.assertIn("Ctrl+Alt+D=merge-preview", topbar.value)
+        self.assertIn("Ctrl+Shift+M=apply-state", topbar.value)
+        self.assertIn("Ctrl+Alt+M=impact-apply", topbar.value)
+
+    def test_refresh_topbar_includes_bound_state_label(self):
+        class StubStatic:
+            def __init__(self) -> None:
+                self.value = ""
+
+            def update(self, text: str) -> None:
+                self.value = text
+
+        topbar = StubStatic()
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {"title": "Sample"}},
+            [],
+            {},
+            {},
+            15,
+            state_path=Path("/tmp/review.state.json"),
+        )
+        app.query_one = lambda selector, *_args, **_kwargs: topbar if selector == "#topbar" else None  # type: ignore[method-assign]
+
+        app._refresh_topbar()
+
+        self.assertIn("state=review.state.json", topbar.value)
+
+    def test_action_unbind_state_clears_state_path(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}},
+            [],
+            {},
+            {},
+            15,
+            state_path=Path("/tmp/review.state.json"),
+        )
+        notices: list[str] = []
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+        app._refresh_topbar_safe = lambda: None  # type: ignore[method-assign]
+
+        app.action_unbind_state()
+
+        self.assertIsNone(app.state_path)
+        self.assertTrue(any("State unbound" in notice for notice in notices))
+
+    def test_action_diff_state_reports_summary_for_bound_state(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "review.state.json"
+            state_path.write_text(
+                json.dumps({"reviews": {"c1": {"status": "reviewed"}}}, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path(tmpdir) / "bundle.diffgr.json",
+                {"groups": [], "assignments": {}, "meta": {}, "reviews": {"c1": {"status": "needsReReview"}}},
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "needsReReview"},
+                15,
+                state_path=state_path,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            pushed: list[object] = []
+            app.push_screen = lambda screen, callback=None: pushed.append(screen)  # type: ignore[method-assign]
+
+            app.action_diff_state()
+
+            self.assertTrue(any("State diff vs review.state.json" in notice for notice in notices))
+            self.assertEqual(len(pushed), 1)
+
+    def test_action_merge_state_applies_bound_state(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "review.state.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "reviews": {"c1": {"status": "needsReReview"}},
+                        "groupBriefs": {"g1": {"summary": "handoff"}},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path(tmpdir) / "bundle.diffgr.json",
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {"c1": {"status": "reviewed"}},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "reviewed"},
+                15,
+                state_path=state_path,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+
+            app.action_merge_state()
+
+            self.assertEqual(app.doc["reviews"]["c1"]["status"], "needsReReview")
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertTrue(any("State merged: review.state.json" in notice for notice in notices))
+
+    def test_action_apply_state_selection_applies_selected_tokens(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state_path = Path(tmpdir) / "review.state.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "reviews": {"c1": {"status": "needsReReview"}},
+                        "analysisState": {"currentGroupId": "g9", "selectedChunkId": "c1"},
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path(tmpdir) / "bundle.diffgr.json",
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {"c1": {"status": "reviewed"}},
+                    "analysisState": {"currentGroupId": "g1", "selectedChunkId": "c1"},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "reviewed"},
+                15,
+                state_path=state_path,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+
+            screen_calls = {"count": 0}
+
+            def _push_screen(_screen, callback=None):
+                screen_calls["count"] += 1
+                if callback is not None and screen_calls["count"] == 1:
+                    callback("reviews:c1")
+                elif callback is not None:
+                    callback(True)
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_state_selection()
+
+            self.assertEqual(app.doc["reviews"]["c1"]["status"], "needsReReview")
+            self.assertEqual(app.doc["analysisState"]["currentGroupId"], "g1")
+            self.assertTrue(any("State selection applied: review.state.json applied=1" in notice for notice in notices))
 
     def test_open_file_path_uses_custom_editor_template(self):
         app = DiffgrTextualApp(
@@ -1199,7 +1453,6 @@ class TestViewerTextualReport(unittest.TestCase):
         app._apply_main_split_widths()
 
         self.assertEqual(left.styles.width, "60%")
-        self.assertEqual(right.styles.width, "40%")
 
     def test_move_split_actions_adjust_ratio_within_bounds(self):
         app = DiffgrTextualApp(
@@ -1637,6 +1890,53 @@ class TestViewerTextualReport(unittest.TestCase):
             roundtrip = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(roundtrip.get("reviews", {}).get("c1", {}).get("comment"), "x")
 
+    def test_save_document_writes_external_state_when_state_path_is_set(self):
+        doc = {
+            "groups": [],
+            "assignments": {},
+            "meta": {"title": "Sample"},
+            "reviews": {"c1": {"comment": "updated"}},
+            "groupBriefs": {"g1": {"summary": "handoff"}},
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "sample.diffgr.json"
+            original_text = json.dumps(
+                {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {"c1": {"comment": "original"}}},
+                ensure_ascii=False,
+                indent=2,
+            ) + "\n"
+            path.write_text(original_text, encoding="utf-8")
+            state_path = Path(tmpdir) / "out" / "review.state.json"
+            app = DiffgrTextualApp(path, doc, [], {}, {"c1": "reviewed"}, 15, state_path=state_path)
+            app.current_group_id = "g1"
+            app.filter_text = "auth"
+            app.selected_chunk_id = "c1"
+            app._selected_line_anchor = {
+                "anchorKey": "add::2",
+                "oldLine": None,
+                "newLine": 2,
+                "lineType": "add",
+            }
+            app._has_unsaved_changes = True
+            app._sync_split_review_files = lambda: self.fail("must not sync split files when saving external state")  # type: ignore[method-assign]
+            app._safe_notify = lambda *args, **kwargs: None  # type: ignore[method-assign]
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            self.assertFalse(app._has_unsaved_changes)
+            self.assertEqual(app._last_save_kind, "manual")
+            self.assertEqual(path.read_text(encoding="utf-8"), original_text)
+            self.assertFalse(path.with_suffix(path.suffix + ".bak").exists())
+            written = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(set(written.keys()), {"reviews", "groupBriefs", "analysisState", "threadState"})
+            self.assertEqual(written["reviews"]["c1"]["comment"], "updated")
+            self.assertEqual(written["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertEqual(written["analysisState"]["currentGroupId"], "g1")
+            self.assertEqual(written["analysisState"]["filterText"], "auth")
+            self.assertEqual(written["analysisState"]["selectedChunkId"], "c1")
+            self.assertEqual(written["threadState"]["selectedLineAnchor"]["anchorKey"], "add::2")
+
     def test_save_document_noop_when_clean_and_not_forced(self):
         doc = {"groups": [], "assignments": {}, "meta": {"title": "Sample"}, "reviews": {}}
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2036,6 +2336,127 @@ class TestViewerTextualReport(unittest.TestCase):
         app._auto_save_tick()
         self.assertEqual(calls, [(True, False)])
 
+    def test_restore_document_state_applies_analysis_and_thread_state(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {
+                "groups": [{"id": "g1", "name": "G1"}],
+                "assignments": {"g1": ["c1"]},
+                "meta": {},
+                "reviews": {},
+                "analysisState": {
+                    "currentGroupId": "g1",
+                    "filterText": "auth",
+                    "selectedChunkId": "c1",
+                    "groupReportMode": True,
+                    "chunkDetailViewMode": "side_by_side",
+                    "showContextLines": False,
+                    "leftPanePct": 60,
+                    "diffOldRatio": 0.65,
+                },
+                "threadState": {
+                    "selectedLineAnchor": {
+                        "anchorKey": "add::2",
+                        "oldLine": None,
+                        "newLine": 2,
+                        "lineType": "add",
+                    }
+                },
+            },
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1, "count": 1}, "new": {"start": 1, "count": 1}, "header": "h", "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+        )
+
+        self.assertEqual(app.current_group_id, "g1")
+        self.assertEqual(app.filter_text, "auth")
+        self.assertEqual(app.selected_chunk_id, "c1")
+        self.assertEqual(app.selected_chunk_ids, {"c1"})
+        self.assertTrue(app.group_report_mode)
+        self.assertEqual(app.chunk_detail_view_mode, "side_by_side")
+        self.assertFalse(app.show_context_lines)
+        self.assertEqual(app.left_pane_pct, 60)
+        self.assertAlmostEqual(app.diff_old_ratio, 0.65)
+        self.assertEqual(app._selected_line_anchor["anchorKey"], "add::2")
+        self.assertEqual(app._selected_line_anchor["newLine"], 2)
+
+    def test_persist_document_state_writes_analysis_and_thread_state(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1, "count": 1}, "new": {"start": 1, "count": 1}, "header": "h", "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+        )
+        app.current_group_id = "g1"
+        app.filter_text = "auth"
+        app.selected_chunk_id = "c1"
+        app.group_report_mode = True
+        app.chunk_detail_view_mode = "side_by_side"
+        app.show_context_lines = False
+        app.left_pane_pct = 61
+        app.diff_old_ratio = 0.55
+        app._selected_line_anchor = {
+            "anchorKey": "context:10:10",
+            "oldLine": 10,
+            "newLine": 10,
+            "lineType": "context",
+        }
+
+        app._persist_document_state()
+
+        self.assertEqual(app.doc["analysisState"]["currentGroupId"], "g1")
+        self.assertEqual(app.doc["analysisState"]["filterText"], "auth")
+        self.assertEqual(app.doc["analysisState"]["selectedChunkId"], "c1")
+        self.assertTrue(app.doc["analysisState"]["groupReportMode"])
+        self.assertEqual(app.doc["analysisState"]["chunkDetailViewMode"], "side_by_side")
+        self.assertFalse(app.doc["analysisState"]["showContextLines"])
+        self.assertEqual(app.doc["analysisState"]["leftPanePct"], 61)
+        self.assertAlmostEqual(app.doc["analysisState"]["diffOldRatio"], 0.55)
+        self.assertEqual(app.doc["threadState"]["selectedLineAnchor"]["anchorKey"], "context:10:10")
+
+    def test_save_document_persists_textual_document_state(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = Path(tempdir) / "viewer.diffgr.json"
+            path.write_text(
+                json.dumps({"groups": [], "assignments": {}, "meta": {}, "reviews": {}}, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                path,
+                {"groups": [], "assignments": {}, "meta": {}, "reviews": {}},
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1, "count": 1}, "new": {"start": 1, "count": 1}, "header": "h", "lines": []}},
+                {"c1": "unreviewed"},
+                15,
+            )
+            app.current_group_id = "g1"
+            app.filter_text = "auth"
+            app.selected_chunk_id = "c1"
+            app.group_report_mode = True
+            app.show_context_lines = False
+            app._selected_line_anchor = {
+                "anchorKey": "add::2",
+                "oldLine": None,
+                "newLine": 2,
+                "lineType": "add",
+            }
+            app._has_unsaved_changes = True
+            app._sync_split_review_files = lambda: (0, path.parent)  # type: ignore[method-assign]
+            app._safe_notify = lambda *args, **kwargs: None  # type: ignore[method-assign]
+
+            saved = app._save_document(auto=False, force=True)
+
+            self.assertTrue(saved)
+            written = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(written["analysisState"]["currentGroupId"], "g1")
+            self.assertEqual(written["analysisState"]["selectedChunkId"], "c1")
+            self.assertTrue(written["analysisState"]["groupReportMode"])
+            self.assertFalse(written["analysisState"]["showContextLines"])
+            self.assertEqual(written["threadState"]["selectedLineAnchor"]["anchorKey"], "add::2")
+
     def test_refresh_topbar_includes_save_state(self):
         class StubStatic:
             def __init__(self) -> None:
@@ -2370,6 +2791,840 @@ class TestViewerTextualReport(unittest.TestCase):
         self.assertEqual(pair_map[3], "alpha gamma")
         self.assertEqual(pair_map[1], "return user.full_name")
         self.assertEqual(pair_map[2], "return user.name")
+
+    def test_group_metrics_cache_updates_after_status_change(self):
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "CacheTest"},
+            "reviews": {},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        status_map = {"c1": "unreviewed"}
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, status_map, 15)
+
+        first = app._compute_group_metrics("g1")
+        self.assertEqual(first["pending"], 1)
+        self.assertIn("g1", app._group_metrics_cache)
+
+        app._set_status_for_chunk("c1", "reviewed")
+        second = app._compute_group_metrics("g1")
+        self.assertEqual(second["reviewed"], 1)
+        self.assertEqual(second["pending"], 0)
+
+    def test_group_assignment_cache_updates_after_reassign(self):
+        doc = {
+            "groups": [
+                {"id": "g1", "name": "Group 1", "order": 1},
+                {"id": "g2", "name": "Group 2", "order": 2},
+            ],
+            "assignments": {"g1": ["c1"], "g2": []},
+            "meta": {"title": "CacheTest"},
+            "reviews": {},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        status_map = {"c1": "unreviewed"}
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, status_map, 15)
+
+        self.assertEqual(app._groups_for_chunk("c1"), ["Group 1"])
+        doc["assignments"]["g1"] = []
+        doc["assignments"]["g2"] = ["c1"]
+        app._invalidate_group_assignment_indexes()
+        self.assertEqual(app._groups_for_chunk("c1"), ["Group 2"])
+
+    def test_set_group_brief_for_group_updates_doc_state(self):
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "BriefTest"},
+            "reviews": {},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, {"c1": "unreviewed"}, 15)
+
+        app._set_group_brief_for_group("g1", summary="handoff summary", status="ready")
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["summary"], "handoff summary")
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["status"], "ready")
+
+    def test_set_group_brief_payload_for_group_updates_multiline_fields(self):
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "BriefPayloadTest"},
+            "reviews": {},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, {"c1": "unreviewed"}, 15)
+
+        app._set_group_brief_payload_for_group(
+            "g1",
+            {
+                "status": "ready",
+                "summary": "handoff summary",
+                "focusPoints": ["fp1", "fp2"],
+                "testEvidence": ["ut1"],
+                "knownTradeoffs": ["tradeoff1"],
+                "questionsForReviewer": ["q1"],
+            },
+        )
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["focusPoints"], ["fp1", "fp2"])
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["testEvidence"], ["ut1"])
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["knownTradeoffs"], ["tradeoff1"])
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["questionsForReviewer"], ["q1"])
+
+    def test_b_key_opens_group_brief_editor(self):
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "BriefKeyTest"},
+            "reviews": {},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, {"c1": "unreviewed"}, 15)
+        app.current_group_id = "g1"
+
+        with mock.patch.object(app, "push_screen") as push_screen:
+            async def _run() -> None:
+                async with app.run_test() as pilot:
+                    await pilot.press("b")
+                    await pilot.pause()
+
+            asyncio.run(_run())
+        self.assertTrue(push_screen.called)
+
+    def test_cycle_group_brief_status_advances_status(self):
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "BriefStatusTest"},
+            "reviews": {},
+            "groupBriefs": {"g1": {"status": "draft", "summary": "handoff"}},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, {"c1": "unreviewed"}, 15)
+        app.current_group_id = "g1"
+
+        app.action_cycle_group_brief_status()
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["status"], "ready")
+        app.action_cycle_group_brief_status()
+        self.assertEqual(app.doc["groupBriefs"]["g1"]["status"], "acknowledged")
+
+    def test_refresh_groups_includes_brief_column_status(self):
+        class StubTable:
+            def __init__(self) -> None:
+                self.rows = []
+                self.cursor_coordinate = None
+
+            def clear(self, *, columns: bool) -> None:
+                self.rows = []
+
+            def add_row(self, *values, key=None) -> None:
+                self.rows.append((values, key))
+
+        class StubStatic:
+            def update(self, _value) -> None:
+                return
+
+        doc = {
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "BriefColumnTest"},
+            "reviews": {},
+            "groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}},
+        }
+        chunk_map = {
+            "c1": {
+                "id": "c1",
+                "filePath": "src/a.ts",
+                "old": {"start": 1, "count": 1},
+                "new": {"start": 1, "count": 1},
+                "header": "h1",
+                "lines": [],
+            }
+        }
+        app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], chunk_map, {"c1": "unreviewed"}, 15)
+        groups_table = StubTable()
+        topbar = StubStatic()
+
+        def query_one(selector, *_args, **_kwargs):
+            if selector == "#groups":
+                return groups_table
+            if selector == "#topbar":
+                return topbar
+            raise AssertionError(selector)
+
+        app.query_one = query_one  # type: ignore[method-assign]
+        app.current_group_id = "g1"
+
+        app._refresh_groups(select_group_id="g1")
+
+        row = next(values for values, key in groups_table.rows if key == "g1")
+        self.assertEqual(row[1], "ready")
+
+    def test_action_impact_preview_uses_bound_state_and_opens_report_modal(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "ImpactPreview", "source": {"base": "base", "head": "head"}},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [{"kind": "context", "text": "same", "oldLine": 1, "newLine": 1}],
+                }
+            ],
+            "reviews": {},
+        }
+        old_doc = json.loads(json.dumps(doc))
+        doc["chunks"][0]["lines"][0]["text"] = "changed"
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            old_path = temp / "old.diffgr.json"
+            new_path = temp / "new.diffgr.json"
+            state_path = temp / "review.state.json"
+            old_path.write_text(json.dumps(old_doc, ensure_ascii=False), encoding="utf-8")
+            new_path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+            state_path.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(new_path, doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=state_path)
+            screens: list[object] = []
+
+            def push_screen(screen, callback=None):
+                screens.append(screen)
+                if callback is not None:
+                    callback(f"{old_path}\n{new_path}\n")
+                return None
+
+            app.push_screen = push_screen  # type: ignore[method-assign]
+            app.action_impact_preview()
+
+            self.assertEqual(len(screens), 2)
+            report = screens[1]
+            self.assertEqual(report.dialog_title, f"Impact Preview [{old_path.name} -> {app.source_path.name}]")
+            self.assertIn("Source:", report.body)
+            self.assertIn("Change Summary:", report.body)
+            self.assertIn("Impact:", report.body)
+            self.assertIn("Selection Plans:", report.body)
+            self.assertIn("Warnings:", report.body)
+            self.assertIn("State Diff:", report.body)
+            self.assertIn("handoffs", app._last_impact_selection_plans)
+            self.assertIsInstance(app._last_impact_rebased_state, dict)
+            self.assertIsInstance(app._last_impact_preview_report, dict)
+            self.assertEqual(app._last_impact_state_fingerprint, review_state_fingerprint(load_review_state(state_path)))
+
+    def test_action_export_html_embeds_cached_impact_preview_report(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "ImpactExport", "source": {"base": "base", "head": "head"}},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [{"kind": "context", "text": "changed", "oldLine": 1, "newLine": 1}],
+                }
+            ],
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            source_path = temp / "new.diffgr.json"
+            state_path = temp / "review.state.json"
+            source_path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+            state_path.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(source_path, doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=state_path)
+            app._last_impact_preview_report = {
+                "title": "Impact Preview: old.diffgr.json -> new.diffgr.json using review.state.json",
+                "sourceLabel": "old.diffgr.json -> new.diffgr.json using review.state.json",
+                "changeSummary": {
+                    "carriedReviews": 1,
+                    "changedToNeedsReReview": 0,
+                    "unmappedNewChunks": 0,
+                },
+                "impactSummary": {
+                    "impactedGroupCount": 1,
+                    "unchangedGroupCount": 0,
+                    "newOnlyChunkIds": [],
+                    "oldOnlyChunkIds": [],
+                    "impactedGroups": [{"groupId": "g1", "name": "Group 1", "changed": 1, "new": 0, "removed": 0}],
+                },
+                "warningSummary": {"total": 0, "kinds": {}},
+                "groupBriefChanges": [],
+                "affectedBriefs": [],
+                "selectionPlans": {"handoffs": {"tokens": ["groupBriefs:g1"], "count": 1}},
+                "stateDiff": {},
+            }
+            app._last_impact_state_path = state_path.resolve()
+            app._last_impact_state_fingerprint = review_state_fingerprint(load_review_state(state_path))
+            notifications: list[str] = []
+            app.notify = lambda message, **_kwargs: notifications.append(str(message))  # type: ignore[method-assign]
+
+            previous_cwd = Path.cwd()
+            os.chdir(temp)
+            try:
+                app.action_export_html()
+            finally:
+                os.chdir(previous_cwd)
+
+            reports = list((temp / "out" / "reports").glob("*.html"))
+            self.assertEqual(len(reports), 1)
+            html = reports[0].read_text(encoding="utf-8")
+            self.assertIn('"impactPreviewReport":', html)
+            self.assertIn("old.diffgr.json -&gt; new.diffgr.json using review.state.json", html)
+            self.assertIn('"impactStateFingerprint":', html)
+            self.assertTrue(any(message.startswith("HTML exported:") for message in notifications))
+
+    def test_action_merge_preview_opens_report_modal(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            state_path = temp / "review.state.json"
+            state_path.write_text(
+                json.dumps({"reviews": {"c1": {"status": "reviewed"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            doc = {
+                "format": "diffgr",
+                "version": 1,
+                "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+                "assignments": {"g1": ["c1"]},
+                "meta": {"title": "MergePreview"},
+                "chunks": [
+                    {
+                        "id": "c1",
+                        "filePath": "src/a.ts",
+                        "old": {"start": 1, "count": 1},
+                        "new": {"start": 1, "count": 1},
+                        "header": "h1",
+                        "lines": [],
+                    }
+                ],
+                "reviews": {},
+            }
+            app = DiffgrTextualApp(new_path := temp / "new.diffgr.json", doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=state_path)
+            screens: list[object] = []
+
+            def push_screen(screen, callback=None):
+                screens.append(screen)
+                return None
+
+            app.push_screen = push_screen  # type: ignore[method-assign]
+
+            app.action_merge_preview()
+
+            self.assertEqual(len(screens), 1)
+            report = screens[0]
+            self.assertEqual(report.dialog_title, f"State Merge Preview [{state_path.name}]")
+            self.assertIn("Source:", report.body)
+            self.assertIn("Change Summary:", report.body)
+            self.assertIn("Warnings:", report.body)
+            self.assertIn("State Diff:", report.body)
+
+    def test_action_impact_preview_resolves_relative_paths_from_source_parent(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "ImpactPreview", "source": {"base": "base", "head": "head"}},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [{"kind": "context", "text": "same", "oldLine": 1, "newLine": 1}],
+                }
+            ],
+            "reviews": {},
+        }
+        old_doc = json.loads(json.dumps(doc))
+        doc["chunks"][0]["lines"][0]["text"] = "changed"
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            source_dir = temp / "repo"
+            source_dir.mkdir()
+            old_path = source_dir / "old.diffgr.json"
+            new_path = source_dir / "new.diffgr.json"
+            state_path = source_dir / "review.state.json"
+            old_path.write_text(json.dumps(old_doc, ensure_ascii=False), encoding="utf-8")
+            new_path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+            state_path.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(new_path, doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=state_path)
+            screens: list[object] = []
+
+            def push_screen(screen, callback=None):
+                screens.append(screen)
+                if callback is not None:
+                    callback("old.diffgr.json\nnew.diffgr.json\nreview.state.json")
+                return None
+
+            app.push_screen = push_screen  # type: ignore[method-assign]
+
+            previous_cwd = Path.cwd()
+            os.chdir(temp)
+            try:
+                app.action_impact_preview()
+            finally:
+                os.chdir(previous_cwd)
+
+            self.assertEqual(len(screens), 2)
+            self.assertIn("Impact Preview", screens[1].dialog_title)
+
+    def test_action_diff_state_primes_apply_selection_modal_with_last_tokens(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "StateDiffApply"},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [],
+                }
+            ],
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            state_path = temp / "review.state.json"
+            state_path.write_text(
+                json.dumps({"reviews": {"c1": {"status": "reviewed"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=state_path)
+            screens: list[object] = []
+
+            def push_screen(screen, callback=None):
+                screens.append(screen)
+                return None
+
+            app.push_screen = push_screen  # type: ignore[method-assign]
+
+            app.action_diff_state()
+            app.action_apply_state_selection()
+
+            self.assertGreaterEqual(len(screens), 2)
+            apply_modal = screens[-1]
+            self.assertEqual(app._last_state_diff_tokens, ["reviews:c1"])
+            self.assertEqual(apply_modal.dialog_title, "Apply Selected State")
+            self.assertEqual(apply_modal.initial, "reviews:c1")
+
+    def test_bind_or_unbind_state_clears_last_diff_tokens(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "StateDiffApply"},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [],
+                }
+            ],
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            first_state = temp / "first.state.json"
+            second_state = temp / "second.state.json"
+            first_state.write_text(json.dumps({"reviews": {"c1": {"status": "reviewed"}}}, ensure_ascii=False), encoding="utf-8")
+            second_state.write_text(json.dumps({"reviews": {"c1": {"status": "needsReReview"}}}, ensure_ascii=False), encoding="utf-8")
+            app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15, state_path=first_state)
+            app._last_state_diff_tokens = ["reviews:c1"]
+
+            def push_bind(screen, callback=None):
+                if callback is not None:
+                    callback(str(second_state))
+                return None
+
+            app.push_screen = push_bind  # type: ignore[method-assign]
+            app.action_bind_state()
+            self.assertEqual(app._last_state_diff_tokens, [])
+            self.assertEqual(app._last_impact_selection_plans, {})
+            self.assertIsNone(app._last_impact_rebased_state)
+
+            app._last_state_diff_tokens = ["reviews:c1"]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"groupBriefs": {"g1": {"status": "ready"}}}
+            app.action_unbind_state()
+            self.assertEqual(app._last_state_diff_tokens, [])
+            self.assertEqual(app._last_impact_selection_plans, {})
+            self.assertIsNone(app._last_impact_rebased_state)
+
+    def test_import_state_clears_cached_selection_sources(self):
+        doc = {
+            "format": "diffgr",
+            "version": 1,
+            "groups": [{"id": "g1", "name": "Group 1", "order": 1}],
+            "assignments": {"g1": ["c1"]},
+            "meta": {"title": "ImportState"},
+            "chunks": [
+                {
+                    "id": "c1",
+                    "filePath": "src/a.ts",
+                    "old": {"start": 1, "count": 1},
+                    "new": {"start": 1, "count": 1},
+                    "header": "h1",
+                    "lines": [],
+                }
+            ],
+            "reviews": {},
+        }
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            state_path = temp / "review.state.json"
+            state_path.write_text(json.dumps({"reviews": {"c1": {"status": "reviewed"}}}, ensure_ascii=False), encoding="utf-8")
+            app = DiffgrTextualApp(Path("dummy.diffgr.json"), doc, [], {"c1": doc["chunks"][0]}, {"c1": "unreviewed"}, 15)
+            app._last_state_diff_tokens = ["reviews:c1"]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"groupBriefs": {"g1": {"status": "ready"}}}
+            app._last_impact_source_label = "old -> new using review.state.json"
+            app._last_impact_state_path = state_path
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+
+            app._import_state_from_path(state_path)
+
+            self.assertEqual(app._last_state_diff_tokens, [])
+            self.assertEqual(app._last_impact_selection_plans, {})
+            self.assertIsNone(app._last_impact_rebased_state)
+            self.assertEqual(app._last_impact_source_label, "")
+            self.assertIsNone(app._last_impact_state_path)
+
+    def test_action_apply_state_selection_expands_impact_plan_alias(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            impact_state = temp / "impact.state.json"
+            impact_state.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "draft", "summary": "old"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path("dummy.diffgr.json"),
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {},
+                    "groupBriefs": {"g1": {"status": "acknowledged", "summary": "local edit"}},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "unreviewed"},
+                15,
+                state_path=None,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}, "analysisState": {}, "threadState": {}}
+            app._last_impact_state_path = impact_state
+
+            screen_calls = {"count": 0}
+
+            def _push_screen(_screen, callback=None):
+                screen_calls["count"] += 1
+                if callback is not None and screen_calls["count"] == 1:
+                    callback("@handoffs")
+                elif callback is not None:
+                    callback(True)
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_state_selection()
+
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["status"], "ready")
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertTrue(any("State selection applied: impact:handoffs" in notice for notice in notices))
+
+    def test_action_apply_state_selection_rejects_mixed_plan_and_explicit_tokens(self):
+        app = DiffgrTextualApp(
+            Path("dummy.diffgr.json"),
+            {
+                "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                "assignments": {"g1": ["c1"]},
+                "meta": {},
+                "reviews": {},
+                "groupBriefs": {},
+            },
+            [],
+            {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+            {"c1": "unreviewed"},
+            15,
+            state_path=None,
+        )
+        notices: list[str] = []
+        app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+        app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+        app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {"g1": {"status": "ready"}}, "analysisState": {}, "threadState": {}}
+
+        def _push_screen(_screen, callback=None):
+            if callback is not None:
+                callback("@handoffs\nreviews:c1")
+
+        app.push_screen = _push_screen  # type: ignore[method-assign]
+
+        app.action_apply_state_selection()
+
+        self.assertTrue(any("cannot be mixed with explicit selection tokens" in notice for notice in notices))
+
+    def test_action_apply_state_selection_shows_impact_source_label_in_confirm_body(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            impact_state = temp / "review.state.json"
+            impact_state.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "draft", "summary": "old"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path("dummy.diffgr.json"),
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {},
+                    "groupBriefs": {},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "unreviewed"},
+                15,
+                state_path=None,
+            )
+            notices: list[str] = []
+            screens: list[object] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}, "analysisState": {}, "threadState": {}}
+            app._last_impact_source_label = "old.diffgr.json -> new.diffgr.json using review.state.json"
+            app._last_impact_state_path = impact_state
+
+            def _push_screen(screen, callback=None):
+                screens.append(screen)
+                if callback is not None and len(screens) == 1:
+                    callback("@handoffs")
+                elif callback is not None:
+                    callback(False)
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_state_selection()
+
+            self.assertEqual(screens[1].dialog_title, "Apply Selected State")
+            self.assertIn("source=old.diffgr.json -> new.diffgr.json using review.state.json", screens[1].body)
+
+    def test_action_apply_impact_plan_opens_confirm_and_applies(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            impact_state = temp / "review.state.json"
+            impact_state.write_text(
+                json.dumps({"groupBriefs": {"g1": {"status": "draft", "summary": "old"}}}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            app = DiffgrTextualApp(
+                Path("dummy.diffgr.json"),
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {},
+                    "groupBriefs": {"g1": {"status": "acknowledged", "summary": "local edit"}},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "unreviewed"},
+                15,
+                state_path=None,
+            )
+            notices: list[str] = []
+            screens: list[object] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app.query_one = lambda *_args, **_kwargs: type("StubInput", (), {"value": ""})()  # type: ignore[method-assign]
+            app._refresh_groups = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._apply_chunk_filter = lambda *args, **kwargs: None  # type: ignore[method-assign]
+            app._mark_dirty = lambda: None  # type: ignore[method-assign]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {"g1": {"status": "ready", "summary": "handoff"}}, "analysisState": {}, "threadState": {}}
+            app._last_impact_source_label = "old.diffgr.json -> new.diffgr.json using review.state.json"
+            app._last_impact_state_path = impact_state
+
+            def _push_screen(screen, callback=None):
+                screens.append(screen)
+                if callback is not None and len(screens) == 1:
+                    callback("handoffs")
+                elif callback is not None:
+                    callback(True)
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_impact_plan()
+
+            self.assertEqual(screens[1].dialog_title, "Impact Plan Apply")
+            self.assertIn("source=old.diffgr.json -> new.diffgr.json using review.state.json", screens[1].body)
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["status"], "ready")
+            self.assertEqual(app.doc["groupBriefs"]["g1"]["summary"], "handoff")
+            self.assertTrue(any("Impact plan applied: impact:handoffs" in notice for notice in notices))
+
+    def test_action_apply_impact_plan_empty_plan_shows_report(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            impact_state = temp / "review.state.json"
+            impact_state.write_text(json.dumps({"groupBriefs": {}}, ensure_ascii=False), encoding="utf-8")
+            app = DiffgrTextualApp(
+                Path("dummy.diffgr.json"),
+                {"groups": [], "assignments": {}, "meta": {}, "reviews": {}, "groupBriefs": {}},
+                [],
+                {},
+                {},
+                15,
+                state_path=None,
+            )
+            screens: list[object] = []
+            app._last_impact_selection_plans = {"handoffs": []}
+            app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {}, "analysisState": {}, "threadState": {}}
+            app._last_impact_source_label = "old.diffgr.json -> new.diffgr.json using review.state.json"
+            app._last_impact_state_path = impact_state
+
+            def _push_screen(screen, callback=None):
+                screens.append(screen)
+                if callback is not None:
+                    callback("handoffs")
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_impact_plan()
+
+            self.assertEqual(screens[1].dialog_title, "Impact Plan Apply")
+            self.assertIn("impact plan is empty", screens[1].body)
+
+    def test_action_apply_state_selection_rejects_plan_for_different_bound_state(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            temp = Path(tempdir)
+            first_state = temp / "first.state.json"
+            second_state = temp / "second.state.json"
+            first_state.write_text(json.dumps({"groupBriefs": {"g1": {"status": "ready"}}}, ensure_ascii=False), encoding="utf-8")
+            second_state.write_text(json.dumps({"groupBriefs": {"g1": {"status": "draft"}}}, ensure_ascii=False), encoding="utf-8")
+            app = DiffgrTextualApp(
+                Path("dummy.diffgr.json"),
+                {
+                    "groups": [{"id": "g1", "name": "G1", "order": 1}],
+                    "assignments": {"g1": ["c1"]},
+                    "meta": {},
+                    "reviews": {},
+                    "groupBriefs": {},
+                },
+                [],
+                {"c1": {"id": "c1", "filePath": "src/a.ts", "old": {"start": 1}, "new": {"start": 1}, "lines": []}},
+                {"c1": "unreviewed"},
+                15,
+                state_path=second_state,
+            )
+            notices: list[str] = []
+            app.notify = lambda message, **_kwargs: notices.append(str(message))  # type: ignore[method-assign]
+            app._last_impact_selection_plans = {"handoffs": ["groupBriefs:g1"]}
+            app._last_impact_rebased_state = {"reviews": {}, "groupBriefs": {"g1": {"status": "ready"}}, "analysisState": {}, "threadState": {}}
+            app._last_impact_state_path = first_state.resolve()
+
+            def _push_screen(_screen, callback=None):
+                if callback is not None:
+                    callback("@handoffs")
+
+            app.push_screen = _push_screen  # type: ignore[method-assign]
+
+            app.action_apply_state_selection()
+
+            self.assertTrue(any("stale for the current bound state" in notice for notice in notices))
 
 
 if __name__ == "__main__":

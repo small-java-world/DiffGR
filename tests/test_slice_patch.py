@@ -40,7 +40,15 @@ class TestSlicePatch(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             apply_slice_patch(copy.deepcopy(doc), {"move": [{"chunk": "c1", "to": "g99"}]})
 
+    def test_apply_slice_patch_prunes_groups_that_become_empty(self):
+        doc = make_doc()
+        doc["assignments"] = {"g1": ["c1"], "g2": ["c2"]}
+
+        new_doc = apply_slice_patch(copy.deepcopy(doc), {"move": [{"chunk": "c2", "to": "g1"}]})
+
+        self.assertEqual([group["id"] for group in new_doc["groups"]], ["g1"])
+        self.assertEqual(new_doc["assignments"], {"g1": ["c1", "c2"]})
+
 
 if __name__ == "__main__":
     unittest.main()
-

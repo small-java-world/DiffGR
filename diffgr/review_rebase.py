@@ -1,29 +1,20 @@
 from __future__ import annotations
 
 import copy
-import json
 import math
 import re
 from dataclasses import dataclass
-from hashlib import sha256
 from typing import Any
+
+from diffgr.diff_utils import line_anchor_key as _line_anchor_key
+from diffgr.generator import canonical_json as _canonical_json, iso_utc_now as _iso_utc_now, sha256_hex as _sha256_hex
+from diffgr.group_brief_utils import normalize_group_brief_status
+from diffgr.review_utils import VALID_REVIEW_STATUSES, normalize_review_status
 
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
 except Exception:  # noqa: BLE001
     rapidfuzz_fuzz = None
-
-
-VALID_REVIEW_STATUSES = {"unreviewed", "reviewed", "ignored", "needsReReview"}
-
-
-def _canonical_json(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-
-
-def _sha256_hex(value: Any) -> str:
-    payload = _canonical_json(value).encode("utf-8")
-    return sha256(payload).hexdigest()
 
 
 def stable_fingerprint_for_chunk(chunk: dict[str, Any]) -> str:
@@ -32,6 +23,14 @@ def stable_fingerprint_for_chunk(chunk: dict[str, Any]) -> str:
         return str(fingerprints["stable"])
     stable_input = {
         "filePath": str(chunk.get("filePath", "")),
+        "lines": [{"kind": line.get("kind"), "text": line.get("text")} for line in (chunk.get("lines") or [])],
+    }
+    return _sha256_hex(stable_input)
+
+
+def content_stable_fingerprint_for_chunk(chunk: dict[str, Any]) -> str:
+    stable_input = {
+        "header": str(chunk.get("header", "")),
         "lines": [{"kind": line.get("kind"), "text": line.get("text")} for line in (chunk.get("lines") or [])],
     }
     return _sha256_hex(stable_input)
@@ -57,9 +56,10 @@ def change_fingerprint_for_chunk(chunk: dict[str, Any]) -> str:
     return _sha256_hex(change_input)
 
 
-def _chunk_signature_text(chunk: dict[str, Any]) -> str:
+def _chunk_signature_text(chunk: dict[str, Any], *, include_path: bool = True) -> str:
     parts: list[str] = []
-    parts.append(str(chunk.get("filePath", "")))
+    if include_path:
+        parts.append(str(chunk.get("filePath", "")))
     header = chunk.get("header")
     if header:
         parts.append(str(header))
@@ -84,8 +84,7 @@ def _similarity(a: str, b: str) -> float:
 
 
 def _normalize_status(value: Any) -> str:
-    status = str(value or "").strip()
-    return status if status in VALID_REVIEW_STATUSES else "unreviewed"
+    return normalize_review_status(value, strict=True)
 
 
 def _group_order_map(doc: dict[str, Any]) -> dict[str, int]:
@@ -118,12 +117,6 @@ def _group_for_chunk(doc: dict[str, Any], chunk_id: str) -> str | None:
     order_by_id = _group_order_map(doc)
     candidates.sort(key=lambda gid: (gid not in order_by_id, order_by_id.get(gid, 0), gid))
     return candidates[0]
-
-
-def _line_anchor_key(kind: str, old_line: Any, new_line: Any) -> str:
-    old_token = "" if old_line is None else str(old_line)
-    new_token = "" if new_line is None else str(new_line)
-    return f"{kind}:{old_token}:{new_token}"
 
 
 def _remap_line_comments_for_stable_match(
@@ -169,6 +162,33 @@ def _remap_line_comments_for_stable_match(
     return remapped
 
 
+def _remap_selected_line_anchor_for_stable_match(
+    old_chunk: dict[str, Any],
+    new_chunk: dict[str, Any],
+    anchor: dict[str, Any],
+) -> dict[str, Any] | None:
+    kind = str(anchor.get("lineType", "")).strip() or "context"
+    key = _line_anchor_key(kind, anchor.get("oldLine"), anchor.get("newLine"))
+    old_lines = list(old_chunk.get("lines") or [])
+    new_lines = list(new_chunk.get("lines") or [])
+    if len(old_lines) != len(new_lines):
+        return None
+    old_index_by_anchor: dict[str, int] = {}
+    for idx, line in enumerate(old_lines):
+        line_kind = str(line.get("kind", ""))
+        old_index_by_anchor[_line_anchor_key(line_kind, line.get("oldLine"), line.get("newLine"))] = idx
+    idx = old_index_by_anchor.get(key)
+    if idx is None:
+        return None
+    mapped_line = new_lines[idx]
+    return {
+        "anchorKey": _line_anchor_key(kind, mapped_line.get("oldLine"), mapped_line.get("newLine")),
+        "oldLine": mapped_line.get("oldLine"),
+        "newLine": mapped_line.get("newLine"),
+        "lineType": kind,
+    }
+
+
 @dataclass(frozen=True)
 class ChunkMatch:
     old_id: str
@@ -202,6 +222,20 @@ def _build_chunk_maps(doc: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], d
         stable = stable_fingerprint_for_chunk(chunk)
         stable_to_ids.setdefault(stable, []).append(cid)
     return chunk_by_id, stable_to_ids
+
+
+def _build_content_stable_map(doc: dict[str, Any], *, skip_ids: set[str] | None = None) -> dict[str, list[str]]:
+    skip = skip_ids or set()
+    content_to_ids: dict[str, list[str]] = {}
+    for chunk in doc.get("chunks", []) or []:
+        if not isinstance(chunk, dict):
+            continue
+        cid = str(chunk.get("id", "")).strip()
+        if not cid or cid in skip:
+            continue
+        fp = content_stable_fingerprint_for_chunk(chunk)
+        content_to_ids.setdefault(fp, []).append(cid)
+    return content_to_ids
 
 
 def _pair_by_range_closeness(
@@ -335,40 +369,63 @@ def match_chunks(
             f"Ambiguous change match skipped (fp={fp[:12]}..., old={len(old_ids_unmatched)}, new={len(new_ids_unmatched)})"
         )
 
-    # 4) similarity match within same filePath (best effort)
+    # 4) content-stable match (ignore filePath; useful for rename-only moves)
+    old_content_to_ids = _build_content_stable_map(old_doc, skip_ids=used_old)
+    new_content_to_ids = _build_content_stable_map(new_doc, skip_ids=used_new)
+    for fp, new_ids in new_content_to_ids.items():
+        old_ids = old_content_to_ids.get(fp) or []
+        new_ids_unmatched = [cid for cid in new_ids if cid not in used_new]
+        old_ids_unmatched = [cid for cid in old_ids if cid not in used_old]
+        if not new_ids_unmatched or not old_ids_unmatched:
+            continue
+
+        if len(new_ids_unmatched) == 1 and len(old_ids_unmatched) == 1:
+            old_id = old_ids_unmatched[0]
+            new_id = new_ids_unmatched[0]
+            matches.append(ChunkMatch(old_id=old_id, new_id=new_id, kind="stable", score=0.99))
+            used_old.add(old_id)
+            used_new.add(new_id)
+            continue
+
+        if len(new_ids_unmatched) == len(old_ids_unmatched):
+            pairs = _pair_by_range_closeness(old_ids_unmatched, new_ids_unmatched, old_chunk_by_id, new_chunk_by_id)
+            for old_id, new_id in pairs:
+                if old_id in used_old or new_id in used_new:
+                    continue
+                matches.append(ChunkMatch(old_id=old_id, new_id=new_id, kind="stable", score=0.99))
+                used_old.add(old_id)
+                used_new.add(new_id)
+            continue
+
+        warnings.append(
+            f"Ambiguous content-stable match skipped (fp={fp[:12]}..., old={len(old_ids_unmatched)}, new={len(new_ids_unmatched)})"
+        )
+
+    # 5) similarity match across remaining chunks; same-path gets a small bonus
     if similarity_threshold <= 0:
         return matches, warnings
     if similarity_threshold > 0.99:
         similarity_threshold = 0.99
 
-    old_by_file: dict[str, list[str]] = {}
-    new_by_file: dict[str, list[str]] = {}
-    for cid, chunk in old_chunk_by_id.items():
-        if cid in used_old:
-            continue
-        old_by_file.setdefault(str(chunk.get("filePath", "")), []).append(cid)
-    for cid, chunk in new_chunk_by_id.items():
-        if cid in used_new:
-            continue
-        new_by_file.setdefault(str(chunk.get("filePath", "")), []).append(cid)
-
+    old_ids_remaining = [cid for cid in old_chunk_by_id.keys() if cid not in used_old]
+    new_ids_remaining = [cid for cid in new_chunk_by_id.keys() if cid not in used_new]
+    old_texts = {cid: _chunk_signature_text(old_chunk_by_id[cid], include_path=False) for cid in old_ids_remaining}
     candidates: list[tuple[float, str, str]] = []
-    for file_path, new_ids in new_by_file.items():
-        old_ids = old_by_file.get(file_path) or []
-        if not old_ids:
-            continue
-        old_texts = {cid: _chunk_signature_text(old_chunk_by_id[cid]) for cid in old_ids}
-        for new_id in new_ids:
-            new_text = _chunk_signature_text(new_chunk_by_id[new_id])
-            best_score = -1.0
-            best_old_id = ""
-            for old_id in old_ids:
-                score = _similarity(old_texts[old_id], new_text)
-                if score > best_score:
-                    best_score = score
-                    best_old_id = old_id
-            if best_score >= similarity_threshold and best_old_id:
-                candidates.append((best_score, best_old_id, new_id))
+    for new_id in new_ids_remaining:
+        new_chunk = new_chunk_by_id[new_id]
+        new_text = _chunk_signature_text(new_chunk, include_path=False)
+        best_score = -1.0
+        best_old_id = ""
+        for old_id in old_ids_remaining:
+            old_chunk = old_chunk_by_id[old_id]
+            score = _similarity(old_texts[old_id], new_text)
+            if str(old_chunk.get("filePath", "")) == str(new_chunk.get("filePath", "")):
+                score = min(1.0, score + 0.05)
+            if score > best_score:
+                best_score = score
+                best_old_id = old_id
+        if best_score >= similarity_threshold and best_old_id:
+            candidates.append((best_score, best_old_id, new_id))
 
     candidates.sort(key=lambda item: item[0], reverse=True)
     for score, old_id, new_id in candidates:
@@ -478,6 +535,96 @@ def rebase_review_state(
         # Keep only groups with valid ids; assignments keys must exist in groups.
         group_ids = {str(g.get("id")) for g in out_groups if isinstance(g, dict) and str(g.get("id", ""))}
         out_assignments = {gid: ids for gid, ids in out_assignments.items() if gid in group_ids and isinstance(ids, list)}
+
+        old_group_briefs = old_doc.get("groupBriefs", {})
+        if isinstance(old_group_briefs, dict):
+            source_old = old_doc.get("meta", {}).get("source", {}) if isinstance(old_doc.get("meta"), dict) else {}
+            source_new = new_doc.get("meta", {}).get("source", {}) if isinstance(new_doc.get("meta"), dict) else {}
+            old_head = str(source_old.get("headSha") or source_old.get("head") or "").strip()
+            new_head = str(source_new.get("headSha") or source_new.get("head") or "").strip()
+            rebased_group_briefs: dict[str, Any] = {}
+            for group_id in group_ids:
+                brief = old_group_briefs.get(group_id)
+                if not isinstance(brief, dict):
+                    continue
+                rebased_brief = copy.deepcopy(brief)
+                if old_head and new_head and old_head != new_head:
+                    rebased_brief["status"] = "stale"
+                    if "approval" in rebased_brief and isinstance(rebased_brief["approval"], dict):
+                        invalidation_ts = _iso_utc_now()
+                        rebased_brief["approval"]["state"] = "invalidated"
+                        rebased_brief["approval"]["approved"] = False
+                        rebased_brief["approval"]["invalidatedAt"] = invalidation_ts
+                        rebased_brief["approval"]["decisionAt"] = invalidation_ts
+                        rebased_brief["approval"]["invalidationReason"] = "head_changed"
+                else:
+                    rebased_brief["status"] = normalize_group_brief_status(rebased_brief.get("status"), strict=True)
+                rebased_group_briefs[group_id] = rebased_brief
+            if rebased_group_briefs:
+                new_out["groupBriefs"] = rebased_group_briefs
+
+    old_analysis_state = old_doc.get("analysisState", {})
+    if isinstance(old_analysis_state, dict):
+        rebased_analysis_state = copy.deepcopy(old_analysis_state)
+        current_group_id = str(rebased_analysis_state.get("currentGroupId", "")).strip()
+        valid_group_ids = {
+            str(group.get("id"))
+            for group in out_groups
+            if isinstance(group, dict) and str(group.get("id", "")).strip()
+        }
+        if current_group_id and current_group_id not in valid_group_ids:
+            rebased_analysis_state.pop("currentGroupId", None)
+        selected_chunk_id = str(rebased_analysis_state.get("selectedChunkId", "")).strip()
+        if selected_chunk_id:
+            match = old_to_new.get(selected_chunk_id)
+            if match:
+                rebased_analysis_state["selectedChunkId"] = match.new_id
+            else:
+                rebased_analysis_state.pop("selectedChunkId", None)
+        if rebased_analysis_state:
+            new_out["analysisState"] = rebased_analysis_state
+
+    old_thread_state = old_doc.get("threadState", {})
+    if isinstance(old_thread_state, dict):
+        rebased_thread_state: dict[str, Any] = {}
+        new_file_keys = {
+            str((chunk.get("filePath", "") or "")).strip().lower()
+            for chunk in new_out.get("chunks", [])
+            if isinstance(chunk, dict) and str(chunk.get("filePath", "")).strip()
+        }
+        for key, value in old_thread_state.items():
+            key_str = str(key)
+            if key_str == "__files" and isinstance(value, dict):
+                file_subset = {
+                    str(file_key): copy.deepcopy(file_value)
+                    for file_key, file_value in value.items()
+                    if str(file_key).strip().lower() in new_file_keys
+                }
+                if file_subset:
+                    rebased_thread_state[key_str] = file_subset
+                continue
+            if key_str == "selectedLineAnchor" and isinstance(value, dict):
+                selected_old_chunk_id = ""
+                analysis_state = new_out.get("analysisState", {})
+                if isinstance(analysis_state, dict):
+                    for old_chunk_id, match in old_to_new.items():
+                        if str(analysis_state.get("selectedChunkId", "")).strip() == match.new_id:
+                            selected_old_chunk_id = old_chunk_id
+                            break
+                if selected_old_chunk_id:
+                    match = old_to_new.get(selected_old_chunk_id)
+                    if match and match.kind in {"strong", "stable"}:
+                        old_chunk = old_chunk_by_id.get(selected_old_chunk_id) or {}
+                        new_chunk = new_chunk_by_id.get(match.new_id) or {}
+                        remapped_anchor = _remap_selected_line_anchor_for_stable_match(old_chunk, new_chunk, value)
+                        if remapped_anchor:
+                            rebased_thread_state[key_str] = remapped_anchor
+                continue
+            match = old_to_new.get(key_str)
+            if match:
+                rebased_thread_state[match.new_id] = copy.deepcopy(value)
+        if rebased_thread_state:
+            new_out["threadState"] = rebased_thread_state
 
     new_out["groups"] = out_groups
     new_out["assignments"] = out_assignments

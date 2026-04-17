@@ -44,9 +44,16 @@ def apply_slice_patch(doc: dict[str, Any], patch: dict[str, Any]) -> dict[str, A
         if chunk_id not in assignments[to_group]:
             assignments[to_group].append(chunk_id)
 
+    assigned_group_ids = {group_id for group_id, ids in assignments.items() if isinstance(ids, list) and ids}
+    groups = [group for group in groups if group.get("id") in assigned_group_ids]
+    assignments = {
+        group_id: ids
+        for group_id, ids in assignments.items()
+        if isinstance(ids, list) and ids and group_id in assigned_group_ids
+    }
+
     doc["groups"] = groups
     doc["assignments"] = assignments
     doc.setdefault("meta", {})
     doc["meta"]["x-slicePatch"] = {"renameCount": len(rename), "moveCount": len(moves)}
     return doc
-

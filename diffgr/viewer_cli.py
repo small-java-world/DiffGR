@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -14,6 +13,7 @@ from .viewer_core import (
     compute_metrics,
     filter_chunks,
     load_json,
+    print_json,
     resolve_input_path,
     validate_document,
 )
@@ -72,7 +72,7 @@ def run_view(argv: list[str]) -> int:
             "chunks": chunks,
             "statuses": {chunk["id"]: status_map.get(chunk["id"], "unreviewed") for chunk in chunks},
         }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        print_json(payload)
         return 0
 
     metrics = compute_metrics(doc, status_map)

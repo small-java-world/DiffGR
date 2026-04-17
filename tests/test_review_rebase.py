@@ -38,7 +38,11 @@ def make_doc(*, chunks: list[dict], groups: list[dict], assignments: dict, revie
     return {
         "format": "diffgr",
         "version": 1,
-        "meta": {"title": "UT Rebase", "createdAt": "2026-02-22T00:00:00Z"},
+        "meta": {
+            "title": "UT Rebase",
+            "createdAt": "2026-02-22T00:00:00Z",
+            "source": {"type": "example", "head": "old-head"},
+        },
         "groups": groups,
         "chunks": chunks,
         "assignments": assignments,
@@ -236,3 +240,176 @@ class TestReviewRebase(unittest.TestCase):
         self.assertEqual(out_doc["reviews"]["new1"]["status"], "reviewed")
         # We intentionally do not carry lineComments for delta match (context changed).
         self.assertIsNone(out_doc["reviews"]["new1"].get("lineComments"))
+
+    def test_rename_only_match_carries_reviewed_across_file_path_change(self):
+        old_chunk = make_chunk(
+            chunk_id="old1",
+            file_path="src/legacy/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "return base * 2;", "oldLine": None, "newLine": 1}],
+        )
+        new_chunk = make_chunk(
+            chunk_id="new1",
+            file_path="src/new/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "return base * 2;", "oldLine": None, "newLine": 1}],
+        )
+
+        old_doc = make_doc(
+            chunks=[old_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}],
+            assignments={"g1": ["old1"]},
+            reviews={"old1": {"status": "reviewed", "comment": "ok"}},
+        )
+        new_doc = make_doc(
+            chunks=[new_chunk],
+            groups=[{"id": "g-all", "name": "All", "order": 1}],
+            assignments={"g-all": ["new1"]},
+            reviews={},
+        )
+
+        out_doc, summary, warnings = rebase_review_state(old_doc=old_doc, new_doc=new_doc, preserve_groups=True)
+        self.assertEqual(warnings, [])
+        self.assertEqual(summary.matched_stable, 1)
+        self.assertEqual(out_doc["reviews"]["new1"]["status"], "reviewed")
+
+    def test_rename_with_edit_uses_similarity_and_marks_needs_rereview(self):
+        old_chunk = make_chunk(
+            chunk_id="old1",
+            file_path="src/legacy/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "return base * 2;", "oldLine": None, "newLine": 1}],
+        )
+        new_chunk = make_chunk(
+            chunk_id="new1",
+            file_path="src/new/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "return base * 3;", "oldLine": None, "newLine": 1}],
+        )
+
+        old_doc = make_doc(
+            chunks=[old_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}],
+            assignments={"g1": ["old1"]},
+            reviews={"old1": {"status": "reviewed", "comment": "ok"}},
+        )
+        new_doc = make_doc(
+            chunks=[new_chunk],
+            groups=[{"id": "g-all", "name": "All", "order": 1}],
+            assignments={"g-all": ["new1"]},
+            reviews={},
+        )
+
+        out_doc, summary, warnings = rebase_review_state(
+            old_doc=old_doc,
+            new_doc=new_doc,
+            preserve_groups=True,
+            similarity_threshold=0.70,
+        )
+        self.assertEqual(warnings, [])
+        self.assertEqual(summary.matched_similar, 1)
+        self.assertEqual(out_doc["reviews"]["new1"]["status"], "needsReReview")
+
+    def test_preserve_groups_carries_group_briefs_and_marks_stale_when_head_changes(self):
+        old_chunk = make_chunk(
+            chunk_id="old1",
+            file_path="src/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "x", "oldLine": None, "newLine": 1}],
+        )
+        new_chunk = make_chunk(
+            chunk_id="new1",
+            file_path="src/a.ts",
+            old_start=1,
+            new_start=1,
+            header="h1",
+            lines=[{"kind": "add", "text": "x", "oldLine": None, "newLine": 1}],
+            stable_override=old_chunk["fingerprints"]["stable"],
+        )
+        old_doc = make_doc(
+            chunks=[old_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}],
+            assignments={"g1": ["old1"]},
+            reviews={},
+        )
+        old_doc["groupBriefs"] = {"g1": {"status": "ready", "summary": "handoff", "sourceHead": "old-head"}}
+        new_doc = make_doc(
+            chunks=[new_chunk],
+            groups=[{"id": "g-all", "name": "All", "order": 1}],
+            assignments={"g-all": ["new1"]},
+            reviews={},
+        )
+        new_doc["meta"]["source"]["head"] = "new-head"
+
+        out_doc, _, warnings = rebase_review_state(old_doc=old_doc, new_doc=new_doc, preserve_groups=True)
+        self.assertEqual(warnings, [])
+        self.assertEqual(out_doc["groupBriefs"]["g1"]["summary"], "handoff")
+        self.assertEqual(out_doc["groupBriefs"]["g1"]["status"], "stale")
+
+    def test_rebase_carries_analysis_state_and_remaps_thread_state(self):
+        old_chunk = make_chunk(
+            chunk_id="old1",
+            file_path="src/a.ts",
+            old_start=10,
+            new_start=10,
+            header="h1",
+            lines=[
+                {"kind": "context", "text": "a", "oldLine": 10, "newLine": 10},
+                {"kind": "add", "text": "b", "oldLine": None, "newLine": 11},
+            ],
+        )
+        new_chunk = make_chunk(
+            chunk_id="new1",
+            file_path="src/a.ts",
+            old_start=10,
+            new_start=10,
+            header="h1",
+            lines=[
+                {"kind": "context", "text": "a", "oldLine": 10, "newLine": 10},
+                {"kind": "add", "text": "b", "oldLine": None, "newLine": 11},
+            ],
+            stable_override=old_chunk["fingerprints"]["stable"],
+        )
+        old_doc = make_doc(
+            chunks=[old_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}],
+            assignments={"g1": ["old1"]},
+            reviews={"old1": {"status": "reviewed"}},
+        )
+        old_doc["analysisState"] = {
+            "currentGroupId": "g1",
+            "selectedChunkId": "old1",
+            "filterText": "auth",
+        }
+        old_doc["threadState"] = {
+            "old1": {"open": True},
+            "__files": {"src/a.ts": {"open": True}, "src/unused.ts": {"open": False}},
+            "selectedLineAnchor": {"anchorKey": "add::11", "oldLine": None, "newLine": 11, "lineType": "add"},
+        }
+        new_doc = make_doc(
+            chunks=[new_chunk],
+            groups=[{"id": "g1", "name": "A", "order": 1}],
+            assignments={"g1": ["new1"]},
+            reviews={},
+        )
+
+        out_doc, _, warnings = rebase_review_state(old_doc=old_doc, new_doc=new_doc, preserve_groups=True)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(out_doc["analysisState"]["currentGroupId"], "g1")
+        self.assertEqual(out_doc["analysisState"]["selectedChunkId"], "new1")
+        self.assertEqual(out_doc["analysisState"]["filterText"], "auth")
+        self.assertTrue(out_doc["threadState"]["new1"]["open"])
+        self.assertIn("src/a.ts", out_doc["threadState"]["__files"])
+        self.assertNotIn("src/unused.ts", out_doc["threadState"]["__files"])
+        self.assertEqual(out_doc["threadState"]["selectedLineAnchor"]["anchorKey"], "add::11")

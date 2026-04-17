@@ -1,0 +1,522 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [パフォーマンス改善]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-perf",
+      "groupName": "パフォーマンス改善",
+      "chunkCount": 4
+    }
+  },
+  "groups": [
+    {
+      "id": "g-perf",
+      "name": "パフォーマンス改善",
+      "order": 12,
+      "tags": [
+        "perf",
+        "backend"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 40,
+        "count": 5
+      },
+      "new": {
+        "start": 44,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function findAll(userId: string): Promise<Task[]> {",
+          "oldLine": 40,
+          "newLine": 44
+        },
+        {
+          "kind": "delete",
+          "text": "  return db.task.findMany({ where: { ownerId: userId } });",
+          "oldLine": 41,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  return db.task.findMany({",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "    where: { ownerId: userId },",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "    orderBy: { createdAt: 'desc' },",
+          "oldLine": null,
+          "newLine": 47
+        },
+        {
+          "kind": "add",
+          "text": "    take: 100,",
+          "oldLine": null,
+          "newLine": 48
+        },
+        {
+          "kind": "add",
+          "text": "    select: {",
+          "oldLine": null,
+          "newLine": 49
+        },
+        {
+          "kind": "add",
+          "text": "      id: true, title: true, description: true,",
+          "oldLine": null,
+          "newLine": 50
+        },
+        {
+          "kind": "add",
+          "text": "      status: true, tags: true, dueAt: true, createdAt: true,",
+          "oldLine": null,
+          "newLine": 51
+        },
+        {
+          "kind": "add",
+          "text": "    },",
+          "oldLine": null,
+          "newLine": 52
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 53
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 42,
+          "newLine": 54
+        }
+      ],
+      "fingerprints": {
+        "stable": "3e9cc0ad0950017fe9463786943b082005878cf1bbb76a640144b76e11527ed6",
+        "strong": "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a"
+      },
+      "header": "findAll with pagination"
+    },
+    {
+      "id": "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 35,
+        "count": 6
+      },
+      "new": {
+        "start": 40,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.get('/', async (req, res) => {",
+          "oldLine": 35,
+          "newLine": 40
+        },
+        {
+          "kind": "delete",
+          "text": "  const tasks = await TaskService.findAll(req.user!.sub);",
+          "oldLine": 36,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const { status, tag, page } = req.query;",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  const tasks = await TaskService.findAll(req.user!.sub, {",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "    status: typeof status === 'string' ? status : undefined,",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "    tag: typeof tag === 'string' ? tag : undefined,",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "    page: typeof page === 'string' ? parseInt(page, 10) : 1,",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "context",
+          "text": "  res.json(tasks);",
+          "oldLine": 37,
+          "newLine": 47
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 38,
+          "newLine": 48
+        }
+      ],
+      "fingerprints": {
+        "stable": "78241c8703162514ed26b2f05204c35111d5398a4c85b2d0f75004e59d124539",
+        "strong": "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d"
+      },
+      "header": "GET / with filters"
+    },
+    {
+      "id": "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5",
+      "filePath": "src/lib/cache.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "type CacheEntry<T> = { value: T; expiresAt: number };",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export class TTLCache<K, V> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  private store = new Map<K, CacheEntry<V>>();",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  set(key: K, value: V, ttlMs: number) {",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    this.store.set(key, { value, expiresAt: Date.now() + ttlMs });",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  get(key: K): V | undefined {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    const entry = this.store.get(key);",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    if (!entry) return undefined;",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    if (Date.now() > entry.expiresAt) { this.store.delete(key); return undefined; }",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    return entry.value;",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  delete(key: K) { this.store.delete(key); }",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  size() { return this.store.size; }",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 19
+        }
+      ],
+      "fingerprints": {
+        "stable": "9af02bc7e04b71007024eaa2499aa2b218d46da0d18cec9ea1e71a047a5e2f06",
+        "strong": "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5"
+      }
+    },
+    {
+      "id": "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40",
+      "filePath": "src/lib/__tests__/cache.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { TTLCache } from '../cache';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "describe('TTLCache', () => {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns cached value within TTL', () => {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, number>();",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('k', 42, 1000);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('k')).toBe(42);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns undefined after TTL expires', () => {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, number>();",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('k', 99, 0);",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('k')).toBeUndefined();",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  it('deletes key explicitly', () => {",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, string>();",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('x', 'hello', 5000);",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    c.delete('x');",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('x')).toBeUndefined();",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "ddf48b86f150078c92eb76a11b2ed4cd10af35c09f13088708f172a8a15ab0ae",
+        "strong": "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40"
+      }
+    }
+  ],
+  "assignments": {
+    "g-perf": [
+      "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a",
+      "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d",
+      "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5",
+      "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40"
+    ]
+  },
+  "reviews": {},
+  "groupBriefs": {
+    "g-perf": {
+      "status": "ready",
+      "summary": "findAll クエリに orderBy・take・select を追加して取得件数と転送データ量を制限しました。GET / に status/tag/page のクエリフィルタを追加し、汎用の TTLCache クラスも実装しています。",
+      "focusPoints": [
+        "findAll は take:100 でハードリミット。101件目以降は取得されません。ページネーション対応は page パラメータが渡されていますが、実際のオフセット計算は現時点で未実装です",
+        "select で必要なフィールドのみ取得。createdAt まで含めて7フィールドに絞っています",
+        "TTLCache は汎用の Map ベース実装。現時点でプロダクションコードからは未使用です（将来の認証トークンキャッシュ等を想定）",
+        "GET / の status/tag フィルタは findAll の引数に渡していますが、findAll 側の where 句への反映は未実装です"
+      ],
+      "testEvidence": [
+        "TTLCache のユニットテストを3ケース追加（TTL内取得・TTL後取得・明示削除）"
+      ],
+      "knownTradeoffs": [
+        "page パラメータを受け取っていますが、skip 計算が findAll に実装されていないため現状は未機能です",
+        "TTLCache はプロセス内キャッシュのため、マルチプロセス・マルチインスタンス環境では共有されません"
+      ],
+      "questionsForReviewer": [
+        "findAll の page パラメータを実装しますか？今回スコープに含めるか確認をお願いします",
+        "status/tag フィルタの where 句への反映も今回スコープですか？"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-perf",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

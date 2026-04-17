@@ -45,6 +45,36 @@ class TestGenerateDiffgr(unittest.TestCase):
         self.assertEqual(hunk["lines"][1]["oldLine"], 2)
         self.assertEqual(hunk["lines"][2]["newLine"], 2)
 
+    def test_parse_unified_diff_preserves_quoted_paths_with_spaces(self):
+        diff_text = "\n".join(
+            [
+                'diff --git "a/src/my file.ts" "b/src/my file.ts"',
+                '--- "a/src/my file.ts"',
+                '+++ "b/src/my file.ts"',
+                "@@ -1 +1 @@",
+                "-before",
+                "+after",
+            ]
+        )
+
+        files = generate_diffgr.parse_unified_diff(diff_text)
+
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0]["a_path"], "src/my file.ts")
+        self.assertEqual(files[0]["b_path"], "src/my file.ts")
+
+    def test_parse_diff_git_paths_preserves_escaped_quote_and_backslash(self):
+        a_path, b_path = generate_diffgr.parse_diff_git_paths(
+            'diff --git "a/src/quote\\"name\\\\file.ts" "b/src/quote\\"name\\\\file.ts"'
+        )
+
+        self.assertEqual(a_path, 'src/quote"name\\file.ts')
+        self.assertEqual(b_path, 'src/quote"name\\file.ts')
+
+    def test_parse_diff_git_paths_wraps_invalid_header(self):
+        with self.assertRaisesRegex(RuntimeError, "Invalid diff --git header"):
+            generate_diffgr.parse_diff_git_paths('diff --git "a/src/bad.ts b/src/bad.ts')
+
     def test_build_chunk_adds_fingerprints_and_id(self):
         lines = [
             {"kind": "context", "text": "x", "oldLine": 1, "newLine": 1},

@@ -1,0 +1,414 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [ロギング・エラーハンドリング]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-monitoring",
+      "groupName": "ロギング・エラーハンドリング",
+      "chunkCount": 3
+    }
+  },
+  "groups": [
+    {
+      "id": "g-monitoring",
+      "name": "ロギング・エラーハンドリング",
+      "order": 7,
+      "tags": [
+        "monitoring",
+        "logging"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575",
+      "filePath": "src/lib/logger.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import pino from 'pino';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { env } from '../config/env';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "export const logger = pino({",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  level: env.LOG_LEVEL,",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  ...(env.NODE_ENV === 'production'",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    ? {}  // structured JSON in prod",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    : { transport: { target: 'pino-pretty', options: { colorize: true } } }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  ),",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "export function requestLogger() {",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  return (req: any, res: any, next: any) => {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    const start = Date.now();",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    res.on('finish', () => {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      logger.info({ method: req.method, url: req.url, status: res.statusCode, ms: Date.now() - start });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    next();",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  };",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "01aba21c3c9edd598f2b46070f3bedcf7a384ae8632f525555c72f6bf518c8fa",
+        "strong": "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575"
+      }
+    },
+    {
+      "id": "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b",
+      "filePath": "src/lib/errors.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "export class AppError extends Error {",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "  constructor(public statusCode: number, message: string) {",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "    super(message);",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "    this.name = 'AppError';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "export function errorHandler(err: any, req: any, res: any, next: any) {",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  if (err instanceof AppError) {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    return res.status(err.statusCode).json({ error: err.message });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  logger.error({ err }, 'unhandled error');",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  res.status(500).json({ error: 'Internal server error' });",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "006705546745a2d529ce11b1fcdc1296c49fde78ba949f3865988ea2655f5e34",
+        "strong": "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b"
+      }
+    },
+    {
+      "id": "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd",
+      "filePath": "src/app.ts",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import express from 'express';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { requestLogger } from './lib/logger';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { errorHandler } from './lib/errors';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "import { tasksRouter } from './routes/tasks';",
+          "oldLine": 2,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "import { authRouter } from './routes/auth';",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "const app = express();",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "app.use(express.json());",
+          "oldLine": 6,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "app.use(requestLogger());",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "app.use('/api/tasks', tasksRouter);",
+          "oldLine": 7,
+          "newLine": 10
+        },
+        {
+          "kind": "context",
+          "text": "app.use('/api/auth', authRouter);",
+          "oldLine": 8,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "app.use(errorHandler);",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "context",
+          "text": "export default app;",
+          "oldLine": 9,
+          "newLine": 13
+        }
+      ],
+      "fingerprints": {
+        "stable": "6f6fb5d5847be9fca9da4e36010bb0f7ce62f8e1d2a3cbec6d12e38bb82aa150",
+        "strong": "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd"
+      },
+      "header": "app setup"
+    }
+  ],
+  "assignments": {
+    "g-monitoring": [
+      "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575",
+      "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b",
+      "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd"
+    ]
+  },
+  "reviews": {},
+  "groupBriefs": {
+    "g-monitoring": {
+      "status": "ready",
+      "summary": "pino によるストラクチャードロギングを導入し、リクエストログとエラーハンドリングを app.ts に組み込みました。本番環境では JSON、開発環境では pino-pretty でカラー表示されます。",
+      "focusPoints": [
+        "logger は env.LOG_LEVEL で制御。本番は JSON 出力、開発は pino-pretty でカラー表示",
+        "requestLogger は res.on('finish') で method/url/status/ms をログ出力します",
+        "AppError クラスを導入。throw new AppError(404, 'Not found') で統一的なエラーレスポンスを返せます",
+        "errorHandler は AppError 以外の例外を 500 として処理し、logger.error でスタックトレースを記録します"
+      ],
+      "testEvidence": [
+        "logger/errors のユニットテストは未追加。統合テストで間接的にカバーされています"
+      ],
+      "knownTradeoffs": [
+        "pino-pretty は devDependencies でなく dependencies に含まれています。本番 bundle サイズを気にする場合は移動を検討してください"
+      ],
+      "questionsForReviewer": []
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-monitoring",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

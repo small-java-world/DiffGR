@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -13,6 +12,7 @@ if str(ROOT) not in sys.path:
 from diffgr.autoslice import autoslice_document_by_commits  # noqa: E402
 from diffgr.generator import build_diffgr_document, parse_generate_args  # noqa: E402
 from diffgr.slice_refine import refine_group_names_ja  # noqa: E402
+from diffgr.viewer_core import print_error, print_warning, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -29,6 +29,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument("--name-style", choices=["subject", "pr"], default="pr", help="Autoslice group naming.")
     parser.add_argument("--max-commits", type=int, default=50, help="Max commits to slice.")
+    parser.add_argument(
+        "--fail-on-truncate",
+        action="store_true",
+        help="Fail instead of truncating commit history when max-commits is exceeded.",
+    )
     return parser.parse_args(argv)
 
 
@@ -56,21 +61,21 @@ def main(argv: list[str]) -> int:
             name_style=args.name_style,
             split_chunks=True,
             context_lines=3,
+            fail_on_truncate=args.fail_on_truncate,
         )
         refined = refine_group_names_ja(autosliced)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(refined, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_json(output_path, refined)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     print(f"Wrote: {output_path}")
     if warnings:
         for warning in warnings:
-            print(f"[warning] {warning}", file=sys.stderr)
+            print_warning(warning)
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

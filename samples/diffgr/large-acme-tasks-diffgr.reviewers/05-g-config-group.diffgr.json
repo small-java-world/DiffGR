@@ -1,0 +1,584 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [設定・環境変数]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-config",
+      "groupName": "設定・環境変数",
+      "chunkCount": 5
+    }
+  },
+  "groups": [
+    {
+      "id": "g-config",
+      "name": "設定・環境変数",
+      "order": 5,
+      "tags": [
+        "config"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a",
+      "filePath": "src/config/env.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { z } from 'zod';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "const envSchema = z.object({",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  PORT: z.coerce.number().default(3000),",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  DATABASE_URL: z.string().url(),",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  DATABASE_DIRECT_URL: z.string().url().optional(),",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  JWT_SECRET: z.string().min(32),",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  JWT_EXPIRY_SECONDS: z.coerce.number().default(900),",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "const parsed = envSchema.safeParse(process.env);",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "if (!parsed.success) {",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  console.error('Invalid environment variables:', parsed.error.flatten());",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  process.exit(1);",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "export const env = {",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  ...parsed.data,",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "  jwtSecret: parsed.data.JWT_SECRET,",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "  jwtExpirySeconds: parsed.data.JWT_EXPIRY_SECONDS,",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "cf7d74a13940780442d85f87a81bdef8411cecdef9497909731663c8afd81f24",
+        "strong": "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a"
+      }
+    },
+    {
+      "id": "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd",
+      "filePath": "src/config/env.ts",
+      "old": {
+        "start": 22,
+        "count": 0
+      },
+      "new": {
+        "start": 23,
+        "count": 3
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "};",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "export type Env = typeof env;",
+          "oldLine": null,
+          "newLine": 25
+        }
+      ],
+      "fingerprints": {
+        "stable": "31d5b96f284646bf6c3765cc0e4c996527f2a8c57ec1a6f41323a1dd8a6a77f0",
+        "strong": "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd"
+      }
+    },
+    {
+      "id": "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976",
+      "filePath": ".env.example",
+      "old": {
+        "start": 1,
+        "count": 6
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "NODE_ENV=development",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "PORT=3000",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "DATABASE_URL=postgresql://localhost:5432/acme_tasks",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "DATABASE_DIRECT_URL=postgresql://localhost:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 5
+        },
+        {
+          "kind": "delete",
+          "text": "JWT_SECRET=changeme",
+          "oldLine": 5,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "# generate with: openssl rand -base64 48",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "JWT_SECRET=REPLACE_WITH_STRONG_SECRET_MIN_32_CHARS",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "JWT_EXPIRY_SECONDS=900",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "LOG_LEVEL=info",
+          "oldLine": 6,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "3726f4d10daf04b8bd7e8963adcae2288f1caa082f0785f77383a97f18c2dd2b",
+        "strong": "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976"
+      },
+      "header": ".env.example"
+    },
+    {
+      "id": "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526",
+      "filePath": "docker-compose.yml",
+      "old": {
+        "start": 1,
+        "count": 15
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "version: '3.9'",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "services:",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  db:",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    image: postgres:16-alpine",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "    environment:",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_DB: acme_tasks",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_USER: acme",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_PASSWORD: acme",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "    ports:",
+          "oldLine": 9,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "      - \"5432:5432\"",
+          "oldLine": 10,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    volumes:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      - pgdata:/var/lib/postgresql/data",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    healthcheck:",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      test: [\"CMD-SHELL\", \"pg_isready -U acme\"]",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      interval: 5s",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      timeout: 5s",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      retries: 5",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "context",
+          "text": "  app:",
+          "oldLine": 11,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "    build: .",
+          "oldLine": 12,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "    ports:",
+          "oldLine": 13,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "655d7683eb45b913f51aabf77afa3834a5320697205be81a7db17eb4fa3b689a",
+        "strong": "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526"
+      },
+      "header": "services"
+    },
+    {
+      "id": "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711",
+      "filePath": "docker-compose.yml",
+      "old": {
+        "start": 16,
+        "count": 3
+      },
+      "new": {
+        "start": 23,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "    environment:",
+          "oldLine": 16,
+          "newLine": 23
+        },
+        {
+          "kind": "delete",
+          "text": "      DATABASE_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": 17,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      DATABASE_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "      DATABASE_DIRECT_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "      JWT_SECRET: ${JWT_SECRET}",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "      JWT_EXPIRY_SECONDS: ${JWT_EXPIRY_SECONDS:-900}",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "    depends_on:",
+          "oldLine": 18,
+          "newLine": 28
+        },
+        {
+          "kind": "delete",
+          "text": "      - db",
+          "oldLine": 19,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      db:",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "        condition: service_healthy",
+          "oldLine": null,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "6595f41fe8702ef2676f109beca339cb3bddf6ae705c28d501ebe517296904da",
+        "strong": "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711"
+      },
+      "header": "app env"
+    }
+  ],
+  "assignments": {
+    "g-config": [
+      "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a",
+      "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd",
+      "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976",
+      "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526",
+      "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711"
+    ]
+  },
+  "reviews": {
+    "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:57:16Z"
+    },
+    "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:37:16Z"
+    },
+    "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:37:15Z"
+    },
+    "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:04Z"
+    }
+  },
+  "groupBriefs": {
+    "g-config": {
+      "status": "ready",
+      "summary": "env 変数の管理を Zod スキーマで型安全に行う env.ts を新設しました。不正な環境変数があれば起動時に即座に終了します。docker-compose の app サービスにも新しい env 変数と DB ヘルスチェックを追加しています。",
+      "focusPoints": [
+        "env.ts は起動時に process.env を safeParse し、失敗したら process.exit(1)。設定ミスを実行前に検出できます",
+        "JWT_SECRET は z.string().min(32) の制約あり。32文字未満では起動しません",
+        ".env.example の JWT_SECRET を 'changeme' から REPLACE_WITH_STRONG_SECRET_MIN_32_CHARS に変更済み",
+        "docker-compose の app サービスが depends_on: db: condition: service_healthy に変更。DB 起動前に app が立ち上がる問題を防ぎます"
+      ],
+      "testEvidence": [
+        "env バリデーションの自動テストは未追加。起動時の動作確認で代替しています"
+      ],
+      "knownTradeoffs": [
+        "DATABASE_DIRECT_URL は optional ですが、Prisma マイグレーション時に必要な環境では設定が必要です"
+      ],
+      "questionsForReviewer": [
+        "LOG_LEVEL のデフォルト値は 'info' にしていますが、開発環境では 'debug' が望ましいですか？"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-config",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

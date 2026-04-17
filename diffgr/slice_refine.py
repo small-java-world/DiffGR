@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from diffgr.viewer_core import build_chunk_map
+
 
 @dataclass(frozen=True)
 class GroupNameSuggestion:
@@ -85,7 +87,7 @@ def suggest_group_name_ja(chunks: list[dict[str, Any]]) -> GroupNameSuggestion:
 
 def refine_group_names_ja(doc: dict[str, Any]) -> dict[str, Any]:
     group_map = {group.get("id"): group for group in (doc.get("groups") or []) if isinstance(group, dict)}
-    chunk_map = {chunk.get("id"): chunk for chunk in (doc.get("chunks") or []) if isinstance(chunk, dict)}
+    chunk_map = build_chunk_map(doc)
     assignments: dict[str, list[str]] = doc.get("assignments") or {}
 
     rename_map: dict[str, Any] = {}
@@ -112,7 +114,7 @@ def refine_group_names_ja(doc: dict[str, Any]) -> dict[str, Any]:
 def build_ai_refine_prompt_markdown(doc: dict[str, Any], max_chunks_per_group: int = 30) -> str:
     groups = doc.get("groups") or []
     assignments = doc.get("assignments") or {}
-    chunk_map = {chunk.get("id"): chunk for chunk in (doc.get("chunks") or []) if isinstance(chunk, dict)}
+    chunk_map = build_chunk_map(doc)
 
     lines: list[str] = []
     lines.append("# DiffGR 仮想PR分割のブラッシュアップ依頼")

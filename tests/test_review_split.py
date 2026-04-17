@@ -62,6 +62,24 @@ def make_doc() -> dict:
             "c1": {"status": "reviewed", "comment": "ok"},
             "c3": {"status": "needsReReview", "comment": "recheck"},
         },
+        "groupBriefs": {
+            "g-pr01": {"status": "ready", "summary": "auth handoff"},
+            "g-pr02": {"status": "draft", "summary": "ui handoff"},
+        },
+        "analysisState": {
+            "currentGroupId": "g-pr01",
+            "selectedChunkId": "c1",
+            "filterText": "auth",
+        },
+        "threadState": {
+            "c1": {"open": True},
+            "c3": {"open": False},
+            "__files": {
+                "src/a.ts": {"open": True},
+                "src/c.ts": {"open": False},
+            },
+            "selectedLineAnchor": {"anchorKey": "add::10", "oldLine": None, "newLine": 10, "lineType": "add"},
+        },
     }
 
 
@@ -77,6 +95,13 @@ class TestReviewSplit(unittest.TestCase):
         self.assertEqual(group_doc["groups"][0]["id"], "g-pr01")
         self.assertEqual([chunk["id"] for chunk in group_doc["chunks"]], ["c1", "c2"])
         self.assertEqual(set(group_doc["reviews"].keys()), {"c1"})
+        self.assertEqual(group_doc["groupBriefs"]["g-pr01"]["summary"], "auth handoff")
+        self.assertEqual(group_doc["analysisState"]["currentGroupId"], "g-pr01")
+        self.assertEqual(group_doc["analysisState"]["selectedChunkId"], "c1")
+        self.assertEqual(group_doc["threadState"]["c1"]["open"], True)
+        self.assertNotIn("c3", group_doc["threadState"])
+        self.assertIn("src/a.ts", group_doc["threadState"]["__files"])
+        self.assertNotIn("src/c.ts", group_doc["threadState"]["__files"])
         self.assertIn("[認証]", group_doc["meta"]["title"])
 
     def test_split_document_by_group(self):
@@ -98,6 +123,97 @@ class TestReviewSplit(unittest.TestCase):
         self.assertEqual(applied, 1)
         self.assertEqual(merged["reviews"]["c2"]["status"], "reviewed")
         self.assertTrue(any("unknown chunk id" in item for item in warnings))
+
+    def test_merge_reviews_into_base_merges_line_comments_and_uses_status_precedence(self):
+        base = make_doc()
+        base["reviews"] = {
+            "c1": {
+                "status": "reviewed",
+                "comment": "base comment",
+                "lineComments": [
+                    {"oldLine": None, "newLine": 10, "lineType": "add", "comment": "base line"},
+                ],
+            }
+        }
+        reviewer_doc = make_doc()
+        reviewer_doc["reviews"] = {
+            "c1": {
+                "status": "needsReReview",
+                "lineComments": [
+                    {"oldLine": None, "newLine": 11, "lineType": "add", "comment": "incoming line"},
+                ],
+            }
+        }
+
+        merged, warnings, applied = merge_reviews_into_base(base, [("reviewer-a", reviewer_doc)], strict=False)
+
+        self.assertEqual(applied, 1)
+        self.assertEqual(warnings, [])
+        self.assertEqual(merged["reviews"]["c1"]["status"], "needsReReview")
+        line_comments = merged["reviews"]["c1"]["lineComments"]
+        self.assertEqual(len(line_comments), 2)
+        self.assertEqual(line_comments[0]["comment"], "base line")
+        self.assertEqual(line_comments[1]["comment"], "incoming line")
+
+    def test_merge_reviews_into_base_warns_on_comment_conflict_and_uses_incoming(self):
+        base = make_doc()
+        base["reviews"] = {"c1": {"status": "reviewed", "comment": "base comment"}}
+        reviewer_doc = make_doc()
+        reviewer_doc["reviews"] = {"c1": {"status": "ignored", "comment": "incoming comment"}}
+
+        merged, warnings, applied = merge_reviews_into_base(base, [("reviewer-a", reviewer_doc)], strict=False)
+
+        self.assertEqual(applied, 1)
+        self.assertEqual(merged["reviews"]["c1"]["comment"], "incoming comment")
+        self.assertEqual(merged["reviews"]["c1"]["status"], "reviewed")
+        self.assertTrue(any("chunk comment conflict" in item for item in warnings))
+
+    def test_merge_reviews_into_base_merges_group_briefs(self):
+        base = make_doc()
+        base["groupBriefs"] = {
+            "g-pr01": {"status": "draft", "summary": "base summary", "focusPoints": ["auth"]},
+        }
+        reviewer_doc = make_doc()
+        reviewer_doc["groupBriefs"] = {
+            "g-pr01": {
+                "status": "ready",
+                "summary": "incoming summary",
+                "focusPoints": ["risk"],
+                "questionsForReviewer": ["is retry ok?"],
+            }
+        }
+
+        merged, warnings, _ = merge_reviews_into_base(base, [("reviewer-a", reviewer_doc)], strict=False)
+
+        self.assertEqual(merged["groupBriefs"]["g-pr01"]["status"], "ready")
+        self.assertEqual(merged["groupBriefs"]["g-pr01"]["summary"], "incoming summary")
+        self.assertEqual(merged["groupBriefs"]["g-pr01"]["focusPoints"], ["auth", "risk"])
+        self.assertEqual(merged["groupBriefs"]["g-pr01"]["questionsForReviewer"], ["is retry ok?"])
+        self.assertTrue(any("group brief conflict" in item for item in warnings))
+
+    def test_merge_reviews_into_base_merges_state_objects(self):
+        base = make_doc()
+        base["analysisState"] = {"currentGroupId": "g-pr01", "selectedChunkId": "c1", "filterText": "base"}
+        base["threadState"] = {"c1": {"open": True}, "__files": {"src/a.ts": {"open": True}}}
+        reviewer_doc = make_doc()
+        reviewer_doc["analysisState"] = {"currentGroupId": "g-pr02", "selectedChunkId": "c3", "filterText": "incoming"}
+        reviewer_doc["threadState"] = {
+            "c3": {"open": False},
+            "__files": {"src/c.ts": {"open": False}},
+            "selectedLineAnchor": {"anchorKey": "add::3", "oldLine": None, "newLine": 3, "lineType": "add"},
+        }
+
+        merged, warnings, _ = merge_reviews_into_base(base, [("reviewer-a", reviewer_doc)], strict=False)
+
+        self.assertEqual(warnings, [])
+        self.assertEqual(merged["analysisState"]["currentGroupId"], "g-pr02")
+        self.assertEqual(merged["analysisState"]["selectedChunkId"], "c3")
+        self.assertEqual(merged["analysisState"]["filterText"], "incoming")
+        self.assertTrue(merged["threadState"]["c1"]["open"])
+        self.assertFalse(merged["threadState"]["c3"]["open"])
+        self.assertIn("src/a.ts", merged["threadState"]["__files"])
+        self.assertIn("src/c.ts", merged["threadState"]["__files"])
+        self.assertEqual(merged["threadState"]["selectedLineAnchor"]["anchorKey"], "add::3")
 
     def test_split_group_reviews_script_and_merge_group_reviews_script(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -144,7 +260,7 @@ class TestReviewSplit(unittest.TestCase):
 
             merged = json.loads(merged_path.read_text(encoding="utf-8"))
             self.assertEqual(merged["reviews"]["c1"]["comment"], "A done")
-            self.assertEqual(merged["reviews"]["c3"]["status"], "ignored")
+            self.assertEqual(merged["reviews"]["c3"]["status"], "needsReReview")
 
 
 if __name__ == "__main__":

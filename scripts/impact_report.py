@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -11,7 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from diffgr.impact import build_impact_report  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, print_json, validate_document  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -225,11 +224,11 @@ def main(argv: list[str]) -> int:
             max_items_per_group=int(args.max_items),
         )
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     if args.json:
-        print(json.dumps(report, ensure_ascii=False, indent=2))
+        print_json(report)
         return 0
 
     markdown = render_markdown(report)

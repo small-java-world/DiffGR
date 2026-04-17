@@ -1,10 +1,28 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 VALID_STATUSES = {"unreviewed", "reviewed", "ignored", "needsReReview"}
+
+
+def build_chunk_map(doc_or_chunks: dict[str, Any] | list) -> dict[str, dict[str, Any]]:
+    """Build a mapping of chunk ID (str) to chunk dict.
+
+    Accepts either a full document dict (uses ``doc["chunks"]``) or a plain
+    list of chunk dicts.
+    """
+    if isinstance(doc_or_chunks, dict):
+        items = doc_or_chunks.get("chunks", [])
+    else:
+        items = doc_or_chunks
+    return {
+        str(chunk.get("id", "")): chunk
+        for chunk in (items or [])
+        if isinstance(chunk, dict) and str(chunk.get("id", ""))
+    }
 
 
 def resolve_input_path(path: Path, search_roots: list[Path] | None = None) -> Path:
@@ -27,6 +45,32 @@ def load_json(path: Path) -> dict[str, Any]:
         raise RuntimeError(f"File not found: {path}") from error
     except json.JSONDecodeError as error:
         raise RuntimeError(f"Invalid JSON: {error}") from error
+
+
+def write_json(path: Path, obj: Any) -> None:
+    """Write *obj* as pretty-printed JSON with a trailing newline."""
+    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def print_json(obj: Any) -> None:
+    """Print *obj* as pretty-printed JSON to stdout with a trailing newline."""
+    print(json.dumps(obj, ensure_ascii=False, indent=2))
+
+
+def print_error(msg: object) -> None:
+    """Print an [error] message to stderr."""
+    print(f"[error] {msg}", file=sys.stderr)
+
+
+def print_warning(msg: object) -> None:
+    """Print a [warning] message to stderr."""
+    print(f"[warning] {msg}", file=sys.stderr)
+
+
+def resolve_script_path(path_str: str, root: Path) -> Path:
+    """Resolve a CLI path argument: if relative, anchor to root, then resolve symlinks."""
+    p = Path(path_str)
+    return (root / p if not p.is_absolute() else p).resolve()
 
 
 def validate_document(doc: dict[str, Any]) -> list[str]:
@@ -74,7 +118,7 @@ def validate_document(doc: dict[str, Any]) -> list[str]:
 
 
 def build_indexes(doc: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
-    chunk_map = {chunk["id"]: chunk for chunk in doc["chunks"]}
+    chunk_map = build_chunk_map(doc)
     status_map: dict[str, str] = {}
     for chunk_id in chunk_map.keys():
         status = doc["reviews"].get(chunk_id, {}).get("status", "unreviewed")

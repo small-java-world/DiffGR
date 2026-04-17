@@ -1,0 +1,655 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [API / Routes / Services]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-api",
+      "groupName": "API / Routes / Services",
+      "chunkCount": 7
+    }
+  },
+  "groups": [
+    {
+      "id": "g-api",
+      "name": "API / Routes / Services",
+      "order": 2,
+      "tags": [
+        "backend",
+        "api"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 6
+      },
+      "new": {
+        "start": 1,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { Router } from 'express';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { authMiddleware } from '../auth/middleware';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { validate } from '../lib/validate';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { taskSchema } from '../schemas/task';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "import * as TaskService from '../services/task';",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "const router = Router();",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "router.use(authMiddleware);",
+          "oldLine": 6,
+          "newLine": 8
+        }
+      ],
+      "fingerprints": {
+        "stable": "6d6a4625ca0a03979a1e65ffaffc8026e752b6712a17243d55471b239c11ee84",
+        "strong": "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546"
+      },
+      "header": "tasks router"
+    },
+    {
+      "id": "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 12,
+        "count": 6
+      },
+      "new": {
+        "start": 14,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.post('/', async (req, res) => {",
+          "oldLine": 12,
+          "newLine": 14
+        },
+        {
+          "kind": "delete",
+          "text": "  const task = await TaskService.create(req.body);",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const body = validate(taskSchema, req.body);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!body.ok) return res.status(400).json({ errors: body.errors });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  const task = await TaskService.create(body.data);",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "context",
+          "text": "  res.status(201).json(task);",
+          "oldLine": 14,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 15,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 16,
+          "newLine": 20
+        },
+        {
+          "kind": "delete",
+          "text": "router.get('/:id', async (req, res) => {",
+          "oldLine": 17,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "router.get('/:id', async (req, res) => {",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "context",
+          "text": "  const task = await TaskService.findById(req.params.id);",
+          "oldLine": 18,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "c7156a4c77683fe2b367af2e166c9d80e05c28c14829f6cd35267b4158958fb4",
+        "strong": "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6"
+      },
+      "header": "POST /"
+    },
+    {
+      "id": "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 25,
+        "count": 5
+      },
+      "new": {
+        "start": 29,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.delete('/:id', async (req, res) => {",
+          "oldLine": 25,
+          "newLine": 29
+        },
+        {
+          "kind": "delete",
+          "text": "  await TaskService.remove(req.params.id);",
+          "oldLine": 26,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const task = await TaskService.findById(req.params.id);",
+          "oldLine": null,
+          "newLine": 30
+        },
+        {
+          "kind": "add",
+          "text": "  if (!task) return res.status(404).json({ error: 'Not found' });",
+          "oldLine": null,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  if (task.ownerId !== req.user!.sub) return res.status(403).json({ error: 'Forbidden' });",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "  await TaskService.remove(req.params.id);",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "context",
+          "text": "  res.status(204).send();",
+          "oldLine": 27,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 28,
+          "newLine": 35
+        }
+      ],
+      "fingerprints": {
+        "stable": "b8a1129147e476d18183523e32c9b49572e05b0d44db064e0197e401d2caa2e2",
+        "strong": "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0"
+      },
+      "header": "DELETE /:id"
+    },
+    {
+      "id": "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 1,
+        "count": 5
+      },
+      "new": {
+        "start": 1,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { db } from '../db/client';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { Task } from '@prisma/client';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { logger } from '../lib/logger';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { TaskCreateInput } from '../schemas/task';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "export async function findAll(userId: string): Promise<Task[]> {",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "  return db.task.findMany({ where: { ownerId: userId } });",
+          "oldLine": 5,
+          "newLine": 7
+        }
+      ],
+      "fingerprints": {
+        "stable": "87869b612c90a8b7825647603a6de879675fc07d4a4697bb02181ff23d0a3723",
+        "strong": "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2"
+      },
+      "header": "findAll"
+    },
+    {
+      "id": "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 15,
+        "count": 6
+      },
+      "new": {
+        "start": 17,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function create(input: TaskCreateInput): Promise<Task> {",
+          "oldLine": 15,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  logger.info('create task', { title: input.title });",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "  return db.task.create({",
+          "oldLine": 16,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "    data: {",
+          "oldLine": 17,
+          "newLine": 20
+        },
+        {
+          "kind": "delete",
+          "text": "      ...input,",
+          "oldLine": 18,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      title: input.title,",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      description: input.description ?? null,",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      dueAt: input.dueAt ?? null,",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "      createdAt: new Date(),",
+          "oldLine": 19,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "    },",
+          "oldLine": 20,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "  });",
+          "oldLine": 21,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "cb31a981401aeecac97c1b47321cb48b25ecde6a59b55f46f7b27f86ff79769a",
+        "strong": "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e"
+      },
+      "header": "create"
+    },
+    {
+      "id": "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 30,
+        "count": 4
+      },
+      "new": {
+        "start": 34,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function remove(id: string): Promise<void> {",
+          "oldLine": 30,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "  logger.info('remove task', { id });",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "delete",
+          "text": "  await db.task.delete({ where: { id } });",
+          "oldLine": 31,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  await db.task.delete({ where: { id } });",
+          "oldLine": null,
+          "newLine": 36
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 32,
+          "newLine": 37
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 33,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "export async function updateStatus(id: string, status: string): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "  return db.task.update({ where: { id }, data: { status } });",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 41
+        }
+      ],
+      "fingerprints": {
+        "stable": "ae775cedb6a12b3f02ff950a9fc93ce18ea8e0318fcb2141630308241349d39f",
+        "strong": "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386"
+      },
+      "header": "remove"
+    },
+    {
+      "id": "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154",
+      "filePath": "src/schemas/task.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { z } from 'zod';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export const taskSchema = z.object({",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  title: z.string().min(1).max(200),",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  description: z.string().max(2000).optional(),",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  dueAt: z.string().datetime().optional(),",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  status: z.enum(['open', 'in_progress', 'done']).default('open'),",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  tags: z.array(z.string()).max(10).default([]),",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "export type TaskCreateInput = z.infer<typeof taskSchema>;",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "export const taskUpdateSchema = taskSchema.partial().extend({",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  status: z.enum(['open', 'in_progress', 'done']).optional(),",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "export type TaskUpdateInput = z.infer<typeof taskUpdateSchema>;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "e867b0c73e37c740cdf0fb5bd86f71742e08e77e8d3c5f088b6dbdd6ae6beac2",
+        "strong": "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154"
+      }
+    }
+  ],
+  "assignments": {
+    "g-api": [
+      "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546",
+      "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6",
+      "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0",
+      "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2",
+      "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e",
+      "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386",
+      "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154"
+    ]
+  },
+  "reviews": {},
+  "groupBriefs": {
+    "g-api": {
+      "status": "ready",
+      "summary": "タスクの作成・削除エンドポイントに Zod バリデーションと権限チェックを追加しました。また updateStatus 関数を新規追加し、タスクのステータス変更を単独で行える API 基盤を整えています。",
+      "focusPoints": [
+        "POST / に validate(taskSchema, req.body) を追加。バリデーションエラーは 400 + errors 配列で返します。以前は req.body をそのまま DB に渡していました",
+        "DELETE /:id に所有者チェックを追加（task.ownerId !== req.user.sub → 403 Forbidden）。以前は他ユーザのタスクも削除できる状態でした",
+        "taskSchema は src/schemas/task.ts に新規定義。title(max200)/description(max2000)/dueAt(ISO datetime)/status(enum)/tags(max10) の制約があります",
+        "updateStatus は現時点でルートから呼ばれていません。将来の PATCH エンドポイント用の下準備です"
+      ],
+      "testEvidence": [
+        "バリデーションと権限チェックのルートテストは g-tests グループで追加済み"
+      ],
+      "knownTradeoffs": [
+        "taskUpdateSchema は定義済みですが、対応する PATCH /:id ルートはまだ未実装です"
+      ],
+      "questionsForReviewer": [
+        "status の enum 値（open / in_progress / done）は要件と合っていますか？追加が必要な状態があれば教えてください",
+        "tags のバリデーションは現在 max10/文字列のみです。長さ制限や許可値の制約は必要ですか？"
+      ],
+      "approval": {
+        "state": "changesRequested",
+        "approved": false,
+        "changesRequestedAt": "2026-03-15T15:14:23Z",
+        "changesRequestedBy": "f.kawano",
+        "decisionAt": "2026-03-15T15:14:23Z"
+      }
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-api",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

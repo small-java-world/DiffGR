@@ -1,0 +1,698 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [認証・認可 (Auth)]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-auth",
+      "groupName": "認証・認可 (Auth)",
+      "chunkCount": 6
+    }
+  },
+  "groups": [
+    {
+      "id": "g-auth",
+      "name": "認証・認可 (Auth)",
+      "order": 1,
+      "tags": [
+        "auth",
+        "security"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b",
+      "filePath": "src/auth/jwt.ts",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import jwt from 'jsonwebtoken';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { env } from '../config/env';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "delete",
+          "text": "const SECRET = process.env.JWT_SECRET!;",
+          "oldLine": 4,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "const SECRET = env.jwtSecret;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "const EXPIRY = env.jwtExpirySeconds;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 5,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function signToken(payload: object): string {",
+          "oldLine": 6,
+          "newLine": 7
+        },
+        {
+          "kind": "delete",
+          "text": "  return jwt.sign(payload, SECRET, { expiresIn: 3600 });",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  return jwt.sign(payload, SECRET, { expiresIn: EXPIRY });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "9e7540f796964be48c43492366d0de651556f639c0c6a92f871bfffa7bd34322",
+        "strong": "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b"
+      },
+      "header": "signToken"
+    },
+    {
+      "id": "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177",
+      "filePath": "src/auth/jwt.ts",
+      "old": {
+        "start": 20,
+        "count": 6
+      },
+      "new": {
+        "start": 22,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export function verifyToken(token: string): object | null {",
+          "oldLine": 20,
+          "newLine": 22
+        },
+        {
+          "kind": "context",
+          "text": "  try {",
+          "oldLine": 21,
+          "newLine": 23
+        },
+        {
+          "kind": "delete",
+          "text": "    return jwt.verify(token, SECRET) as object;",
+          "oldLine": 22,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    const decoded = jwt.verify(token, SECRET) as object;",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    return decoded;",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "  } catch (e) {",
+          "oldLine": 23,
+          "newLine": 26
+        },
+        {
+          "kind": "delete",
+          "text": "    return null;",
+          "oldLine": 24,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    logger.warn('jwt verify failed', { err: e });",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "    return null;",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 25,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 26,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "8137b0c65ac327635de103b070b76c7136d0a93766a6042e1528c0b5a1c63aa2",
+        "strong": "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177"
+      },
+      "header": "verifyToken"
+    },
+    {
+      "id": "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d",
+      "filePath": "src/auth/middleware.ts",
+      "old": {
+        "start": 1,
+        "count": 5
+      },
+      "new": {
+        "start": 1,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "import { verifyToken } from './jwt';",
+          "oldLine": 1,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "import { verifyToken } from './jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { logger } from '../lib/logger';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "import { Request, Response, NextFunction } from 'express';",
+          "oldLine": 2,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "export function authMiddleware(req: Request, res: Response, next: NextFunction) {",
+          "oldLine": 4,
+          "newLine": 5
+        }
+      ],
+      "fingerprints": {
+        "stable": "0576ab00a43b0e235b508906950b67cf0f5d8904ebe93ef341ad7b3cc4f67a16",
+        "strong": "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d"
+      },
+      "header": "authMiddleware"
+    },
+    {
+      "id": "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5",
+      "filePath": "src/auth/middleware.ts",
+      "old": {
+        "start": 10,
+        "count": 7
+      },
+      "new": {
+        "start": 12,
+        "count": 9
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  const token = req.headers.authorization?.split(' ')[1];",
+          "oldLine": 10,
+          "newLine": 12
+        },
+        {
+          "kind": "context",
+          "text": "  if (!token) return res.status(401).json({ error: 'Unauthorized' });",
+          "oldLine": 11,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "  const payload = verifyToken(token);",
+          "oldLine": 12,
+          "newLine": 14
+        },
+        {
+          "kind": "delete",
+          "text": "  if (!payload) return res.status(401).json({ error: 'Invalid token' });",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  if (!payload) {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    logger.warn('invalid token attempt', { ip: req.ip });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    return res.status(401).json({ error: 'Invalid token' });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "  req.user = payload;",
+          "oldLine": 14,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "  next();",
+          "oldLine": 15,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "c98691a5294a6eb828517484a41a0d60eedfcc371ada8c62868c8ce6710719b4",
+        "strong": "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5"
+      },
+      "header": "authMiddleware"
+    },
+    {
+      "id": "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab",
+      "filePath": "src/auth/refresh.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { signToken, verifyToken } from './jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../db/client';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "export async function refreshAccessToken(refreshToken: string): Promise<string | null> {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  const payload = verifyToken(refreshToken);",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  if (!payload || typeof payload !== 'object') return null;",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const userId = (payload as any).sub;",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const stored = await db.refreshTokens.findUnique({ where: { token: refreshToken } });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  if (!stored || stored.revokedAt) return null;",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  return signToken({ sub: userId, type: 'access' });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "export async function revokeRefreshToken(token: string): Promise<void> {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  await db.refreshTokens.update({",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    where: { token },",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    data: { revokedAt: new Date() },",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "f139365274e392a452d85def0961175fb4dbbb6a0cb056521f8047b739fee81b",
+        "strong": "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab"
+      },
+      "header": "refreshAccessToken"
+    },
+    {
+      "id": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d",
+      "filePath": "src/auth/__tests__/jwt.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { signToken, verifyToken } from '../jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "describe('jwt', () => {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  it('signs and verifies a token', () => {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    const token = signToken({ sub: 'u1', type: 'access' });",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    expect(typeof token).toBe('string');",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    const payload = verifyToken(token);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    expect(payload).not.toBeNull();",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns null for invalid token', () => {",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    expect(verifyToken('bad.token.here')).toBeNull();",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns null for expired token', async () => {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    const token = signToken({ sub: 'u2' });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    // expiry is controlled by env; test with mocked clock",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    expect(verifyToken(token)).not.toBeNull();",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "4483318d275e74cc5d5cbe08f71acaa472db778b41c398871664b58729f2d56a",
+        "strong": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d"
+      }
+    }
+  ],
+  "assignments": {
+    "g-auth": [
+      "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b",
+      "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177",
+      "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d",
+      "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5",
+      "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab",
+      "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d"
+    ]
+  },
+  "reviews": {
+    "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:15Z"
+    },
+    "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:57:17Z"
+    }
+  },
+  "groupBriefs": {
+    "g-auth": {
+      "status": "ready",
+      "summary": "JWT の設定を env 変数経由に統一し、リフレッシュトークン機構を新規実装しました。SECRET を process.env の直接参照から型安全な env.jwtSecret に変更し、有効期限も JWT_EXPIRY_SECONDS で外部設定できるようにしています。",
+      "focusPoints": [
+        "signToken の expiresIn がハードコード(3600)から env.jwtExpirySeconds に変更 — デフォルト900秒(15分)が要件と合っているか確認をお願いします",
+        "verifyToken の失敗時に logger.warn を追加。以前はサイレントに null を返していたため、不正アクセス試行の可視性が向上しています",
+        "authMiddleware の 401 分岐に IP ログを追加 — ブルートフォース検知の基盤になります",
+        "refresh.ts は新規ファイル。refreshToken の存在確認と revokedAt チェックを DB で行います"
+      ],
+      "testEvidence": [
+        "jwt.test.ts で sign/verify/invalid token の3ケースをカバー済み",
+        "expired token のテストは現在モック未使用のため、実際の期限切れシナリオはカバーできていません（コメントに記載）"
+      ],
+      "knownTradeoffs": [
+        "RefreshToken の有効性確認はリクエストのたびに DB を参照するため、高頻度アクセス時はインメモリキャッシュの検討が必要になる可能性があります",
+        "revoke は物理削除ではなく revokedAt フラグ方式のため、失効済みトークンがテーブルに蓄積します。定期的な purge job が将来必要です"
+      ],
+      "questionsForReviewer": [
+        "JWT_EXPIRY_SECONDS のデフォルト値 900秒（15分）は UX 要件と合っていますか？",
+        "RefreshToken テーブルへの外部キーは User に対して CASCADE DELETE 設定ですが、要件通りか確認をお願いします"
+      ],
+      "approval": {
+        "state": "approved",
+        "approved": true,
+        "approvedAt": "2026-03-15T23:33:51Z",
+        "approvedBy": "f.kawano",
+        "approvalFingerprint": "9a92ff323b9fb3477a0d27fa56ec438f944f096df487ea1bed719025d1309521",
+        "sourceHead": "bbb0000000000000000000000000000000000002",
+        "decisionAt": "2026-03-15T23:33:51Z",
+        "reviewedCount": 5,
+        "totalCount": 6
+      }
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-auth",
+    "filterText": "",
+    "selectedChunkId": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {
+    "selectedLineAnchor": {
+      "anchorKey": "add::1",
+      "oldLine": null,
+      "newLine": 1,
+      "lineType": "add"
+    }
+  }
+}

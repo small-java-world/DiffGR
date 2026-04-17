@@ -20,6 +20,7 @@ from diffgr.generator import (  # noqa: E402
     sha256_hex,
     write_document,
 )
+from diffgr.viewer_core import print_error  # noqa: E402
 
 
 def build_diffgr(repo: Path, base_ref: str, feature_ref: str, title: str, include_patch: bool) -> dict:
@@ -45,7 +46,7 @@ def main(argv: list[str]) -> int:
             include_patch=not args.no_patch,
         )
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     write_document(document, output)

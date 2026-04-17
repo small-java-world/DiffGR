@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -11,7 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from diffgr.review_split import build_group_output_filename, split_document_by_group  # noqa: E402
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, validate_document, write_json  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -47,7 +46,7 @@ def main(argv: list[str]) -> int:
             group_name = str(group.get("name", group_id))
             filename = build_group_output_filename(index, group_id, group_name)
             target = output_dir / filename
-            target.write_text(json.dumps(group_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            write_json(target, group_doc)
             manifest_items.append(
                 {
                     "groupId": group_id,
@@ -57,21 +56,13 @@ def main(argv: list[str]) -> int:
                 }
             )
         manifest_path = output_dir / str(args.manifest)
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    "source": str(input_path.resolve()),
-                    "fileCount": len(manifest_items),
-                    "files": manifest_items,
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        write_json(manifest_path, {
+            "source": str(input_path.resolve()),
+            "fileCount": len(manifest_items),
+            "files": manifest_items,
+        })
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     print(f"Wrote: {output_dir}")

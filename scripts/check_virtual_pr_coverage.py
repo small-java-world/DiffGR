@@ -14,7 +14,7 @@ from diffgr.virtual_pr_coverage import (  # noqa: E402
     build_ai_fix_coverage_prompt_markdown,
     coverage_issue_to_json,
 )
-from diffgr.viewer_core import load_json, validate_document  # noqa: E402
+from diffgr.viewer_core import load_json, print_error, print_warning, validate_document  # noqa: E402
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -38,7 +38,7 @@ def main(argv: list[str]) -> int:
         warnings = validate_document(doc)
         issue = analyze_virtual_pr_coverage(doc)
     except Exception as error:  # noqa: BLE001
-        print(f"[error] {error}", file=sys.stderr)
+        print_error(error)
         return 1
 
     if args.as_json:
@@ -55,7 +55,7 @@ def main(argv: list[str]) -> int:
         if warnings:
             print(f"Document warnings: {len(warnings)}", file=sys.stderr)
             for warning in warnings:
-                print(f"[warning] {warning}", file=sys.stderr)
+                print_warning(warning)
 
     if args.write_prompt and not issue.ok:
         prompt_path = Path(args.write_prompt)
