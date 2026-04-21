@@ -14,25 +14,6 @@ fn assert_contains(rel: &str, marker: &str) {
     assert!(text.contains(marker), "missing marker `{marker}` in {rel}");
 }
 
-fn assert_file_exists(rel: &str) {
-    assert!(root().join(rel).exists(), "missing file: {rel}");
-}
-
-fn count_tests(rel: &str) -> usize {
-    read(rel)
-        .lines()
-        .filter(|line| line.trim() == "#[test]")
-        .count()
-}
-
-fn assert_count_at_least(rel: &str, minimum: usize) {
-    let count = count_tests(rel);
-    assert!(
-        count >= minimum,
-        "{rel} has {count} tests, expected >= {minimum}"
-    );
-}
-
 #[test]
 fn virtual_pr_regression_marker_001() {
     assert_contains("src/vpr.rs", "VirtualPrRiskItem");

@@ -1255,13 +1255,6 @@ impl DiffgrGuiApp {
         self.visible_cache.ids.clone()
     }
 
-    fn build_chunk_rows_from_ids(&self, ids: &[String]) -> Vec<ChunkRow> {
-        ids.iter()
-            .enumerate()
-            .filter_map(|(index, chunk_id)| self.build_chunk_row(index, chunk_id))
-            .collect()
-    }
-
     fn build_chunk_row(&self, index: usize, chunk_id: &str) -> Option<ChunkRow> {
         let doc = self.doc.as_ref()?;
         let chunk = doc.chunk_by_id(chunk_id)?;
@@ -2305,7 +2298,7 @@ impl DiffgrGuiApp {
             self.show_help = !self.show_help;
         }
 
-        if ctx.wants_keyboard_input() {
+        if ctx.egui_wants_keyboard_input() {
             return;
         }
 

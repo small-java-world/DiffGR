@@ -1,4 +1,4 @@
-use diffgr_gui::model::{DiffgrDocument, ReviewStatus};
+use diffgr_gui::model::DiffgrDocument;
 use diffgr_gui::vpr;
 use serde_json::json;
 

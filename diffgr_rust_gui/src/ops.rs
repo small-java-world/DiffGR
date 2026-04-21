@@ -2940,7 +2940,6 @@ pub fn rebase_state_with_options(
     options: &RebaseOptions,
 ) -> Result<(Value, RebaseSummary), String> {
     let state = normalized_state(state)?;
-    let old_chunks = chunk_map(old_doc);
     let new_chunks = chunk_map(new_doc);
     let (matches, mut warnings) =
         match_chunks_for_rebase(old_doc, new_doc, options.similarity_threshold);

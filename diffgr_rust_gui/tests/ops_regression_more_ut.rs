@@ -1,7 +1,7 @@
 mod support;
 
 use diffgr_gui::ops::{self, RebaseOptions};
-use serde_json::{json, Value};
+use serde_json::json;
 use std::fs;
 
 #[test]
