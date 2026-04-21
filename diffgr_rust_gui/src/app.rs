@@ -31,6 +31,22 @@ const MAX_RENDERED_DIFF_CHARS: usize = 1800;
 const WORD_DIFF_UNPAIRED_SENTINEL: usize = usize::MAX;
 const MAX_CHUNK_ROW_CACHE: usize = 512;
 const CHUNK_ROW_CACHE_RETAIN_RADIUS: usize = 192;
+const FALLBACK_TEXT_INPUT_WIDTH: f32 = 320.0;
+
+fn finite_available_width(ui: &egui::Ui, reserve: f32) -> f32 {
+    let width = ui.available_width() - reserve;
+    if width.is_finite() && width > 0.0 {
+        width
+    } else {
+        FALLBACK_TEXT_INPUT_WIDTH
+    }
+}
+
+fn ensure_finite_ui_width(ui: &mut egui::Ui, fallback: f32) {
+    if !ui.available_width().is_finite() {
+        ui.set_width(fallback);
+    }
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct StartupArgs {
@@ -2619,24 +2635,14 @@ impl DiffgrGuiApp {
     fn draw_filters(&mut self, ui: &mut egui::Ui) {
         let mut next_status = self.status_filter;
         let mut next_sort = self.sort_mode;
-        ui.horizontal_wrapped(|ui| {
-            ui.label("状態");
-            egui::ComboBox::from_id_salt("status_filter")
-                .selected_text(next_status.label())
-                .show_ui(ui, |ui| {
-                    for filter in StatusFilter::ALL {
-                        ui.selectable_value(&mut next_status, filter, filter.label());
-                    }
-                });
-            ui.label("並び");
-            egui::ComboBox::from_id_salt("sort_mode")
-                .selected_text(next_sort.label())
-                .show_ui(ui, |ui| {
-                    for sort in SortMode::ALL {
-                        ui.selectable_value(&mut next_sort, sort, sort.label());
-                    }
-                });
-        });
+        ui.label("状態");
+        for filter in StatusFilter::ALL {
+            ui.selectable_value(&mut next_status, filter, filter.label());
+        }
+        ui.label("並び");
+        for sort in SortMode::ALL {
+            ui.selectable_value(&mut next_sort, sort, sort.label());
+        }
         if next_status != self.status_filter {
             self.set_status_filter(next_status);
         }
@@ -2647,63 +2653,59 @@ impl DiffgrGuiApp {
             self.ensure_selected_chunk_visible();
         }
 
-        ui.horizontal(|ui| {
-            ui.label("Path");
-            let response = ui.add_sized(
-                [f32::INFINITY, 24.0],
-                TextEdit::singleline(&mut self.file_filter_input)
-                    .hint_text("ファイルパスで絞り込み"),
-            );
-            if response.changed() {
-                self.schedule_filter_apply(ui.ctx());
-            }
-            if response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter)) {
-                self.apply_filter_inputs_now();
-            }
-        });
-        ui.horizontal(|ui| {
-            ui.label("検索");
-            let response = ui.add_sized(
-                [f32::INFINITY, 24.0],
-                TextEdit::singleline(&mut self.content_filter_input)
-                    .hint_text("ID / diff本文 / コメント"),
-            );
-            if self.focus_search_next_frame {
-                response.request_focus();
-                self.focus_search_next_frame = false;
-            }
-            if response.changed() {
-                self.schedule_filter_apply(ui.ctx());
-            }
-            if response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter)) {
-                self.apply_filter_inputs_now();
-            }
-        });
+        ui.label("Path");
+        let width = finite_available_width(ui, 0.0);
+        let response = ui.add_sized(
+            [width, 24.0],
+            TextEdit::singleline(&mut self.file_filter_input).hint_text("ファイルパスで絞り込み"),
+        );
+        if response.changed() {
+            self.schedule_filter_apply(ui.ctx());
+        }
+        if response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter)) {
+            self.apply_filter_inputs_now();
+        }
+        ui.label("検索");
+        let width = finite_available_width(ui, 0.0);
+        let response = ui.add_sized(
+            [width, 24.0],
+            TextEdit::singleline(&mut self.content_filter_input)
+                .hint_text("ID / diff本文 / コメント"),
+        );
+        if self.focus_search_next_frame {
+            response.request_focus();
+            self.focus_search_next_frame = false;
+        }
+        if response.changed() {
+            self.schedule_filter_apply(ui.ctx());
+        }
+        if response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter)) {
+            self.apply_filter_inputs_now();
+        }
         if self.filter_apply_deadline.is_some() {
             ui.small("検索/Pathフィルタは入力停止後に反映します。Enterで即時反映できます。");
         }
-        ui.horizontal_wrapped(|ui| {
-            if ui
-                .checkbox(&mut self.only_with_comments, "コメント付きのみ")
-                .changed()
-            {
-                self.config.only_with_comments = self.only_with_comments;
-                self.invalidate_visible_cache();
-                self.ensure_selected_chunk_visible();
-            }
-            if ui.button("フィルタ解除").clicked() {
-                self.set_status_filter(StatusFilter::All);
-                self.set_file_filter(String::new());
-                self.set_content_filter(String::new());
-                self.only_with_comments = false;
-                self.config.only_with_comments = false;
-                self.invalidate_visible_cache();
-                self.ensure_selected_chunk_visible();
-            }
-        });
+        if ui
+            .checkbox(&mut self.only_with_comments, "コメント付きのみ")
+            .changed()
+        {
+            self.config.only_with_comments = self.only_with_comments;
+            self.invalidate_visible_cache();
+            self.ensure_selected_chunk_visible();
+        }
+        if ui.button("フィルタ解除").clicked() {
+            self.set_status_filter(StatusFilter::All);
+            self.set_file_filter(String::new());
+            self.set_content_filter(String::new());
+            self.only_with_comments = false;
+            self.config.only_with_comments = false;
+            self.invalidate_visible_cache();
+            self.ensure_selected_chunk_visible();
+        }
     }
 
     fn draw_groups(&mut self, ui: &mut egui::Ui) {
+        ensure_finite_ui_width(ui, 280.0);
         ui.heading("Groups");
         ui.small("グループごとの進捗。クリックで絞り込み。");
         ui.separator();
@@ -2743,33 +2745,31 @@ impl DiffgrGuiApp {
     }
 
     fn draw_chunks(&mut self, ui: &mut egui::Ui) {
+        ensure_finite_ui_width(ui, 440.0);
         ui.heading("Chunks");
         self.draw_filters(ui);
         ui.separator();
         let total_rows = self.visible_chunk_count();
-        ui.horizontal_wrapped(|ui| {
-            ui.label(format!("表示中: {} chunks", total_rows));
-            if ui.button("次の未完了 N").clicked() {
-                self.select_next_pending_or_next();
-            }
-            ui.separator();
-            ui.label("一括:");
-            if ui.button("レビュー済み").clicked() {
-                self.mark_visible_as_reviewed();
-            }
-            if ui.button("再レビュー").clicked() {
-                self.set_visible_status(ReviewStatus::NeedsReReview);
-            }
-            if ui.button("未レビュー").clicked() {
-                self.set_visible_status(ReviewStatus::Unreviewed);
-            }
-            if ui.button("無視").clicked() {
-                self.set_visible_status(ReviewStatus::Ignored);
-            }
-            if ui.button("Undo Ctrl+Z").clicked() {
-                self.undo_last_status_change();
-            }
-        });
+        ui.label(format!("表示中: {} chunks", total_rows));
+        if ui.button("次の未完了 N").clicked() {
+            self.select_next_pending_or_next();
+        }
+        ui.label("一括:");
+        if ui.button("レビュー済み").clicked() {
+            self.mark_visible_as_reviewed();
+        }
+        if ui.button("再レビュー").clicked() {
+            self.set_visible_status(ReviewStatus::NeedsReReview);
+        }
+        if ui.button("未レビュー").clicked() {
+            self.set_visible_status(ReviewStatus::Unreviewed);
+        }
+        if ui.button("無視").clicked() {
+            self.set_visible_status(ReviewStatus::Ignored);
+        }
+        if ui.button("Undo Ctrl+Z").clicked() {
+            self.undo_last_status_change();
+        }
 
         let row_height = if self.config.compact_rows {
             COMPACT_CHUNK_ROW_HEIGHT
@@ -2785,27 +2785,25 @@ impl DiffgrGuiApp {
                         continue;
                     };
                     let selected = self.selected_chunk.as_deref() == Some(row.id.as_str());
-                    ui.horizontal(|ui| {
-                        ui.label(status_badge(row.status));
-                        let comment_mark = if row.line_comments > 0 {
-                            format!(" 💬{}", row.line_comments)
-                        } else {
-                            String::new()
-                        };
-                        let title = format!(
-                            "#{} {}  +{} -{}  old:{} new:{}{}",
-                            row.index + 1,
-                            short_id(&row.id),
-                            row.adds,
-                            row.deletes,
-                            row.old_range,
-                            row.new_range,
-                            comment_mark,
-                        );
-                        if ui.selectable_label(selected, title).clicked() {
-                            self.select_chunk(Some(row.id.clone()));
-                        }
-                    });
+                    ui.label(status_badge(row.status));
+                    let comment_mark = if row.line_comments > 0 {
+                        format!(" 💬{}", row.line_comments)
+                    } else {
+                        String::new()
+                    };
+                    let title = format!(
+                        "#{} {}  +{} -{}  old:{} new:{}{}",
+                        row.index + 1,
+                        short_id(&row.id),
+                        row.adds,
+                        row.deletes,
+                        row.old_range,
+                        row.new_range,
+                        comment_mark,
+                    );
+                    if ui.selectable_label(selected, title).clicked() {
+                        self.select_chunk(Some(row.id.clone()));
+                    }
                     ui.small(&row.file_path);
                     ui.separator();
                 }
@@ -4858,20 +4856,10 @@ impl DiffgrGuiApp {
     }
 
     fn draw_main(&mut self, ui: &mut egui::Ui) {
-        egui::Panel::left("groups_panel")
-            .default_size(280.0)
-            .resizable(true)
-            .show_inside(ui, |ui| {
-                self.draw_groups(ui);
-            });
-        egui::Panel::left("chunks_panel")
-            .default_size(440.0)
-            .resizable(true)
-            .show_inside(ui, |ui| {
-                self.draw_chunks(ui);
-            });
-        egui::CentralPanel::default().show_inside(ui, |ui| {
-            self.draw_detail(ui);
+        ui.columns(3, |columns| {
+            self.draw_groups(&mut columns[0]);
+            self.draw_chunks(&mut columns[1]);
+            self.draw_detail(&mut columns[2]);
         });
     }
 
@@ -5091,24 +5079,23 @@ impl DiffgrGuiApp {
 
 impl eframe::App for DiffgrGuiApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx().clone();
         self.update_frame_budget_metrics();
         self.poll_background_jobs(ui.ctx());
-        self.maybe_apply_debounced_filters(ui.ctx());
+        self.maybe_apply_debounced_filters(&ctx);
         self.maybe_request_active_scroll_repaint(ui.ctx());
         self.handle_shortcuts(ui);
         self.handle_dropped_files(ui);
         self.maybe_auto_save();
         let next_title = self.window_title();
         if next_title != self.last_window_title {
-            ui.ctx()
-                .send_viewport_cmd(egui::ViewportCommand::Title(next_title.clone()));
+            ctx.send_viewport_cmd(egui::ViewportCommand::Title(next_title.clone()));
             self.last_window_title = next_title;
         }
 
         let close_requested = ui.input(|input| input.viewport().close_requested());
         if close_requested && self.dirty && !self.force_close {
-            ui.ctx()
-                .send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.show_close_confirm = true;
         }
 
@@ -5123,7 +5110,9 @@ impl eframe::App for DiffgrGuiApp {
             egui::Panel::top("metrics_bar").show_inside(ui, |ui| {
                 self.draw_metrics(ui);
             });
-            self.draw_main(ui);
+            egui::CentralPanel::default().show_inside(ui, |ui| {
+                self.draw_main(ui);
+            });
         } else {
             egui::CentralPanel::default().show_inside(ui, |ui| {
                 self.draw_empty(ui);
@@ -5133,7 +5122,7 @@ impl eframe::App for DiffgrGuiApp {
         self.draw_help_window(ui);
         self.draw_close_confirm(ui);
         self.draw_drag_overlay(ui);
-        self.draw_performance_overlay(ui.ctx());
+        self.draw_performance_overlay(&ctx);
         self.sync_config_snapshot();
     }
 

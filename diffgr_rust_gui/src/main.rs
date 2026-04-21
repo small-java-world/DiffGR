@@ -7,12 +7,12 @@ fn main() -> eframe::Result {
     let args = StartupArgs::from_env();
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_app_id("diffgr-rust-gui")
+            .with_app_id("diffgr-rust-gui-v2")
             .with_title("DiffGR Review")
             .with_inner_size([1500.0, 940.0])
             .with_min_inner_size([1040.0, 720.0]),
         centered: true,
-        persist_window: true,
+        persist_window: false,
         ..Default::default()
     };
 
