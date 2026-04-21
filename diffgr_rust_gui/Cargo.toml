@@ -1,0 +1,22 @@
+[package]
+name = "diffgr_gui"
+version = "0.1.2"
+edition = "2021"
+rust-version = "1.92"
+description = "Native Rust/egui GUI for reviewing DiffGR JSON files"
+license = "MIT"
+
+[lib]
+name = "diffgr_gui"
+path = "src/lib.rs"
+
+[dependencies]
+eframe = { version = "0.34.1", features = ["persistence"] }
+rfd = "0.17.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 1

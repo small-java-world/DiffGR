@@ -1,0 +1,28 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR Rust GUI minimal sample",
+    "createdAt": "2026-04-19T00:00:00Z",
+    "source": { "type": "example", "base": "base", "head": "head" }
+  },
+  "groups": [
+    { "id": "g-app", "name": "App", "order": 1, "tags": ["sample"] }
+  ],
+  "chunks": [
+    {
+      "id": "c1",
+      "filePath": "src/main.rs",
+      "old": { "start": 1, "count": 3 },
+      "new": { "start": 1, "count": 4 },
+      "lines": [
+        { "kind": "context", "text": "fn main() {", "oldLine": 1, "newLine": 1 },
+        { "kind": "delete", "text": "    println!(\"hello\");", "oldLine": 2, "newLine": null },
+        { "kind": "add", "text": "    println!(\"hello DiffGR\");", "oldLine": null, "newLine": 2 },
+        { "kind": "context", "text": "}", "oldLine": 3, "newLine": 3 }
+      ]
+    }
+  ],
+  "assignments": { "g-app": ["c1"] },
+  "reviews": {}
+}

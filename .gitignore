@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 out/
 *.diffgr.json.bak
+target/
+diffgr_for_chatgpt_pro_*.zip
+diffgr_for_chatgpt_pro_*/
