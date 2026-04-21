@@ -1,0 +1,460 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [モバイル (Expo/RN)]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-mobile",
+      "groupName": "モバイル (Expo/RN)",
+      "chunkCount": 3
+    }
+  },
+  "groups": [
+    {
+      "id": "g-mobile",
+      "name": "モバイル (Expo/RN)",
+      "order": 10,
+      "tags": [
+        "mobile"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4",
+      "filePath": "mobile/src/screens/TaskListScreen.tsx",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 26
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import React, { useEffect, useState } from 'react';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { FlatList, Text, View, StyleSheet, ActivityIndicator } from 'react-native';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { fetchTasks } from '../api/tasks';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export function TaskListScreen() {",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const [tasks, setTasks] = useState<Task[]>([]);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const [loading, setLoading] = useState(true);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const [error, setError] = useState<string | null>(null);",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  useEffect(() => {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    fetchTasks()",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      .then(setTasks)",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      .catch((e) => setError(String(e)))",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      .finally(() => setLoading(false));",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  }, []);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  if (loading) return <ActivityIndicator style={styles.center} />;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  if (error) return <Text style={styles.error}>{error}</Text>;",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  return (",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "    <FlatList",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      data={tasks}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      keyExtractor={(t) => t.id}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "      renderItem={({ item }) => <Text>{item.title}</Text>}",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    />",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "  );",
+          "oldLine": null,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "bdcbfc0d1a7c7b9ad8752e33215f081d88ecc41a414a5d2a2c4d10e997df40c4",
+        "strong": "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4"
+      }
+    },
+    {
+      "id": "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab",
+      "filePath": "mobile/src/api/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 16
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { API_BASE_URL } from '../config';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export async function fetchTasks(): Promise<Task[]> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(`${API_BASE_URL}/tasks`, { credentials: 'include' });",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error(`HTTP ${res.status}`);",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "export async function createTask(input: { title: string }): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(`${API_BASE_URL}/tasks`, {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    method: 'POST',",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    headers: { 'Content-Type': 'application/json' },",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    body: JSON.stringify(input),",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    credentials: 'include',",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error(`HTTP ${res.status}`);",
+          "oldLine": null,
+          "newLine": 16
+        }
+      ],
+      "fingerprints": {
+        "stable": "0ebb6dae3e33881a44bbc171d01a4c72358c20dbd904eeda5e6a108a0873810c",
+        "strong": "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab"
+      }
+    },
+    {
+      "id": "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1",
+      "filePath": "mobile/app.json",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "{",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  \"expo\": {",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "    \"name\": \"AcmeTasks\",",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"name\": \"Acme Tasks\",",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    \"slug\": \"acme-tasks\",",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "delete",
+          "text": "    \"version\": \"1.0.0\",",
+          "oldLine": 5,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"version\": \"1.1.0\",",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    \"runtimeVersion\": { \"policy\": \"appVersion\" },",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "    \"orientation\": \"portrait\"",
+          "oldLine": 6,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 7,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "ed8799fff46893d4fbceb6f0b142217b58b5b391271ae6fc8b5c1f540e98f3c4",
+        "strong": "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1"
+      }
+    }
+  ],
+  "assignments": {
+    "g-mobile": [
+      "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4",
+      "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab",
+      "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1"
+    ]
+  },
+  "reviews": {
+    "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:08Z"
+    },
+    "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:08Z"
+    }
+  },
+  "groupBriefs": {
+    "g-mobile": {
+      "status": "ready",
+      "summary": "Expo/React Native 向けに TaskListScreen と API クライアントを新規追加しました。Web 版の fetch ベース実装を RN 用に移植しています。あわせて app.json のバージョンを 1.1.0 に更新しています。",
+      "focusPoints": [
+        "TaskListScreen は useState + useEffect ベースのシンプルな実装。Web の React Query 版とは異なります",
+        "mobile/src/api/tasks.ts は API_BASE_URL を config から参照しています。config ファイル自体は今回未追加です",
+        "app.json に runtimeVersion: { policy: 'appVersion' } を追加。OTA アップデートの管理方式が変わります"
+      ],
+      "testEvidence": [
+        "モバイルのテストは未追加です"
+      ],
+      "knownTradeoffs": [
+        "TaskListScreen のレンダリングは Text のみで、スタイルが未適用です。UI は今後の作業です",
+        "config.ts（API_BASE_URL の定義）が未実装のためビルドが通らない状態です"
+      ],
+      "questionsForReviewer": [
+        "config.ts の API_BASE_URL は環境変数から取得しますか？expo-constants 経由での設定を想定していますか？",
+        "runtimeVersion を appVersion ポリシーにすると、バージョン番号が違う端末には OTA 配信されません。意図した設定か確認をお願いします"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-mobile",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

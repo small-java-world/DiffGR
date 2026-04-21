@@ -58,11 +58,13 @@ echo "+ cargo ${build_args[*]}"
 cargo "${build_args[@]}"
 
 exe="target/$profile/diffgr_gui"
+ctl="target/$profile/diffgrctl"
 case "$(uname -s 2>/dev/null || echo unknown)" in
-  MINGW*|MSYS*|CYGWIN*) exe="$exe.exe" ;;
+  MINGW*|MSYS*|CYGWIN*) exe="$exe.exe"; ctl="$ctl.exe" ;;
 esac
 
 echo "Built: $ROOT/$exe"
+if [[ -f "$ROOT/$ctl" ]]; then echo "Built: $ROOT/$ctl"; fi
 if [[ $run_after -eq 1 ]]; then
   "$ROOT/$exe"
 fi

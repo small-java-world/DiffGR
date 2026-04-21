@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "missing": [],
+      "name": "src/vpr.rs",
+      "ok": true
+    },
+    {
+      "missing": [],
+      "name": "src/app.rs",
+      "ok": true
+    },
+    {
+      "missing": [],
+      "name": "src/bin/diffgrctl.rs",
+      "ok": true
+    },
+    {
+      "missing": [],
+      "name": "tests/vpr_review_ut.rs",
+      "ok": true
+    }
+  ],
+  "format": "diffgr-virtual-pr-review-audit-result",
+  "minimumTests": 95,
+  "missingDocMarkers": [],
+  "missingWrappers": [],
+  "ok": true,
+  "tests": 100
+}

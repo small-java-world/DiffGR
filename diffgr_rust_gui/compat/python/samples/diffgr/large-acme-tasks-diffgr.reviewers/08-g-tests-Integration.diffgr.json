@@ -1,0 +1,560 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [テスト (Integration)]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-tests",
+      "groupName": "テスト (Integration)",
+      "chunkCount": 3
+    }
+  },
+  "groups": [
+    {
+      "id": "g-tests",
+      "name": "テスト (Integration)",
+      "order": 8,
+      "tags": [
+        "tests"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275",
+      "filePath": "src/routes/__tests__/tasks.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 30
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import request from 'supertest';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import app from '../../app';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../../db/client';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { signToken } from '../../auth/jwt';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "beforeAll(async () => { await db.$connect(); });",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "afterAll(async () => { await db.$disconnect(); });",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "afterEach(async () => { await db.task.deleteMany(); });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "const token = signToken({ sub: 'test-user', type: 'access' });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "const auth = { Authorization: `Bearer ${token}` };",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "describe('GET /api/tasks', () => {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns empty array when no tasks', async () => {",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).get('/api/tasks').set(auth);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(200);",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body).toEqual([]);",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "describe('POST /api/tasks', () => {",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "  it('creates a task', async () => {",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).post('/api/tasks').set(auth).send({ title: 'Buy milk' });",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(201);",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body.title).toBe('Buy milk');",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body.status).toBe('open');",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "add",
+          "text": "  it('rejects missing title', async () => {",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).post('/api/tasks').set(auth).send({});",
+          "oldLine": null,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "ee80f0e9d2661eeadd6516da8bb67aed39d3acdbaee47ade184b9c81a45685e4",
+        "strong": "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275"
+      }
+    },
+    {
+      "id": "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73",
+      "filePath": "src/routes/__tests__/tasks.test.ts",
+      "old": {
+        "start": 30,
+        "count": 0
+      },
+      "new": {
+        "start": 31,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(400);",
+          "oldLine": null,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "describe('DELETE /api/tasks/:id', () => {",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "add",
+          "text": "  it('deletes own task', async () => {",
+          "oldLine": null,
+          "newLine": 36
+        },
+        {
+          "kind": "add",
+          "text": "    const task = await db.task.create({ data: { title: 'tmp', ownerId: 'test-user' } });",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).delete(`/api/tasks/${task.id}`).set(auth);",
+          "oldLine": null,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(204);",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  it('rejects deletion of another user task', async () => {",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "    const task = await db.task.create({ data: { title: 'tmp', ownerId: 'other-user' } });",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).delete(`/api/tasks/${task.id}`).set(auth);",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(403);",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 47
+        }
+      ],
+      "fingerprints": {
+        "stable": "dd12c632eeee083cb47c95075c5f8806cfe1019c1156213e3ad9645db67d0a59",
+        "strong": "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73"
+      }
+    },
+    {
+      "id": "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1",
+      "filePath": "src/services/__tests__/task.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { create, findAll, remove, updateStatus } from '../task';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../../db/client';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "jest.mock('../../db/client');",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "const mockDb = db as jest.Mocked<typeof db>;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "describe('TaskService', () => {",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  describe('create', () => {",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    it('calls db.task.create with correct data', async () => {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "      mockDb.task.create.mockResolvedValueOnce({ id: '1', title: 'Test' } as any);",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      const result = await create({ title: 'Test', status: 'open', tags: [] });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      expect(mockDb.task.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ title: 'Test' }) }));",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      expect(result.id).toBe('1');",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  describe('updateStatus', () => {",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    it('calls db.task.update', async () => {",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      mockDb.task.update.mockResolvedValueOnce({ id: '1', status: 'done' } as any);",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "      await updateStatus('1', 'done');",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "      expect(mockDb.task.update).toHaveBeenCalledWith({ where: { id: '1' }, data: { status: 'done' } });",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "93ac3bde8933a46f97f619e09126bfa884a0b6889aa49e70ee948cc2c3544506",
+        "strong": "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1"
+      }
+    }
+  ],
+  "assignments": {
+    "g-tests": [
+      "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275",
+      "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73",
+      "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1"
+    ]
+  },
+  "reviews": {},
+  "groupBriefs": {
+    "g-tests": {
+      "status": "ready",
+      "summary": "Supertest を使ったルートレベルの統合テストを追加しました。実際の DB（テスト用）に接続して GET/POST/DELETE のシナリオをカバーしています。TaskService のユニットテストも jest.mock で追加しています。",
+      "focusPoints": [
+        "afterEach で db.task.deleteMany() を実行してテスト間のデータ汚染を防いでいます",
+        "DELETE の権限チェックテスト（403）を追加。ownerId が異なるタスクへの削除が拒否されることを確認しています",
+        "TaskService ユニットテストは jest.mock で DB をモック化。create と updateStatus をカバー"
+      ],
+      "testEvidence": [
+        "GET /api/tasks — 空配列返却",
+        "POST /api/tasks — タスク作成成功・title なし時の 400",
+        "DELETE /api/tasks/:id — 所有者の削除成功・他ユーザの削除 403"
+      ],
+      "knownTradeoffs": [
+        "統合テストは実 DB が必要なため、CI 外のローカル実行には PostgreSQL が必要です",
+        "refreshToken 関連のルートテストは未追加です"
+      ],
+      "questionsForReviewer": [
+        "テスト用 DB の初期化（migrate）は CI では npx prisma migrate deploy で行いますが、ローカルでは別途 npm run migrate が必要です。手順を README に追記しますか？"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-tests",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

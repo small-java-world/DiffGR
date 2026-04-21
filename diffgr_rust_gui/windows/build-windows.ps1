@@ -52,7 +52,9 @@ Invoke-Cargo $buildArgs
 
 $profile = if ($Debug) { 'debug' } else { 'release' }
 $exe = Join-Path $Root "target\$profile\diffgr_gui.exe"
+$ctlExe = Join-Path $Root "target\$profile\diffgrctl.exe"
 Write-Host "Built: $exe" -ForegroundColor Green
+if (Test-Path $ctlExe) { Write-Host "Built: $ctlExe" -ForegroundColor Green }
 
 if ($RunAfterBuild) {
     Start-Process -FilePath $exe -WorkingDirectory $Root

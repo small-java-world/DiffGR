@@ -1,0 +1,538 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [CI / Infra / Deploy]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-infra",
+      "groupName": "CI / Infra / Deploy",
+      "chunkCount": 4
+    }
+  },
+  "groups": [
+    {
+      "id": "g-infra",
+      "name": "CI / Infra / Deploy",
+      "order": 6,
+      "tags": [
+        "ci",
+        "infra"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "name: CI",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "on:",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  push:",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    branches: [main]",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "  pull_request:",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "jobs:",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  test:",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "    runs-on: ubuntu-latest",
+          "oldLine": 9,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    services:",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      postgres:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "        image: postgres:16-alpine",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 13
+        }
+      ],
+      "fingerprints": {
+        "stable": "f0883f1773a2c0aa8b37b4656229b7998bb23a67eab606a26367bf7e2d872878",
+        "strong": "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8"
+      },
+      "header": "test job"
+    },
+    {
+      "id": "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 10,
+        "count": 8
+      },
+      "new": {
+        "start": 18,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "    steps:",
+          "oldLine": 10,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_DB: acme_tasks_test",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_USER: acme",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_PASSWORD: acme",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "        ports:",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "          - 5432:5432",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "        options: >-",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "          --health-cmd pg_isready --health-interval 5s --health-retries 5",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    steps:",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "      - uses: actions/checkout@v4",
+          "oldLine": 11,
+          "newLine": 26
+        },
+        {
+          "kind": "context",
+          "text": "      - uses: actions/setup-node@v4",
+          "oldLine": 12,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "        with:",
+          "oldLine": 13,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "          node-version: 20",
+          "oldLine": 14,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "          cache: npm",
+          "oldLine": 15,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "42a11fec33113aedbfe75830c55de8f2ff667aa037a1a6d0b09e387d3d1dbe7b",
+        "strong": "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918"
+      },
+      "header": "steps"
+    },
+    {
+      "id": "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 20,
+        "count": 5
+      },
+      "new": {
+        "start": 34,
+        "count": 9
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "      - run: npm ci",
+          "oldLine": 20,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run lint",
+          "oldLine": 21,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run typecheck",
+          "oldLine": 22,
+          "newLine": 36
+        },
+        {
+          "kind": "delete",
+          "text": "      - run: npm test",
+          "oldLine": 23,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npx prisma migrate deploy",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "          DATABASE_URL: postgresql://acme:acme@localhost:5432/acme_tasks_test",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm test",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run build",
+          "oldLine": 24,
+          "newLine": 41
+        }
+      ],
+      "fingerprints": {
+        "stable": "63a6aa448eb5945bfa423af266cbc8bb2f2773fe8e8e8b1bd77c68c3e83f385e",
+        "strong": "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3"
+      },
+      "header": "test steps"
+    },
+    {
+      "id": "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c",
+      "filePath": ".github/workflows/deploy.yml",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "name: Deploy",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "on:",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "  push:",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "    branches: [main]",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    paths-ignore: ['**.md', 'docs/**']",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "jobs:",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  deploy:",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    runs-on: ubuntu-latest",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    environment: production",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    steps:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      - uses: actions/checkout@v4",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      - uses: actions/setup-node@v4",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "        with:",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "          node-version: 20",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "          cache: npm",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm ci",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm run build",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      - name: Deploy to Fly.io",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "        uses: superfly/flyctl-actions/setup-flyctl@master",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "      - run: flyctl deploy --remote-only",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "092f4b2e1986d429a480df52a5eb112bfb31aa6627fefcc25bfd75d23c823674",
+        "strong": "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c"
+      }
+    }
+  ],
+  "assignments": {
+    "g-infra": [
+      "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8",
+      "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918",
+      "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3",
+      "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c"
+    ]
+  },
+  "reviews": {
+    "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918": {
+      "lineComments": [
+        {
+          "oldLine": null,
+          "newLine": 24,
+          "lineType": "add",
+          "comment": "sss",
+          "updatedAt": "2026-03-15T14:01:51Z"
+        }
+      ],
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:01:58Z"
+    },
+    "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:02Z"
+    },
+    "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:02Z"
+    }
+  },
+  "groupBriefs": {
+    "g-infra": {
+      "status": "acknowledged",
+      "summary": "CI に PostgreSQL サービスコンテナを追加し、マイグレーションを実行してから統合テストを走らせるフローに変更しました。また main push 時に Fly.io へ自動デプロイする deploy.yml を新規作成しています。",
+      "focusPoints": [
+        "ci.yml に postgres:16-alpine サービスを追加。ヘルスチェック付きで、DB が ready になるまでテストが待機します",
+        "テスト前に npx prisma migrate deploy を実行。DATABASE_URL はテスト用の acme_tasks_test DB を指しています",
+        "deploy.yml は main ブランチへの push のみトリガー。md/docs の変更は paths-ignore で除外しています",
+        "Fly.io デプロイには FLY_API_TOKEN シークレットが必要です（GitHub Secrets への登録が必要）"
+      ],
+      "testEvidence": [
+        "CI パイプライン自体の動作確認は push 後に実施が必要です"
+      ],
+      "knownTradeoffs": [
+        "deploy.yml は CI 通過を待たずに deploy を実行します。CI と deploy を直列にしたい場合は workflow_run トリガーへの変更が必要です"
+      ],
+      "questionsForReviewer": [
+        "FLY_API_TOKEN は GitHub リポジトリの Secrets に設定済みですか？",
+        "deploy 前の CI 成功を必須にしますか？（workflow_run トリガーへの変更が必要です）"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-infra",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

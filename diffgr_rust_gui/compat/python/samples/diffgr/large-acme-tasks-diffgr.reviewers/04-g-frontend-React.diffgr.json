@@ -1,0 +1,861 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [フロントエンド (React)]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-frontend",
+      "groupName": "フロントエンド (React)",
+      "chunkCount": 6
+    }
+  },
+  "groups": [
+    {
+      "id": "g-frontend",
+      "name": "フロントエンド (React)",
+      "order": 4,
+      "tags": [
+        "frontend",
+        "react"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324",
+      "filePath": "frontend/src/api/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "const BASE = '/api/tasks';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export async function fetchTasks(): Promise<Task[]> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(BASE, { credentials: 'include' });",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error('Failed to fetch tasks');",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "export async function createTask(input: TaskCreateInput): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(BASE, {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    method: 'POST',",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    headers: { 'Content-Type': 'application/json' },",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    body: JSON.stringify(input),",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    credentials: 'include',",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) {",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    const err = await res.json().catch(() => ({}));",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    throw new Error(err.error ?? 'Failed to create task');",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "45a62621e384e0ac0be3aeb50092c244475c5ba33fe40273e227899b2e2cb441",
+        "strong": "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324"
+      }
+    },
+    {
+      "id": "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723",
+      "filePath": "frontend/src/components/TaskList.tsx",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import React, { useEffect, useState } from 'react';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { useQuery } from '@tanstack/react-query';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "import { fetchTasks } from '../api/tasks';",
+          "oldLine": 2,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "import { TaskCard } from './TaskCard';",
+          "oldLine": 3,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "import { Spinner } from './ui/Spinner';",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function TaskList() {",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "delete",
+          "text": "  const [tasks, setTasks] = useState([]);",
+          "oldLine": 6,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "  useEffect(() => { fetchTasks().then(setTasks); }, []);",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const { data: tasks, isLoading, error } = useQuery({",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    queryKey: ['tasks'],",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    queryFn: fetchTasks,",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 8,
+          "newLine": 12
+        }
+      ],
+      "fingerprints": {
+        "stable": "59c86732b4c0bc779ed5bc4d8fe12a973d1c1a8e9882bb66a833455245c50230",
+        "strong": "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723"
+      },
+      "header": "TaskList"
+    },
+    {
+      "id": "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a",
+      "filePath": "frontend/src/components/TaskList.tsx",
+      "old": {
+        "start": 12,
+        "count": 6
+      },
+      "new": {
+        "start": 16,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  return (",
+          "oldLine": 12,
+          "newLine": 16
+        },
+        {
+          "kind": "delete",
+          "text": "    <div>",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "      {tasks.map((t) => <TaskCard key={t.id} task={t} />)}",
+          "oldLine": 14,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "    </div>",
+          "oldLine": 15,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    <div className=\"task-list\">",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      {isLoading && <Spinner />}",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      {error && <p className=\"error\">{String(error)}</p>}",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "      {tasks?.map((t) => (",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "        <TaskCard key={t.id} task={t} />",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      ))}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      {tasks?.length === 0 && <p>No tasks yet.</p>}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "    </div>",
+          "oldLine": 16,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "  );",
+          "oldLine": 17,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 18,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "11b57760b6de735e456fdc01ad476d4fb9a2aafc1cb3c0e81aac6f4ad6e889ff",
+        "strong": "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a"
+      },
+      "header": "return"
+    },
+    {
+      "id": "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3",
+      "filePath": "frontend/src/components/TaskForm.tsx",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import React, { useState } from 'react';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { useMutation, useQueryClient } from '@tanstack/react-query';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { createTask } from '../api/tasks';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export function TaskForm() {",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const qc = useQueryClient();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const [title, setTitle] = useState('');",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const [desc, setDesc] = useState('');",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  const mut = useMutation({",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    mutationFn: createTask,",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); setTitle(''); setDesc(''); },",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  return (",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    <form onSubmit={(e) => { e.preventDefault(); mut.mutate({ title, description: desc }); }}>",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder=\"Task title\" required />",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder=\"Description\" />",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      <button type=\"submit\" disabled={mut.isPending}>Add</button>",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      {mut.isError && <p className=\"error\">{String(mut.error)}</p>}",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    </form>",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  );",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 21
+        }
+      ],
+      "fingerprints": {
+        "stable": "15d98c4cecbb8a94c856b9c875db8b57a4ba2a0cae4cf917e414a32fe89538bc",
+        "strong": "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3"
+      }
+    },
+    {
+      "id": "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd",
+      "filePath": "frontend/src/components/TaskCard.tsx",
+      "old": {
+        "start": 5,
+        "count": 6
+      },
+      "new": {
+        "start": 5,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "interface Props { task: Task; }",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function TaskCard({ task }: Props) {",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  return (",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "delete",
+          "text": "    <div className=\"card\">",
+          "oldLine": 9,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    <div className={`card card--${task.status}`}>",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "      <h3>{task.title}</h3>",
+          "oldLine": 10,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      {task.description && <p>{task.description}</p>}",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      <span className=\"badge\">{task.status}</span>",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      {task.dueAt && <time>{new Date(task.dueAt).toLocaleDateString()}</time>}",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "    </div>",
+          "oldLine": 11,
+          "newLine": 14
+        },
+        {
+          "kind": "context",
+          "text": "  );",
+          "oldLine": 12,
+          "newLine": 15
+        }
+      ],
+      "fingerprints": {
+        "stable": "7e5ffa4a919c196621dcae0276be2a7b8a71a588229ae590d6746a008f829787",
+        "strong": "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd"
+      },
+      "header": "TaskCard"
+    },
+    {
+      "id": "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b",
+      "filePath": "frontend/src/styles/tasks.css",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": ".task-list { display: flex; flex-direction: column; gap: 12px; padding: 16px; }",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": ".card {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  border: 1px solid #e2e8f0;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  border-radius: 8px;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  padding: 16px;",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  background: #fff;",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  box-shadow: 0 1px 3px rgba(0,0,0,.06);",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": ".card--in_progress { border-left: 4px solid #3b82f6; }",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": ".card--done { border-left: 4px solid #22c55e; opacity: 0.7; }",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": ".badge {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  display: inline-block;",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  font-size: 11px;",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  padding: 2px 8px;",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  border-radius: 12px;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  background: #f1f5f9;",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": ".error { color: #ef4444; font-size: 13px; margin-top: 4px; }",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "2b1ba981dba8fb6b735052e4de87d7f3e2b3e36b57fb5b1ae22665aea03b8b8d",
+        "strong": "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b"
+      }
+    }
+  ],
+  "assignments": {
+    "g-frontend": [
+      "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324",
+      "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723",
+      "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a",
+      "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3",
+      "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd",
+      "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b"
+    ]
+  },
+  "reviews": {
+    "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:07Z"
+    }
+  },
+  "groupBriefs": {
+    "g-frontend": {
+      "status": "ready",
+      "summary": "フロントエンドに API クライアント層を新設し、TaskList を React Query ベースに書き直しました。また TaskForm（タスク作成フォーム）と TaskCard の status/description 表示を追加しています。",
+      "focusPoints": [
+        "TaskList を useState + useEffect から useQuery に移行。ローディング・エラー状態が明示的に扱えるようになりました",
+        "TaskForm は useMutation + useQueryClient.invalidateQueries で作成後に自動リフレッシュします",
+        "TaskCard に status バッジ・description・dueAt 表示を追加。card--{status} クラスで色分けしています",
+        "fetchTasks/createTask のエラー時は res.json() のエラーメッセージをそのまま throw するため、API のエラーレスポンス形式に依存します"
+      ],
+      "testEvidence": [
+        "フロントエンドのユニットテストは今回未追加です"
+      ],
+      "knownTradeoffs": [
+        "TaskList は現在ページネーションなし。バックエンドの take:100 制限と合わせて、100件を超えると古いタスクが表示されません",
+        "React Query の staleTime が未設定のため、フォーカス復帰のたびにリフェッチが発生します"
+      ],
+      "questionsForReviewer": [
+        "Spinner コンポーネント（ui/Spinner）は既存のものを想定していますが、実装はありますか？",
+        "タスク削除ボタンは今回未実装です。追加しますか？"
+      ],
+      "approval": {
+        "state": "approved",
+        "approved": true,
+        "approvedAt": "2026-03-15T23:33:46Z",
+        "approvedBy": "f.kawano",
+        "approvalFingerprint": "e3c70022ae1c578dddb1a92ee3651172500e3e01a0f30f484d350a3cec738a3b",
+        "sourceHead": "bbb0000000000000000000000000000000000002",
+        "decisionAt": "2026-03-15T23:33:46Z",
+        "reviewedCount": 6,
+        "totalCount": 6
+      }
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-frontend",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

@@ -7,6 +7,8 @@ param(
     [switch]$NoBuild,
     [switch]$Wait,
     [switch]$LowMemory,
+    [switch]$Smooth,
+    [switch]$NoBackgroundIO,
     [switch]$ClearCache
 )
 
@@ -20,6 +22,12 @@ if ($ClearCache) {
 
 if ($LowMemory) {
     $env:DIFFGR_LOW_MEMORY = '1'
+}
+if ($Smooth) {
+    $env:DIFFGR_SMOOTH_SCROLL = '1'
+}
+if ($NoBackgroundIO) {
+    $env:DIFFGR_NO_BACKGROUND_IO = '1'
 }
 
 function Test-Command {
@@ -63,6 +71,12 @@ if ($Diffgr) {
 if ($State) {
     $argsList += '--state'
     $argsList += (Resolve-Path -LiteralPath $State).Path
+}
+if ($Smooth) {
+    $argsList += '--smooth-scroll'
+}
+if ($NoBackgroundIO) {
+    $argsList += '--no-background-io'
 }
 
 if ($Wait) {

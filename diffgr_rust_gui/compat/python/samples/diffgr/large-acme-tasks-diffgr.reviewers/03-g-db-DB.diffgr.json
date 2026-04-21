@@ -1,0 +1,603 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [DB / マイグレーション]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-db",
+      "groupName": "DB / マイグレーション",
+      "chunkCount": 6
+    }
+  },
+  "groups": [
+    {
+      "id": "g-db",
+      "name": "DB / マイグレーション",
+      "order": 3,
+      "tags": [
+        "db",
+        "prisma"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "generator client {",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  provider = \"prisma-client-js\"",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "datasource db {",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "  provider = \"postgresql\"",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "delete",
+          "text": "  url      = env(\"DATABASE_URL\")",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  url      = env(\"DATABASE_URL\")",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  directUrl = env(\"DATABASE_DIRECT_URL\")",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 9,
+          "newLine": 10
+        }
+      ],
+      "fingerprints": {
+        "stable": "b6d07d45f0622d7bd857b93f870ddaa4377e2a7828883d0bc9c1f967b01589bc",
+        "strong": "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848"
+      },
+      "header": "datasource db"
+    },
+    {
+      "id": "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 20,
+        "count": 8
+      },
+      "new": {
+        "start": 22,
+        "count": 16
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "model Task {",
+          "oldLine": 20,
+          "newLine": 22
+        },
+        {
+          "kind": "context",
+          "text": "  id        String   @id @default(cuid())",
+          "oldLine": 21,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "  title     String",
+          "oldLine": 22,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "  description String?",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "  status    String   @default(\"open\")",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "  tags      String[]",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "  dueAt     DateTime?",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "  ownerId   String",
+          "oldLine": 23,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "  owner     User     @relation(fields: [ownerId], references: [id])",
+          "oldLine": 24,
+          "newLine": 30
+        },
+        {
+          "kind": "context",
+          "text": "  createdAt DateTime @default(now())",
+          "oldLine": 25,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  updatedAt DateTime @updatedAt",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 26,
+          "newLine": 33
+        }
+      ],
+      "fingerprints": {
+        "stable": "6f4caffa096f23bc451ff46abf6a05ba5dd281b1aa623e695731c6c10e11e9e9",
+        "strong": "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f"
+      },
+      "header": "model Task"
+    },
+    {
+      "id": "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 35,
+        "count": 0
+      },
+      "new": {
+        "start": 40,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "model RefreshToken {",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  id        String   @id @default(cuid())",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "  token     String   @unique",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "  userId    String",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "  user      User     @relation(fields: [userId], references: [id])",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  revokedAt DateTime?",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "  createdAt DateTime @default(now())",
+          "oldLine": null,
+          "newLine": 47
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 48
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 49
+        }
+      ],
+      "fingerprints": {
+        "stable": "961da90ca9a26aa21f17613123df49d7924e1f29aac2355acce311eb4aa01f40",
+        "strong": "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536"
+      }
+    },
+    {
+      "id": "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3",
+      "filePath": "prisma/migrations/20260314_add_task_fields/migration.sql",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "-- Migration: add description, status, tags, dueAt to Task",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "-- add_task_fields",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"description\" TEXT;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"status\" TEXT NOT NULL DEFAULT 'open';",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"tags\" TEXT[] NOT NULL DEFAULT '{}';",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"dueAt\" TIMESTAMP(3);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"updatedAt\" TIMESTAMP(3) NOT NULL DEFAULT NOW();",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "CREATE INDEX \"Task_status_idx\" ON \"Task\"(\"status\");",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "CREATE INDEX \"Task_ownerId_status_idx\" ON \"Task\"(\"ownerId\", \"status\");",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "-- RefreshToken table",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "CREATE TABLE \"RefreshToken\" (",
+          "oldLine": null,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "1dfa2dce7d628e795ba2b8111ec5c5660c6ad48c9517767cd1532ec15e357638",
+        "strong": "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3"
+      }
+    },
+    {
+      "id": "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca",
+      "filePath": "prisma/migrations/20260314_add_task_fields/migration.sql",
+      "old": {
+        "start": 14,
+        "count": 0
+      },
+      "new": {
+        "start": 14,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "  \"id\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  \"token\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  \"userId\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  \"revokedAt\" TIMESTAMP(3),",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  \"createdAt\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  CONSTRAINT \"RefreshToken_pkey\" PRIMARY KEY (\"id\")",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": ");",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "CREATE UNIQUE INDEX \"RefreshToken_token_key\" ON \"RefreshToken\"(\"token\");",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"RefreshToken\" ADD CONSTRAINT \"RefreshToken_userId_fkey\" FOREIGN KEY (\"userId\") REFERENCES \"User\"(\"id\") ON DELETE CASCADE ON UPDATE CASCADE;",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "72e65342dbaa1c069ad98c7e9342bf4edc68491805ca44d34a12f3da0e0f9cb0",
+        "strong": "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca"
+      }
+    },
+    {
+      "id": "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e",
+      "filePath": "src/db/client.ts",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { PrismaClient } from '@prisma/client';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "export const db = new PrismaClient();",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export const db =",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  globalForPrisma.prisma ?? new PrismaClient({ log: ['warn', 'error'] });",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "export default db;",
+          "oldLine": 5,
+          "newLine": 10
+        }
+      ],
+      "fingerprints": {
+        "stable": "c2f38a300f9da9fa83819ed3bb402ff61051ae43728c3ee7210310346db5e73b",
+        "strong": "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e"
+      },
+      "header": "db client"
+    }
+  ],
+  "assignments": {
+    "g-db": [
+      "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848",
+      "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f",
+      "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536",
+      "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3",
+      "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca",
+      "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e"
+    ]
+  },
+  "reviews": {
+    "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-03-15T14:13:12Z"
+    }
+  },
+  "groupBriefs": {
+    "g-db": {
+      "status": "ready",
+      "summary": "Prisma スキーマに Task の新フィールド（description/status/tags/dueAt/updatedAt）と RefreshToken モデルを追加しました。対応するマイグレーション SQL も同梱しています。また Prisma クライアントをシングルトン化して開発時の接続過多を防いでいます。",
+      "focusPoints": [
+        "Task に status/tags/dueAt/updatedAt/description を追加。既存レコードは status='open'、tags='{}'、updatedAt=NOW() がデフォルト値として適用されます",
+        "Task_status_idx と Task_ownerId_status_idx の2インデックスを追加。フィルタリングクエリのパフォーマンスに直結します",
+        "RefreshToken テーブルを新規作成。token カラムに UNIQUE インデックスあり",
+        "datasource に directUrl を追加。Prisma Accelerate や PgBouncer 経由のマイグレーション用です",
+        "db/client.ts のシングルトン化により、Next.js/ts-node-dev のホットリロード時に接続が増殖する問題を回避しています"
+      ],
+      "testEvidence": [
+        "マイグレーション SQL は手動で確認済みの想定（自動テストなし）",
+        "RefreshToken の外部キー制約は CASCADE DELETE 設定"
+      ],
+      "knownTradeoffs": [
+        "tags は TEXT[] 型（PostgreSQL 配列）のため、他の DB エンジンへの移植性は低いです",
+        "updatedAt は @updatedAt（Prisma 管理）のため、Prisma 経由以外の更新では自動更新されません"
+      ],
+      "questionsForReviewer": [
+        "directUrl の設定は本番環境で必要ですか？PgBouncer / Prisma Accelerate の利用有無を確認させてください"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-db",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}

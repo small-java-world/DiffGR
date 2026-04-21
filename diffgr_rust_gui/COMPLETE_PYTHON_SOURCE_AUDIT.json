@@ -1,0 +1,988 @@
+{
+  "format": "diffgr-complete-python-source-audit",
+  "version": 1,
+  "policy": "All non-cache files from the uploaded Python DiffGR app are bundled under compat/python byte-for-byte. __pycache__ files are excluded because they are interpreter-specific rebuildable caches, not source functionality.",
+  "sourceRoot": "compat/python",
+  "sourceFileCount": 163,
+  "excludedCacheFileCount": 99,
+  "entries": [
+    {
+      "sourcePath": ".gitignore",
+      "compatPath": "compat/python/.gitignore",
+      "size": 74,
+      "sha256": "78a6d43110d4a1d49b9f63891c3dc4d78d01e272aac2ef49c9196d8c9dd641a4"
+    },
+    {
+      "sourcePath": "DiffGR_v1_?+????.md",
+      "compatPath": "compat/python/DiffGR_v1_?+????.md",
+      "size": 15315,
+      "sha256": "e482b620d81bf99c4721b75279889185b441be26a19a30396de0b9906a914de9"
+    },
+    {
+      "sourcePath": "LICENSE",
+      "compatPath": "compat/python/LICENSE",
+      "size": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "sourcePath": "README.md",
+      "compatPath": "compat/python/README.md",
+      "size": 19990,
+      "sha256": "32a4e054e06ac68c9bbb8212fa7a1ff0947d9e31dff1e63a4a3abe38ca65d910"
+    },
+    {
+      "sourcePath": "agent_cli.toml",
+      "compatPath": "compat/python/agent_cli.toml",
+      "size": 591,
+      "sha256": "61f399de648343c0bfe8ce2910894d9b67320b4d0d8ecddac057e4e28e02bf52"
+    },
+    {
+      "sourcePath": "diffgr/__init__.py",
+      "compatPath": "compat/python/diffgr/__init__.py",
+      "size": 126,
+      "sha256": "2cf032d745f3fa40f56b5a83388d31c906b253e15d0aa81ce958eb2cca26aefd"
+    },
+    {
+      "sourcePath": "diffgr/agent_cli.py",
+      "compatPath": "compat/python/diffgr/agent_cli.py",
+      "size": 14679,
+      "sha256": "dbd5732f001331bfda929631662dfe213265bc9e7f337fd08fcf782b117dc2f1"
+    },
+    {
+      "sourcePath": "diffgr/approval.py",
+      "compatPath": "compat/python/diffgr/approval.py",
+      "size": 21549,
+      "sha256": "6f01902972d1e7530d5a77963d5fe00d94b1d5902bbd50727e3177a9215367e6"
+    },
+    {
+      "sourcePath": "diffgr/autoslice.py",
+      "compatPath": "compat/python/diffgr/autoslice.py",
+      "size": 10598,
+      "sha256": "6af7a21e7bf5f2ee7ccd27f500d2a4b8d028145f1e5cd1f5a17aaa1c6c934f42"
+    },
+    {
+      "sourcePath": "diffgr/diff_utils.py",
+      "compatPath": "compat/python/diffgr/diff_utils.py",
+      "size": 725,
+      "sha256": "33091afa9c5074dfb871d45709ef0b1fcf019783b62f223f1f457d30118b196a"
+    },
+    {
+      "sourcePath": "diffgr/generator.py",
+      "compatPath": "compat/python/diffgr/generator.py",
+      "size": 10422,
+      "sha256": "572f810cac49a94fcf2cc09f28869afd409aba11fe6ee08b863325ff28ddd144"
+    },
+    {
+      "sourcePath": "diffgr/group_brief_utils.py",
+      "compatPath": "compat/python/diffgr/group_brief_utils.py",
+      "size": 10686,
+      "sha256": "b088ca6cf272bf9e50aa1fc032a908aaff48de00a705d89e2755c62f7c6609d9"
+    },
+    {
+      "sourcePath": "diffgr/group_utils.py",
+      "compatPath": "compat/python/diffgr/group_utils.py",
+      "size": 1737,
+      "sha256": "868cd1a03cb608d930ea57e4211e36f08bf2e999e227c4b52eeea7936161232c"
+    },
+    {
+      "sourcePath": "diffgr/html_report.py",
+      "compatPath": "compat/python/diffgr/html_report.py",
+      "size": 201068,
+      "sha256": "baf1cb3d4c0960049469a3fc58422b0c5966f579fd6c093c62d165676ee0a381"
+    },
+    {
+      "sourcePath": "diffgr/impact.py",
+      "compatPath": "compat/python/diffgr/impact.py",
+      "size": 8302,
+      "sha256": "6d823da07386a877e5cf1508f17ec8cb6dc2da18f733526d27b3d0f9878791dc"
+    },
+    {
+      "sourcePath": "diffgr/impact_merge.py",
+      "compatPath": "compat/python/diffgr/impact_merge.py",
+      "size": 18674,
+      "sha256": "c60c8e540f5e74e5fc920043d80cbd74b52e6b60d34378d3afa45eb50a5aaa34"
+    },
+    {
+      "sourcePath": "diffgr/review_bundle.py",
+      "compatPath": "compat/python/diffgr/review_bundle.py",
+      "size": 8541,
+      "sha256": "9a412af1617ff9a77ca8ce027829423f9caed9b882d3143bb194133871772dc2"
+    },
+    {
+      "sourcePath": "diffgr/review_history.py",
+      "compatPath": "compat/python/diffgr/review_history.py",
+      "size": 6796,
+      "sha256": "caf6d1b15656bb50aaef0e78fcf7e7106d53b66e15241038e3c66f040548af79"
+    },
+    {
+      "sourcePath": "diffgr/review_rebase.py",
+      "compatPath": "compat/python/diffgr/review_rebase.py",
+      "size": 27192,
+      "sha256": "4f315dfdc1a20dd4648da9b2ce1d97f8fed51400c35fa445b0895d3744b7ad01"
+    },
+    {
+      "sourcePath": "diffgr/review_split.py",
+      "compatPath": "compat/python/diffgr/review_split.py",
+      "size": 12355,
+      "sha256": "c4e02eb8fa69e04b82c7ca26ca2b9a2f1161f82a1bff9e14d614e1f6416b4c9f"
+    },
+    {
+      "sourcePath": "diffgr/review_state.py",
+      "compatPath": "compat/python/diffgr/review_state.py",
+      "size": 33578,
+      "sha256": "843cfdd35d45f8c6881d37acaf6b820fb5b75ceb7417c2edf91c08c81e4666fe"
+    },
+    {
+      "sourcePath": "diffgr/review_utils.py",
+      "compatPath": "compat/python/diffgr/review_utils.py",
+      "size": 3983,
+      "sha256": "ef4b48ad8727fe9f1a5b57b1195af3c1924f678a225c8f0d0ece269428b702fa"
+    },
+    {
+      "sourcePath": "diffgr/reviewability.py",
+      "compatPath": "compat/python/diffgr/reviewability.py",
+      "size": 9607,
+      "sha256": "b945be4e85ccdcd1d9fa0f7f383a38a933296c883536049598a415f6c9159f70"
+    },
+    {
+      "sourcePath": "diffgr/slice_patch.py",
+      "compatPath": "compat/python/diffgr/slice_patch.py",
+      "size": 2369,
+      "sha256": "d3e49f27e2a6f081b604fb9aafb266b2e6043179bd0fa0ed79cf66c30f20212b"
+    },
+    {
+      "sourcePath": "diffgr/slice_patch.schema.json",
+      "compatPath": "compat/python/diffgr/slice_patch.schema.json",
+      "size": 699,
+      "sha256": "e7247b6725495647dfb9629a60fd7d1b8c56cf89f6ed8b3c25d9e9c73b1ceffa"
+    },
+    {
+      "sourcePath": "diffgr/slice_refine.py",
+      "compatPath": "compat/python/diffgr/slice_refine.py",
+      "size": 6770,
+      "sha256": "b357fa8d3852cf26927ab32bb7daa6bd5e6e7b1be13693937ed92cf7f95db8b1"
+    },
+    {
+      "sourcePath": "diffgr/summary.py",
+      "compatPath": "compat/python/diffgr/summary.py",
+      "size": 4871,
+      "sha256": "59e75475e9c50df09f06403bbdd2aa9a1db8d3ed4bf159fe0b7fe7fa448d5717"
+    },
+    {
+      "sourcePath": "diffgr/viewer_app.py",
+      "compatPath": "compat/python/diffgr/viewer_app.py",
+      "size": 58648,
+      "sha256": "f0182a313e55a1cabf68de4a841296fca7857cc828f5991e72c54a62c5d6cf6a"
+    },
+    {
+      "sourcePath": "diffgr/viewer_cli.py",
+      "compatPath": "compat/python/diffgr/viewer_cli.py",
+      "size": 3208,
+      "sha256": "1695f72347b064c8f0e57d4e453bc76d0d7905ee88b750b9782c42cfa505d168"
+    },
+    {
+      "sourcePath": "diffgr/viewer_core.py",
+      "compatPath": "compat/python/diffgr/viewer_core.py",
+      "size": 6793,
+      "sha256": "b137af4135893ced8d98ede7031fddbef8d422a93156a0a1087fa4a572f3aa58"
+    },
+    {
+      "sourcePath": "diffgr/viewer_render.py",
+      "compatPath": "compat/python/diffgr/viewer_render.py",
+      "size": 27358,
+      "sha256": "1394d01d535dfaddeb80de18302c5121882d34041116602c4b661aad118c516d"
+    },
+    {
+      "sourcePath": "diffgr/viewer_textual.py",
+      "compatPath": "compat/python/diffgr/viewer_textual.py",
+      "size": 177835,
+      "sha256": "ff6992aa8e7f7864a5724f93676b96e0a8a578b8daa134c4b9f7e27bc6711896"
+    },
+    {
+      "sourcePath": "diffgr/virtual_pr_coverage.py",
+      "compatPath": "compat/python/diffgr/virtual_pr_coverage.py",
+      "size": 7351,
+      "sha256": "955a31b9eb962d1888783c0ce9e008fdaa9f561689d2233c0cc7345a08974502"
+    },
+    {
+      "sourcePath": "docs/ai_create_diffgr.md",
+      "compatPath": "compat/python/docs/ai_create_diffgr.md",
+      "size": 9256,
+      "sha256": "9d5def2306baf2a0e22824417527f7f33e71e370bc38541304b0d734d5477236"
+    },
+    {
+      "sourcePath": "docs/ai_review_handoff.md",
+      "compatPath": "compat/python/docs/ai_review_handoff.md",
+      "size": 7209,
+      "sha256": "422cddcf37ac45b07bbb22478e660ce2173b821f5865213eb84d068a92210c92"
+    },
+    {
+      "sourcePath": "docs/p0_implementation_tasks_20260313.md",
+      "compatPath": "compat/python/docs/p0_implementation_tasks_20260313.md",
+      "size": 8661,
+      "sha256": "f41b06e0220bd1cd0cd1a92a27fa73b5b50146d45246103d4b40cf3a4a748b07"
+    },
+    {
+      "sourcePath": "docs/release_notes_20260314.md",
+      "compatPath": "compat/python/docs/release_notes_20260314.md",
+      "size": 3043,
+      "sha256": "ff698b7ed4f63166ffeb3d53c0be54eb31a205892cff707841be444a0073167a"
+    },
+    {
+      "sourcePath": "docs/review_repo_workflow.md",
+      "compatPath": "compat/python/docs/review_repo_workflow.md",
+      "size": 23348,
+      "sha256": "92dc815d360ce2e3a63e7d5e5914b6f9339d5837fd72c41dc8bbfa7706a55c23"
+    },
+    {
+      "sourcePath": "docs/??????????????+??????.md",
+      "compatPath": "compat/python/docs/??????????????+??????.md",
+      "size": 29338,
+      "sha256": "309fab50573e99bd3b0e66f448d04ed63f8ec90757c9f81682ecc58d3e2816b8"
+    },
+    {
+      "sourcePath": "openspec/changes/add-python-diffgr-viewer/design.md",
+      "compatPath": "compat/python/openspec/changes/add-python-diffgr-viewer/design.md",
+      "size": 6347,
+      "sha256": "a5d5f5c5490d7b6c539ee370c3fb2d2a065ec970c36719d81553e7f8d11f64e1"
+    },
+    {
+      "sourcePath": "requirements.txt",
+      "compatPath": "compat/python/requirements.txt",
+      "size": 96,
+      "sha256": "616f04cf34124cd77c4ff165516082c83fd2f1505d3ec14bb2218bad0f23c2c1"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/01-g-auth-Auth.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/01-g-auth-Auth.diffgr.json",
+      "size": 20191,
+      "sha256": "ca9bf89a4422af9e80ac4e887f379b7144368f3e50b386d5dd11e4bf9279d0d5"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/02-g-api-API-Routes-Services.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/02-g-api-API-Routes-Services.diffgr.json",
+      "size": 18588,
+      "sha256": "a00faa7d529795d92aa40685e0ca39d628a7e28f40c7d5d55d3141f9228ff17e"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/03-g-db-DB.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/03-g-db-DB.diffgr.json",
+      "size": 17119,
+      "sha256": "ee03881fda6883593ae8d960902f3c63e680a0adbb520f085e3b540ee803c172"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/04-g-frontend-React.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/04-g-frontend-React.diffgr.json",
+      "size": 23716,
+      "sha256": "515f031f4d2b957370a9174d6d320b4a3968217af45c4265dcd395a4632de6b1"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/05-g-config-group.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/05-g-config-group.diffgr.json",
+      "size": 15990,
+      "sha256": "5bc4b4fa8a5026e97d557728f73a584e3f33af5e05bb0959705bc7d11c32780d"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/06-g-infra-CI-Infra-Deploy.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/06-g-infra-CI-Infra-Deploy.diffgr.json",
+      "size": 14459,
+      "sha256": "66ef2f53d60d8052a67686f01cab524c23bbda842c59ee93e2e05b6fe4da3e8a"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/07-g-monitoring-group.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/07-g-monitoring-group.diffgr.json",
+      "size": 11376,
+      "sha256": "c2227c733518466e6d58c2615c6ce7354baf358aa7d73ed9c04e371652c4916d"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/08-g-tests-Integration.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/08-g-tests-Integration.diffgr.json",
+      "size": 15655,
+      "sha256": "9a0459aebcf23a5fb4dc2f503453de3890a4b18c9f00ac339db4413810c520d4"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/09-g-docs-ADR.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/09-g-docs-ADR.diffgr.json",
+      "size": 16139,
+      "sha256": "55b65753b8c5c181feaecb24ad210276aa0214af4b60761e63713dca59024cf9"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/10-g-mobile-Expo-RN.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/10-g-mobile-Expo-RN.diffgr.json",
+      "size": 12805,
+      "sha256": "3e03ea93c41859285579c7fb565ab8a966c01f0ecceff4c2d44d9faad8480fe4"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/11-g-tools-group.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/11-g-tools-group.diffgr.json",
+      "size": 13834,
+      "sha256": "1bbaad44201c3df3b82b49d118d486ea563f3a5fb94a203669cdcdb7d935a08a"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/12-g-perf-group.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/12-g-perf-group.diffgr.json",
+      "size": 14662,
+      "sha256": "754a6c589d3bb0d09166ab76bb2e438d6d752a0201b4317cd797a91ffe2346ad"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks-diffgr.reviewers/manifest.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks-diffgr.reviewers/manifest.json",
+      "size": 2103,
+      "sha256": "0cee6acff5e20284d415d42ca7a4d5c5c75f0da65b5c46ac60ef335276f41100"
+    },
+    {
+      "sourcePath": "samples/diffgr/large-acme-tasks.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/large-acme-tasks.diffgr.json",
+      "size": 180275,
+      "sha256": "b57bd41c109dcf2c6b28e0d242c19a189e7a3a33a99359a65a18897685dc4572"
+    },
+    {
+      "sourcePath": "samples/diffgr/realistic-acme-tasks.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/realistic-acme-tasks.diffgr.json",
+      "size": 77010,
+      "sha256": "42fa379009b190b3f7d157f5d3aeeaddef3d7365bc0986f22a1f0d9f286db1f3"
+    },
+    {
+      "sourcePath": "samples/diffgr/realistic-acme-tasks.diffgr.json.bak",
+      "compatPath": "compat/python/samples/diffgr/realistic-acme-tasks.diffgr.json.bak",
+      "size": 79464,
+      "sha256": "1c990361c7463341ba3d42375f1b72a2eb8aa04de0339ff678df67374f477c9e"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.autosliced.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.autosliced.diffgr.json",
+      "size": 177356,
+      "sha256": "91f6db2cebcfa885d9b25e2cb08221f5c81f95730a3c749770ec200f2bfbcee4"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.diffgr.json",
+      "size": 138892,
+      "sha256": "7f1d2b7b03d702e923f471215bc4793999966e92675536b0a9ccde5fba4e0bb2"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.named-4groups.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.named-4groups.diffgr.json",
+      "size": 178160,
+      "sha256": "067f087775627ebe2185e12cf3524e7b2f592239d340e9f3c00afa3215cf38e5"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.named.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.named.diffgr.json",
+      "size": 182831,
+      "sha256": "a1d8da77a1b1fc804a761483cceafdd633ed27ca9865e1f767e8e9b8d1888ecd"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.named.diffgr.json.bak",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.named.diffgr.json.bak",
+      "size": 184481,
+      "sha256": "a073e8790deac62e2360ac95307a0db7f0ce21fc4a16d890f4e0f0913b72aa70"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.refine-prompt.md",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.refine-prompt.md",
+      "size": 23363,
+      "sha256": "58576ea3fd21aa5c26f051ba0450e9367ed9ff4c21b919eebe64c8709f5fd5b4"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.refined.diffgr.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.refined.diffgr.json",
+      "size": 178235,
+      "sha256": "fefc758a936cb2cb7f6298ec7ab5f90411c8737bb3a51e16c0a9ab432e7d3faf"
+    },
+    {
+      "sourcePath": "samples/diffgr/ts20-5pr.slice_patch.json",
+      "compatPath": "compat/python/samples/diffgr/ts20-5pr.slice_patch.json",
+      "size": 170,
+      "sha256": "fc34e1f949471279dcaa81b3d0f8fa07dfdc678f828fe8568485c9eb4af38d55"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/.github/workflows/ci.yml",
+      "compatPath": "compat/python/samples/realistic-pr-sim/.github/workflows/ci.yml",
+      "size": 316,
+      "sha256": "303c3db9bb384479d9397c19ac61e00d51750df9473ab793d16cd9882b274e4b"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/README.md",
+      "compatPath": "compat/python/samples/realistic-pr-sim/README.md",
+      "size": 534,
+      "sha256": "af7085f533baf51551e640bf0c7e89949f71f90fca5e0601c079d8f080fbc2d6"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/package.json",
+      "compatPath": "compat/python/samples/realistic-pr-sim/package.json",
+      "size": 397,
+      "sha256": "9daa4cfdf704c435b2a6161c884987bbf875694c298895cfed8550a5311af95f"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/db/index.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/db/index.ts",
+      "size": 802,
+      "sha256": "77ca2c6e61d5a0b7ce7ba35cdb4cabb936a2d16a17d51e0ab95e632b5999eeb8"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/lib/logger.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/lib/logger.ts",
+      "size": 596,
+      "sha256": "06fb1a32675b26641c07e5beaa96d4fab1bb1b087111b28a521b970adfa77c13"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/lib/requestId.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/lib/requestId.ts",
+      "size": 488,
+      "sha256": "a9744f2a43cf2abc9a28d0b48cf300b0ff645f15af0799438a6bb7f0a8c7e706"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/lib/validate.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/lib/validate.ts",
+      "size": 896,
+      "sha256": "b910b0aa350e1e7eb02fafe532359ae6be5a519bcc2f62b2520fa8dff03f885f"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/routes/auth.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/routes/auth.ts",
+      "size": 1358,
+      "sha256": "4856eae46532917826810273395d71416b18d8433ece32a89e584bc6424601a4"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/routes/tasks.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/routes/tasks.ts",
+      "size": 482,
+      "sha256": "60f11e95043616c6a229e96480021f4d415bf8845b0f346c56bc3f7771cbe00c"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/server.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/server.ts",
+      "size": 1404,
+      "sha256": "8cdc7f4a95a1a9fede9032eebe9b2cece0759a481aac73e151ea974fc5d308a4"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/ui/components/Toast.tsx",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/ui/components/Toast.tsx",
+      "size": 555,
+      "sha256": "471c0c75352e1577dcf6431aac98b663852a4848528c7090f6336ac97feb12db"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/src/ui/pages/SettingsPage.tsx",
+      "compatPath": "compat/python/samples/realistic-pr-sim/src/ui/pages/SettingsPage.tsx",
+      "size": 1226,
+      "sha256": "86dd5d19e2c3e2b675c0c7cdcdedbc38e55d59524548680db58e87cd85bb8b4a"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/tests/routes.test.ts",
+      "compatPath": "compat/python/samples/realistic-pr-sim/tests/routes.test.ts",
+      "size": 417,
+      "sha256": "8fa7563a580592ac6f7eedcdc5f992f37ca4ba147aca439ae473cd6ac0a1e37f"
+    },
+    {
+      "sourcePath": "samples/realistic-pr-sim/tsconfig.json",
+      "compatPath": "compat/python/samples/realistic-pr-sim/tsconfig.json",
+      "size": 245,
+      "sha256": "e0f45a38b3e01ab178ab10a9733a48c889ec94a7a02c8adfe8090ef7c3de3746"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/index.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/index.ts",
+      "size": 76,
+      "sha256": "9c985fc2dadd82e65d6fdb44fae4a5a37ad9a00ba1892b45e981d3bd1de5b2b4"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module01.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module01.ts",
+      "size": 576,
+      "sha256": "9a9eace4b408c5e829d5838894797b1eb4fceba50d7ce23a5d860634fae8845c"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module02.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module02.ts",
+      "size": 576,
+      "sha256": "1b854edadf2e2c7ba1fd287f3a8a46bb9e0867d06f70434b85a59359829e6c81"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module03.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module03.ts",
+      "size": 576,
+      "sha256": "525c3203c9f9160e3781df7c0b8c1d07953ffe9617440feafab80b3cf42f8cfe"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module04.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module04.ts",
+      "size": 576,
+      "sha256": "2875971ff52988e1387c8e87d576ce398ca8dc30a58fdc367b41487904d6bdfc"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module05.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module05.ts",
+      "size": 576,
+      "sha256": "ec4dfb89c533fd5ead385258bbc791f8a4dcde625fa09c4577f063b8bfe314a3"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module06.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module06.ts",
+      "size": 576,
+      "sha256": "7e30ea5cdb5bb974e200493447e51b3d8ec853411ebd982d04e81a42742c04cd"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module07.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module07.ts",
+      "size": 576,
+      "sha256": "9ca1e332c8e1a6b2db8673ed3e44d9c9a1ea33505b3f499dcbe86d9abcf49ef1"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module08.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module08.ts",
+      "size": 576,
+      "sha256": "663c22e50ae80b6df206a476ea76d8792b25a8013ae1112f1be22b5742cdc072"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module09.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module09.ts",
+      "size": 576,
+      "sha256": "4ce49b304af5c8f7be9f060f9a018240cc4702c028998e31001b10f139ccbe1b"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module10.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module10.ts",
+      "size": 576,
+      "sha256": "1b0404482447a2554a9af882f58e864f6018620ea0a63e9b909faffcf04740fa"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module11.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module11.ts",
+      "size": 576,
+      "sha256": "27714098158fb17695a80a4dfcac2b7cda9b8cc0385e7dc72eac5bd4ed8568fb"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module12.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module12.ts",
+      "size": 576,
+      "sha256": "785221f6c02cff07816378a0cd51304d57c612f7fccf0db768e145693c9d04cd"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module13.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module13.ts",
+      "size": 576,
+      "sha256": "22c77a1dc7f74dfc1af18891a945533eb5372d5f649f29e66276f6c9c728025b"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module14.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module14.ts",
+      "size": 576,
+      "sha256": "a0ae17c19a0dc727b1642eaec519c79a9158bcfdb78b0ed41399c1c61bd5af59"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module15.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module15.ts",
+      "size": 576,
+      "sha256": "488ae72ada1ddc35578537890ebcf6a11d79d06b95e4f632b67c010a108bb8a8"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module16.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module16.ts",
+      "size": 576,
+      "sha256": "a53f6856c309998c3ed5740a7d80d938a4f17c61e9e75fe79bb22c7f45bedb80"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module17.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module17.ts",
+      "size": 576,
+      "sha256": "2247888f3e4ced0b19ab6df5183b0167e9a99256f8f7cea5e370475f6feca572"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module18.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module18.ts",
+      "size": 576,
+      "sha256": "1cd60cfbbaac8e52eaa57a1f0f8c2db0a9ffaba34bdff61066ae07cb638bc884"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module19.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module19.ts",
+      "size": 576,
+      "sha256": "06e94b0e73ebac583a0854ae12b30c97b66321ef63a5497d7db6364ce42f5622"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/modules/module20.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/modules/module20.ts",
+      "size": 576,
+      "sha256": "0caa86a83e3e28762924d689e4eb4d69b7e13fc5de5efcac76bcb0c1bd6c1cb0"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/src/types.ts",
+      "compatPath": "compat/python/samples/ts20-pr-sim/src/types.ts",
+      "size": 66,
+      "sha256": "6c513138978743eeae9b1f227caf5120a19df8d9b53a501cbb4b477ac88e009a"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/ts20-5pr.named.diffgr.json",
+      "compatPath": "compat/python/samples/ts20-pr-sim/ts20-5pr.named.diffgr.json",
+      "size": 178314,
+      "sha256": "1918089c66651b872b766f444f406744a908fac44fb1b744327a864b6331328d"
+    },
+    {
+      "sourcePath": "samples/ts20-pr-sim/tsconfig.json",
+      "compatPath": "compat/python/samples/ts20-pr-sim/tsconfig.json",
+      "size": 173,
+      "sha256": "dbb5833883a1354f6f677834b6a065987ab900347a86a039f1225e0994856af4"
+    },
+    {
+      "sourcePath": "scripts/apply_diffgr_layout.py",
+      "compatPath": "compat/python/scripts/apply_diffgr_layout.py",
+      "size": 7185,
+      "sha256": "bb060b7099bbd35930da52f79b4a651341b56687134e8f0e825e526d019e1560"
+    },
+    {
+      "sourcePath": "scripts/apply_diffgr_state.py",
+      "compatPath": "compat/python/scripts/apply_diffgr_state.py",
+      "size": 1701,
+      "sha256": "5d6a0e5d6834482326cd00fa1a13fbfdd78c24fb24e8fa7b88141e3a31a64f23"
+    },
+    {
+      "sourcePath": "scripts/apply_diffgr_state_diff.py",
+      "compatPath": "compat/python/scripts/apply_diffgr_state_diff.py",
+      "size": 6638,
+      "sha256": "ab21bac961a099f4349b53876d610d5ef246bbee056cae50482fdfc0fbafa8fd"
+    },
+    {
+      "sourcePath": "scripts/apply_slice_patch.py",
+      "compatPath": "compat/python/scripts/apply_slice_patch.py",
+      "size": 1752,
+      "sha256": "59ae799bc50b67ac8355e573f9664d42fcd3929041ed47f1dc6d91831f948ccd"
+    },
+    {
+      "sourcePath": "scripts/approve_virtual_pr.py",
+      "compatPath": "compat/python/scripts/approve_virtual_pr.py",
+      "size": 3212,
+      "sha256": "99bc8d6ef7e5a7ef559771e833035824baef6966dd0e6d98bb68a3ad8d04df11"
+    },
+    {
+      "sourcePath": "scripts/autoslice_diffgr.py",
+      "compatPath": "compat/python/scripts/autoslice_diffgr.py",
+      "size": 3634,
+      "sha256": "4bef9719a62ec770afb404cdaadcede247bd25e8e89e60e618fe28cda79e5faa"
+    },
+    {
+      "sourcePath": "scripts/check_virtual_pr_approval.py",
+      "compatPath": "compat/python/scripts/check_virtual_pr_approval.py",
+      "size": 4336,
+      "sha256": "97af940b008d33a27854d645924f3478229138ae87eee4a0f4a559c7557ffc89"
+    },
+    {
+      "sourcePath": "scripts/check_virtual_pr_coverage.py",
+      "compatPath": "compat/python/scripts/check_virtual_pr_coverage.py",
+      "size": 3101,
+      "sha256": "068b518f649f1fe86973e59eb92414ad9e7fd2cf3d918a0c2b500d4ae892fc16"
+    },
+    {
+      "sourcePath": "scripts/diff_diffgr_state.py",
+      "compatPath": "compat/python/scripts/diff_diffgr_state.py",
+      "size": 2775,
+      "sha256": "132041ecc98751ebe8d0abc9fce503f51c1cda54398a2ad2f099ea5f88ab2ff7"
+    },
+    {
+      "sourcePath": "scripts/export_diffgr_html.py",
+      "compatPath": "compat/python/scripts/export_diffgr_html.py",
+      "size": 5754,
+      "sha256": "e4aa39a0813b94217e374585178e755d8da3c99369cefd6c83863a0c988d01b3"
+    },
+    {
+      "sourcePath": "scripts/export_review_bundle.py",
+      "compatPath": "compat/python/scripts/export_review_bundle.py",
+      "size": 1958,
+      "sha256": "22b0d66a6dd3f7664dac1566d19e8b21491675752cad7eb3bc4d7e455839ed60"
+    },
+    {
+      "sourcePath": "scripts/extract_diffgr_state.py",
+      "compatPath": "compat/python/scripts/extract_diffgr_state.py",
+      "size": 1589,
+      "sha256": "68c8274125df127225adf792dbc57f94c8ab8ea156b1a30ce20f7ab538d040fb"
+    },
+    {
+      "sourcePath": "scripts/generate_diffgr.py",
+      "compatPath": "compat/python/scripts/generate_diffgr.py",
+      "size": 1498,
+      "sha256": "27346603962d61c8cdaeae00dd0c75f38e34900ce0827c62778e93ad5012596f"
+    },
+    {
+      "sourcePath": "scripts/impact_report.py",
+      "compatPath": "compat/python/scripts/impact_report.py",
+      "size": 9354,
+      "sha256": "6b8b020b4cd1754612c8331e72d5bdc834c61323ed296fe9499497ffb9935be3"
+    },
+    {
+      "sourcePath": "scripts/merge_diffgr_state.py",
+      "compatPath": "compat/python/scripts/merge_diffgr_state.py",
+      "size": 3780,
+      "sha256": "d1245d0234a84c02c099d43476f9e449dc9639431e6f27a6710bcdaf8e6be050"
+    },
+    {
+      "sourcePath": "scripts/merge_group_reviews.py",
+      "compatPath": "compat/python/scripts/merge_group_reviews.py",
+      "size": 3775,
+      "sha256": "4648b4b3bd78ba45e0856dda64e9fca95f90f08f01360765e83492746a2a3d7c"
+    },
+    {
+      "sourcePath": "scripts/prepare_review.py",
+      "compatPath": "compat/python/scripts/prepare_review.py",
+      "size": 3014,
+      "sha256": "724458bd3fdda3e7471e247af8d634dab00ec9fe31db391e7be052426608124c"
+    },
+    {
+      "sourcePath": "scripts/preview_rebased_merge.py",
+      "compatPath": "compat/python/scripts/preview_rebased_merge.py",
+      "size": 2677,
+      "sha256": "fd6e82dba8b466bd1067e59063e862333635824de337941d9ad1fcec4a4fc71d"
+    },
+    {
+      "sourcePath": "scripts/rebase_diffgr_state.py",
+      "compatPath": "compat/python/scripts/rebase_diffgr_state.py",
+      "size": 4164,
+      "sha256": "c41f0f2e2a9ed36f40dbfaaee4c6792454d6a20cccc076ace189f3fae54a9cb5"
+    },
+    {
+      "sourcePath": "scripts/rebase_reviews.py",
+      "compatPath": "compat/python/scripts/rebase_reviews.py",
+      "size": 8112,
+      "sha256": "4aa010cd9b356552dab4e4ebe5714346ff2ce925b446029afe9cc014a144a126"
+    },
+    {
+      "sourcePath": "scripts/refine_slices.py",
+      "compatPath": "compat/python/scripts/refine_slices.py",
+      "size": 2222,
+      "sha256": "20151895c9f587b718ce5b34675bff961099a5cc1ccb2924e80c9a3cdb329a70"
+    },
+    {
+      "sourcePath": "scripts/request_changes.py",
+      "compatPath": "compat/python/scripts/request_changes.py",
+      "size": 3345,
+      "sha256": "8daa0a9fa58c9daec30af4af288913d93fd8058232b33a54b8917578e7b5bde3"
+    },
+    {
+      "sourcePath": "scripts/run_agent_cli.py",
+      "compatPath": "compat/python/scripts/run_agent_cli.py",
+      "size": 17638,
+      "sha256": "c2915af910ca1a09dac28435b2f97dd55ddf2d22a3fdff4c2252a70d59a04850"
+    },
+    {
+      "sourcePath": "scripts/serve_diffgr_report.py",
+      "compatPath": "compat/python/scripts/serve_diffgr_report.py",
+      "size": 12944,
+      "sha256": "e85fd66febbff897929c6142af01ab3f08c083801d8dc0e0799fe3483975154c"
+    },
+    {
+      "sourcePath": "scripts/split_group_reviews.py",
+      "compatPath": "compat/python/scripts/split_group_reviews.py",
+      "size": 2788,
+      "sha256": "ec3d85df8ff89acb0c3c0da93c44ffd700f5b138a53c90af87da87073a62e59a"
+    },
+    {
+      "sourcePath": "scripts/summarize_diffgr.py",
+      "compatPath": "compat/python/scripts/summarize_diffgr.py",
+      "size": 5259,
+      "sha256": "e3cc3aee24f8bd504fbecde69838eb8edddb0e9a2010a10e29ae9cf1d25696bb"
+    },
+    {
+      "sourcePath": "scripts/summarize_diffgr_state.py",
+      "compatPath": "compat/python/scripts/summarize_diffgr_state.py",
+      "size": 3603,
+      "sha256": "2c475e90510bcbd1d6bd90b612b19c0b65acad8db33442c634d6b479364d1bb7"
+    },
+    {
+      "sourcePath": "scripts/summarize_reviewability.py",
+      "compatPath": "compat/python/scripts/summarize_reviewability.py",
+      "size": 2011,
+      "sha256": "a62c26ea7e704e6e83fc9bf424ebf009109e1878d8cb9ed57bf131e9fd664b11"
+    },
+    {
+      "sourcePath": "scripts/verify_review_bundle.py",
+      "compatPath": "compat/python/scripts/verify_review_bundle.py",
+      "size": 2777,
+      "sha256": "32944c7a7e428c7d34b837108a56084e0037edeb766c55b1ee91be1f85682b5e"
+    },
+    {
+      "sourcePath": "scripts/view_diffgr.py",
+      "compatPath": "compat/python/scripts/view_diffgr.py",
+      "size": 792,
+      "sha256": "62a271d212cc71a889b615c470b376d2a81641974eb3496fa0b9d6217a4b2210"
+    },
+    {
+      "sourcePath": "scripts/view_diffgr_app.py",
+      "compatPath": "compat/python/scripts/view_diffgr_app.py",
+      "size": 531,
+      "sha256": "761915c3831a00bd360fd00d87c011479d2bf34f57df6ecc85b9f2fa14eec0a9"
+    },
+    {
+      "sourcePath": "tests/test_agent_cli.py",
+      "compatPath": "compat/python/tests/test_agent_cli.py",
+      "size": 7565,
+      "sha256": "2bb7d650cc8daf5f81eb248952dea48f8561f271261f29a1c0a6f6c2ad6c07f1"
+    },
+    {
+      "sourcePath": "tests/test_apply_diffgr_layout.py",
+      "compatPath": "compat/python/tests/test_apply_diffgr_layout.py",
+      "size": 9974,
+      "sha256": "893ed4f3d2b7371b2c6557b393e3924149dd36b0b9ad49b46722aeade9f75a9d"
+    },
+    {
+      "sourcePath": "tests/test_approval.py",
+      "compatPath": "compat/python/tests/test_approval.py",
+      "size": 25861,
+      "sha256": "083179ff3abb062d285b93849776c6822d18ddca0de54991dbfa2d4cd67a5013"
+    },
+    {
+      "sourcePath": "tests/test_autoslice_diffgr.py",
+      "compatPath": "compat/python/tests/test_autoslice_diffgr.py",
+      "size": 6951,
+      "sha256": "51e103a96053b76eb179a1c95425f57f5d9457862841ded0de5783afec1e1e1c"
+    },
+    {
+      "sourcePath": "tests/test_check_virtual_pr_coverage.py",
+      "compatPath": "compat/python/tests/test_check_virtual_pr_coverage.py",
+      "size": 2855,
+      "sha256": "2592c13cd0b620f2ff112220d5f9846e4577b2a28312760255d2b00310fd56d0"
+    },
+    {
+      "sourcePath": "tests/test_diff_utils.py",
+      "compatPath": "compat/python/tests/test_diff_utils.py",
+      "size": 1225,
+      "sha256": "5d438bf83afb28a3fa6eb66bb331f3dc7724253ea7060a373353f12b68c2dff0"
+    },
+    {
+      "sourcePath": "tests/test_generate_diffgr.py",
+      "compatPath": "compat/python/tests/test_generate_diffgr.py",
+      "size": 4478,
+      "sha256": "5b270661c296bfdac625ba0630b70a2959727946dd223d0af8a2440e75315ad4"
+    },
+    {
+      "sourcePath": "tests/test_group_brief_roundtrip.py",
+      "compatPath": "compat/python/tests/test_group_brief_roundtrip.py",
+      "size": 5849,
+      "sha256": "58becfe95e5c274aff16d2673212aba1fbbe12889f52546ddf54a942d0ec6ddd"
+    },
+    {
+      "sourcePath": "tests/test_group_brief_utils.py",
+      "compatPath": "compat/python/tests/test_group_brief_utils.py",
+      "size": 5315,
+      "sha256": "b08420305061df3dc9ded104d4db7d833565f5459b52c261b7b1446962760ca2"
+    },
+    {
+      "sourcePath": "tests/test_group_utils.py",
+      "compatPath": "compat/python/tests/test_group_utils.py",
+      "size": 2889,
+      "sha256": "0978446befaf2188d051c73636e131d3063a2cfad587bd011e4e62d06f058e9f"
+    },
+    {
+      "sourcePath": "tests/test_html_report.py",
+      "compatPath": "compat/python/tests/test_html_report.py",
+      "size": 37639,
+      "sha256": "edb74cd1abac5aa187255477c40ce976de9ad5ebc6c7f6fdcdf917b7edf84a5f"
+    },
+    {
+      "sourcePath": "tests/test_impact.py",
+      "compatPath": "compat/python/tests/test_impact.py",
+      "size": 11547,
+      "sha256": "2cfe45ec1b6a32f8183ee59679a72eb32868139f7d194a2ea46cececb2cc8f12"
+    },
+    {
+      "sourcePath": "tests/test_rebase_reviews_script.py",
+      "compatPath": "compat/python/tests/test_rebase_reviews_script.py",
+      "size": 3647,
+      "sha256": "bfd70d013fcc24848d0f8e77312c3517b1acaded175d75d0baf575cba2b735c8"
+    },
+    {
+      "sourcePath": "tests/test_review_bundle.py",
+      "compatPath": "compat/python/tests/test_review_bundle.py",
+      "size": 7977,
+      "sha256": "16342b80b92283cec58e71ae27bb20ecb816c0ebf68a3f3d7aac22fe926ef7ad"
+    },
+    {
+      "sourcePath": "tests/test_review_history.py",
+      "compatPath": "compat/python/tests/test_review_history.py",
+      "size": 6221,
+      "sha256": "0146c45a00ff0baeb145496828bc3974801540321f622ec0cbc46661f355ecd5"
+    },
+    {
+      "sourcePath": "tests/test_review_rebase.py",
+      "compatPath": "compat/python/tests/test_review_rebase.py",
+      "size": 15262,
+      "sha256": "388ef7ede35760e9ddd43106fb440af91398298f788a5ee0c82eccb307a5d9c8"
+    },
+    {
+      "sourcePath": "tests/test_review_split.py",
+      "compatPath": "compat/python/tests/test_review_split.py",
+      "size": 11345,
+      "sha256": "31338745735ddf5d46f84bf58fb5db352b973be176c018bed9687f1103408916"
+    },
+    {
+      "sourcePath": "tests/test_review_state.py",
+      "compatPath": "compat/python/tests/test_review_state.py",
+      "size": 23719,
+      "sha256": "6bc284aa5b694583b2e6f62be363ef8ed24e9e6c49f103f1c1143954b1936386"
+    },
+    {
+      "sourcePath": "tests/test_review_utils.py",
+      "compatPath": "compat/python/tests/test_review_utils.py",
+      "size": 5926,
+      "sha256": "a81b152c50dabde8bf1decf500a967ace311b9a088c1a43172170e8deac4a4b1"
+    },
+    {
+      "sourcePath": "tests/test_reviewability.py",
+      "compatPath": "compat/python/tests/test_reviewability.py",
+      "size": 5470,
+      "sha256": "d97fb98d39b1429ad1689b1c72d9beb3a93967f685b86d188a3ec9f9b60a2b61"
+    },
+    {
+      "sourcePath": "tests/test_run_agent_cli.py",
+      "compatPath": "compat/python/tests/test_run_agent_cli.py",
+      "size": 5644,
+      "sha256": "74b92de3159aed96f1b3c68a6a2fff877aa049cea295a0105d85356072d68035"
+    },
+    {
+      "sourcePath": "tests/test_serve_diffgr_report.py",
+      "compatPath": "compat/python/tests/test_serve_diffgr_report.py",
+      "size": 12741,
+      "sha256": "077e8b9610ba169355e4b92f94da4a768f80130e5a491a20918097d2db60a90f"
+    },
+    {
+      "sourcePath": "tests/test_slice_patch.py",
+      "compatPath": "compat/python/tests/test_slice_patch.py",
+      "size": 2104,
+      "sha256": "b1702d313a1fc6accf7abcd8940b96f2194cb49bc8096f5d0be9dee3e949fdfd"
+    },
+    {
+      "sourcePath": "tests/test_state_scripts.py",
+      "compatPath": "compat/python/tests/test_state_scripts.py",
+      "size": 34736,
+      "sha256": "29cd2beda90087f4b6300b681e9871e8dff2f657c7abc48aca076d126fbe1d50"
+    },
+    {
+      "sourcePath": "tests/test_summary.py",
+      "compatPath": "compat/python/tests/test_summary.py",
+      "size": 4282,
+      "sha256": "79dac73ca125c9f597c613c2bafc646f6cf5c157c79dca67fe31e070f225a3e3"
+    },
+    {
+      "sourcePath": "tests/test_view_diffgr.py",
+      "compatPath": "compat/python/tests/test_view_diffgr.py",
+      "size": 5672,
+      "sha256": "af68c1505ede689e283724448de4d2539da58659036b91a7b69f724cb8a8514c"
+    },
+    {
+      "sourcePath": "tests/test_view_diffgr_app.py",
+      "compatPath": "compat/python/tests/test_view_diffgr_app.py",
+      "size": 77824,
+      "sha256": "2a2d598bc6bcb522cd07d5ff97a9ca9f0d04395f23715257c6a5d838056ff459"
+    },
+    {
+      "sourcePath": "tests/test_viewer_core.py",
+      "compatPath": "compat/python/tests/test_viewer_core.py",
+      "size": 1831,
+      "sha256": "de6c94b60cd649f46bad0465c07fe0a2337a7da04ff5e3e2862c82b402ce4ac0"
+    },
+    {
+      "sourcePath": "tests/test_viewer_textual.py",
+      "compatPath": "compat/python/tests/test_viewer_textual.py",
+      "size": 151814,
+      "sha256": "8b5c40e38da20a7cba3eb04c515037ad1367d7b14469752dccde3617c96ca532"
+    }
+  ]
+}

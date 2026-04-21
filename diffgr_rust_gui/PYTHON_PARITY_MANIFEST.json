@@ -1,0 +1,1943 @@
+{
+  "format": "diffgr-python-parity-manifest",
+  "version": 1,
+  "scriptCount": 31,
+  "entries": [
+    {
+      "script": "scripts/apply_diffgr_layout.py",
+      "stem": "apply_diffgr_layout",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/apply_diffgr_layout.py",
+      "argumentCount": 3,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--layout"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Layout JSON path (AI output).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/apply_diffgr_state.py",
+      "stem": "apply_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/apply_diffgr_state.py",
+      "argumentCount": 3,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'State JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/apply_diffgr_state_diff.py",
+      "stem": "apply_diffgr_state_diff",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/apply_diffgr_state_diff.py",
+      "argumentCount": 9,
+      "arguments": [
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Base state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--other"
+          ],
+          "kwargs": {
+            "help": "'Other state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--select"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "default": "[]",
+            "help": "'Selection token. Repeatable.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-old"
+          ],
+          "kwargs": {
+            "help": "'Old .diffgr.json path for impact-aware selection plan apply.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-new"
+          ],
+          "kwargs": {
+            "help": "'New .diffgr.json path for impact-aware selection plan apply.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-plan"
+          ],
+          "kwargs": {
+            "choices": "['handoffs', 'reviews', 'ui', 'all']",
+            "help": "'Impact selection plan name.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Output state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--preview"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Preview selected apply without writing output.'"
+          }
+        },
+        {
+          "names": [
+            "--json-summary"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print summary as JSON.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/apply_slice_patch.py",
+      "stem": "apply_slice_patch",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/apply_slice_patch.py",
+      "argumentCount": 3,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--patch"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Patch JSON path (rename/move).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/approve_virtual_pr.py",
+      "stem": "approve_virtual_pr",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/approve_virtual_pr.py",
+      "argumentCount": 5,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Output path (defaults to --input).'"
+          }
+        },
+        {
+          "names": [
+            "--group"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "dest": "'groups'",
+            "metavar": "'GROUP_ID'",
+            "help": "'Group ID to approve (repeatable). Use --all to approve all groups.'"
+          }
+        },
+        {
+          "names": [
+            "--approved-by"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Name of the approver.'"
+          }
+        },
+        {
+          "names": [
+            "--all"
+          ],
+          "kwargs": {
+            "dest": "'all_groups'",
+            "action": "'store_true'",
+            "help": "'Approve all groups.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/autoslice_diffgr.py",
+      "stem": "autoslice_diffgr",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/autoslice_diffgr.py",
+      "argumentCount": 10,
+      "arguments": [
+        {
+          "names": [
+            "--repo"
+          ],
+          "kwargs": {
+            "default": "'.'",
+            "help": "'Path to git repository (default: current directory).'"
+          }
+        },
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-base'",
+            "help": "'Base ref for slicing (default: samples/ts20-base).'"
+          }
+        },
+        {
+          "names": [
+            "--feature"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-feature-5pr'",
+            "help": "'Feature ref for slicing (default: samples/ts20-feature-5pr).'"
+          }
+        },
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.diffgr.json'",
+            "help": "'Input DiffGR JSON path (default: samples/diffgr/ts20-5pr.diffgr.json).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.autosliced.diffgr.json'",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--max-commits"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "50",
+            "help": "'Max commits to slice (default: 50).'"
+          }
+        },
+        {
+          "names": [
+            "--name-style"
+          ],
+          "kwargs": {
+            "choices": "['subject', 'pr']",
+            "default": "'subject'",
+            "help": "'Group naming style (default: subject).'"
+          }
+        },
+        {
+          "names": [
+            "--no-split"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not split multi-change hunks into smaller chunks before assignment.'"
+          }
+        },
+        {
+          "names": [
+            "--context-lines"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "3",
+            "help": "'Context lines to include around each change block when splitting (default: 3).'"
+          }
+        },
+        {
+          "names": [
+            "--fail-on-truncate"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Fail instead of truncating commit history when max-commits is exceeded.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/check_virtual_pr_approval.py",
+      "stem": "check_virtual_pr_approval",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/check_virtual_pr_approval.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--repo"
+          ],
+          "kwargs": {
+            "help": "'Git repo path (enables full regeneration check).'"
+          }
+        },
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "help": "'Base ref for regeneration (requires --repo).'"
+          }
+        },
+        {
+          "names": [
+            "--feature"
+          ],
+          "kwargs": {
+            "help": "'Feature ref for regeneration (requires --repo).'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "dest": "'as_json'",
+            "action": "'store_true'",
+            "help": "'Output as JSON.'"
+          }
+        },
+        {
+          "names": [
+            "--strict-full-check"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'When set, regeneration failure is a hard error (exit 1) instead of fallback.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/check_virtual_pr_coverage.py",
+      "stem": "check_virtual_pr_coverage",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/check_virtual_pr_coverage.py",
+      "argumentCount": 5,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "dest": "'as_json'",
+            "action": "'store_true'",
+            "help": "'Output result as JSON.'"
+          }
+        },
+        {
+          "names": [
+            "--write-prompt"
+          ],
+          "kwargs": {
+            "help": "'Write an AI fix prompt markdown to this path.'"
+          }
+        },
+        {
+          "names": [
+            "--max-chunks-per-group"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "20",
+            "help": "'Max sample chunks per group in prompt.'"
+          }
+        },
+        {
+          "names": [
+            "--max-problem-chunks"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "80",
+            "help": "'Max problem chunks in prompt sections.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/diff_diffgr_state.py",
+      "stem": "diff_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/diff_diffgr_state.py",
+      "argumentCount": 4,
+      "arguments": [
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Base state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--other"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Other state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Output JSON diff only.'"
+          }
+        },
+        {
+          "names": [
+            "--tokens-only"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print selection tokens only.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/export_diffgr_html.py",
+      "stem": "export_diffgr_html",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/export_diffgr_html.py",
+      "argumentCount": 10,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output HTML path.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "help": "'Optional external state JSON to overlay before rendering.'"
+          }
+        },
+        {
+          "names": [
+            "--group"
+          ],
+          "kwargs": {
+            "default": "'all'",
+            "help": "'Group selector. Use group id (e.g. g-pr01) or exact group name (e.g. 計算倍率変更). Default: all.'"
+          }
+        },
+        {
+          "names": [
+            "--title"
+          ],
+          "kwargs": {
+            "help": "'Optional custom report title.'"
+          }
+        },
+        {
+          "names": [
+            "--save-state-url"
+          ],
+          "kwargs": {
+            "help": "'Optional POST endpoint to save review state from HTML.'"
+          }
+        },
+        {
+          "names": [
+            "--save-state-label"
+          ],
+          "kwargs": {
+            "default": "'Save State'",
+            "help": "'Label for save button.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-old"
+          ],
+          "kwargs": {
+            "help": "'Optional old .diffgr.json path for Impact Preview.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-state"
+          ],
+          "kwargs": {
+            "help": "'Optional review state JSON path for Impact Preview.'"
+          }
+        },
+        {
+          "names": [
+            "--open"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Open the generated HTML in your default browser.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/export_review_bundle.py",
+      "stem": "export_review_bundle",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/export_review_bundle.py",
+      "argumentCount": 4,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--bundle-out"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output path for bundle.diffgr.json.'"
+          }
+        },
+        {
+          "names": [
+            "--state-out"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output path for review.state.json.'"
+          }
+        },
+        {
+          "names": [
+            "--manifest-out"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output path for review.manifest.json.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/extract_diffgr_state.py",
+      "stem": "extract_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/extract_diffgr_state.py",
+      "argumentCount": 2,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Optional output JSON path. Defaults to stdout.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/generate_diffgr.py",
+      "stem": "generate_diffgr",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/generate_diffgr.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--repo"
+          ],
+          "kwargs": {
+            "default": "'.'",
+            "help": "'Path to git repository (default: current directory).'"
+          }
+        },
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-base'",
+            "help": "'Base ref (default: samples/ts20-base).'"
+          }
+        },
+        {
+          "names": [
+            "--feature"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-feature-5pr'",
+            "help": "'Feature ref (default: samples/ts20-feature-5pr).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "default": "'out/sample-ts20.diffgr.json'",
+            "help": "'Output path (default: out/sample-ts20.diffgr.json).'"
+          }
+        },
+        {
+          "names": [
+            "--title"
+          ],
+          "kwargs": {
+            "default": "'DiffGR sample from samples/ts20-base...samples/ts20-feature-5pr'",
+            "help": "'meta.title value.'"
+          }
+        },
+        {
+          "names": [
+            "--no-patch"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not include optional patch field.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/impact_report.py",
+      "stem": "impact_report",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/impact_report.py",
+      "argumentCount": 7,
+      "arguments": [
+        {
+          "names": [
+            "--old"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Old DiffGR JSON path (usually merged.diffgr.json).'"
+          }
+        },
+        {
+          "names": [
+            "--new"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'New DiffGR JSON path (bundle/rebased snapshot).'"
+          }
+        },
+        {
+          "names": [
+            "--grouping"
+          ],
+          "kwargs": {
+            "choices": "['old', 'new']",
+            "default": "'old'",
+            "help": "'Group impact by old groups (default) or new groups.'"
+          }
+        },
+        {
+          "names": [
+            "--similarity-threshold"
+          ],
+          "kwargs": {
+            "type": "float",
+            "default": "0.86",
+            "help": "'Similarity threshold (0-1) for best-effort matching.'"
+          }
+        },
+        {
+          "names": [
+            "--max-items"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "20",
+            "help": "'Max items to list per group/section.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Write Markdown report to this path (UTF-8). If omitted, print to stdout.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Output JSON report only.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/merge_diffgr_state.py",
+      "stem": "merge_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/merge_diffgr_state.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Base state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "default": "[]",
+            "help": "'Input state JSON path. Repeatable.'"
+          }
+        },
+        {
+          "names": [
+            "--input-glob"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "default": "[]",
+            "help": "'Input glob for state JSON files. Repeatable.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Output state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--preview"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Preview merge result without writing output.'"
+          }
+        },
+        {
+          "names": [
+            "--json-summary"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print summary as JSON.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/merge_group_reviews.py",
+      "stem": "merge_group_reviews",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/merge_group_reviews.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Base DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "default": "[]",
+            "help": "'Input reviewer DiffGR path. Repeatable.'"
+          }
+        },
+        {
+          "names": [
+            "--input-glob"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "default": "[]",
+            "help": "'Glob pattern for reviewer files. Repeatable.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output merged DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--clear-base-reviews"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Start from empty reviews before merging inputs.'"
+          }
+        },
+        {
+          "names": [
+            "--strict"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Treat unknown chunk ids / invalid review record as error.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/prepare_review.py",
+      "stem": "prepare_review",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/prepare_review.py",
+      "argumentCount": 9,
+      "arguments": [
+        {
+          "names": [
+            "--repo"
+          ],
+          "kwargs": {
+            "default": "'.'",
+            "help": "'Path to git repository (default: current directory).'"
+          }
+        },
+        {
+          "names": [
+            "--base"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-base'",
+            "help": "'Base ref.'"
+          }
+        },
+        {
+          "names": [
+            "--feature"
+          ],
+          "kwargs": {
+            "default": "'samples/ts20-feature-5pr'",
+            "help": "'Feature ref.'"
+          }
+        },
+        {
+          "names": [
+            "--title"
+          ],
+          "kwargs": {
+            "default": "'DiffGR review bundle'",
+            "help": "'meta.title'"
+          }
+        },
+        {
+          "names": [
+            "--no-patch"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not include optional patch field.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.review.diffgr.json'",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--name-style"
+          ],
+          "kwargs": {
+            "choices": "['subject', 'pr']",
+            "default": "'pr'",
+            "help": "'Autoslice group naming.'"
+          }
+        },
+        {
+          "names": [
+            "--max-commits"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "50",
+            "help": "'Max commits to slice.'"
+          }
+        },
+        {
+          "names": [
+            "--fail-on-truncate"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Fail instead of truncating commit history when max-commits is exceeded.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/preview_rebased_merge.py",
+      "stem": "preview_rebased_merge",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/preview_rebased_merge.py",
+      "argumentCount": 5,
+      "arguments": [
+        {
+          "names": [
+            "--old"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Old DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--new"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'New DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'State JSON extracted from old snapshot.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Output JSON only.'"
+          }
+        },
+        {
+          "names": [
+            "--tokens-only"
+          ],
+          "kwargs": {
+            "choices": "('handoffs', 'reviews', 'ui', 'all')",
+            "help": "'Print tokens for a named selection plan only.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/rebase_diffgr_state.py",
+      "stem": "rebase_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/rebase_diffgr_state.py",
+      "argumentCount": 8,
+      "arguments": [
+        {
+          "names": [
+            "--old"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Old DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--new"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'New DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input state JSON path extracted from old snapshot.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output rebased state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--keep-new-groups"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Keep groups/assignments from --new (default: preserve --old groups/assignments for matched chunks).'"
+          }
+        },
+        {
+          "names": [
+            "--no-line-comments"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not carry lineComments (default: carry only for stable/strong matches with safe remap).'"
+          }
+        },
+        {
+          "names": [
+            "--similarity-threshold"
+          ],
+          "kwargs": {
+            "type": "float",
+            "default": "0.86",
+            "help": "\"Similarity threshold (0-1) to detect 'changed but same chunk' and mark reviewed -> needsReReview.\""
+          }
+        },
+        {
+          "names": [
+            "--json-summary"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print summary as JSON.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/rebase_reviews.py",
+      "stem": "rebase_reviews",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/rebase_reviews.py",
+      "argumentCount": 13,
+      "arguments": [
+        {
+          "names": [
+            "--old"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Previously reviewed DiffGR JSON path (source of review state).'"
+          }
+        },
+        {
+          "names": [
+            "--new"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Newly generated DiffGR JSON path (target snapshot).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Output rebased DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--keep-new-groups"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Keep groups/assignments from --new (default: preserve --old groups/assignments for matched chunks).'"
+          }
+        },
+        {
+          "names": [
+            "--no-line-comments"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not carry lineComments (default: carry only for stable/strong matches with safe remap).'"
+          }
+        },
+        {
+          "names": [
+            "--similarity-threshold"
+          ],
+          "kwargs": {
+            "type": "float",
+            "default": "0.86",
+            "help": "\"Similarity threshold (0-1) to detect 'changed but same chunk' and mark reviewed -> needsReReview.\""
+          }
+        },
+        {
+          "names": [
+            "--impact-grouping"
+          ],
+          "kwargs": {
+            "choices": "['old', 'new']",
+            "default": "'old'",
+            "help": "'Grouping for impact scope history (default: old).'"
+          }
+        },
+        {
+          "names": [
+            "--no-history"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not write meta.x-reviewHistory/x-impactScope.'"
+          }
+        },
+        {
+          "names": [
+            "--history-label"
+          ],
+          "kwargs": {
+            "help": "'Optional label for this rebase history event.'"
+          }
+        },
+        {
+          "names": [
+            "--history-actor"
+          ],
+          "kwargs": {
+            "help": "'Optional actor/reviewer name for history event.'"
+          }
+        },
+        {
+          "names": [
+            "--history-max-entries"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "100",
+            "help": "'Max x-reviewHistory entries to keep (default: 100).'"
+          }
+        },
+        {
+          "names": [
+            "--history-max-ids-per-group"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "200",
+            "help": "'Max chunk ids to keep per group in history impactScope (default: 200).'"
+          }
+        },
+        {
+          "names": [
+            "--json-summary"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print summary as JSON.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/refine_slices.py",
+      "stem": "refine_slices",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/refine_slices.py",
+      "argumentCount": 4,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.autosliced.diffgr.json'",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.refined.diffgr.json'",
+            "help": "'Output DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--write-prompt"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.refine-prompt.md'",
+            "help": "'Write an AI refinement prompt markdown to this path.'"
+          }
+        },
+        {
+          "names": [
+            "--no-prompt"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not write prompt markdown.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/request_changes.py",
+      "stem": "request_changes",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/request_changes.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "help": "'Output path (defaults to --input).'"
+          }
+        },
+        {
+          "names": [
+            "--group"
+          ],
+          "kwargs": {
+            "action": "'append'",
+            "dest": "'groups'",
+            "metavar": "'GROUP_ID'",
+            "help": "'Group ID to request changes on (repeatable). Use --all for all groups.'"
+          }
+        },
+        {
+          "names": [
+            "--requested-by"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Name of the reviewer requesting changes.'"
+          }
+        },
+        {
+          "names": [
+            "--all"
+          ],
+          "kwargs": {
+            "dest": "'all_groups'",
+            "action": "'store_true'",
+            "help": "'Request changes on all groups.'"
+          }
+        },
+        {
+          "names": [
+            "--comment"
+          ],
+          "kwargs": {
+            "default": "None",
+            "help": "'Explanation of the requested changes.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/run_agent_cli.py",
+      "stem": "run_agent_cli",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/run_agent_cli.py",
+      "argumentCount": 8,
+      "arguments": [
+        {
+          "names": [
+            "--config"
+          ],
+          "kwargs": {
+            "default": "'agent_cli.toml'",
+            "help": "'Config TOML path (default: agent_cli.toml).'"
+          }
+        },
+        {
+          "names": [
+            "--prompt"
+          ],
+          "kwargs": {
+            "default": "'samples/diffgr/ts20-5pr.refine-prompt.md'",
+            "help": "'Prompt markdown path (default: samples/diffgr/ts20-5pr.refine-prompt.md).'"
+          }
+        },
+        {
+          "names": [
+            "--schema"
+          ],
+          "kwargs": {
+            "default": "'diffgr/slice_patch.schema.json'",
+            "help": "'JSON schema path for the output patch (default: diffgr/slice_patch.schema.json).'"
+          }
+        },
+        {
+          "names": [
+            "--output"
+          ],
+          "kwargs": {
+            "default": "'slice_patch.json'",
+            "help": "'Output patch JSON path (default: slice_patch.json).'"
+          }
+        },
+        {
+          "names": [
+            "--timeout"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "180",
+            "help": "'Timeout seconds (default: 180).'"
+          }
+        },
+        {
+          "names": [
+            "--interactive"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Start an interactive CLI session first. You provide info via chat, then exit; the tool resumes the last session to emit the JSON patch.'"
+          }
+        },
+        {
+          "names": [
+            "--copy-prompt"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Copy the prompt markdown to clipboard before starting interactive session (Windows PowerShell).'"
+          }
+        },
+        {
+          "names": [
+            "--no-copy-prompt"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Do not copy the prompt to clipboard (overrides --copy-prompt).'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/serve_diffgr_report.py",
+      "stem": "serve_diffgr_report",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/serve_diffgr_report.py",
+      "argumentCount": 9,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "help": "'Optional external state JSON path. If set, render/save uses this state file.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-old"
+          ],
+          "kwargs": {
+            "help": "'Optional old .diffgr.json path for Impact Preview.'"
+          }
+        },
+        {
+          "names": [
+            "--impact-state"
+          ],
+          "kwargs": {
+            "help": "'Optional review state JSON path for Impact Preview.'"
+          }
+        },
+        {
+          "names": [
+            "--group"
+          ],
+          "kwargs": {
+            "default": "'all'",
+            "help": "'Group selector. Use group id or exact group name. Default: all.'"
+          }
+        },
+        {
+          "names": [
+            "--title"
+          ],
+          "kwargs": {
+            "help": "'Optional custom report title.'"
+          }
+        },
+        {
+          "names": [
+            "--host"
+          ],
+          "kwargs": {
+            "default": "'127.0.0.1'",
+            "help": "'Host to bind. Default: 127.0.0.1.'"
+          }
+        },
+        {
+          "names": [
+            "--port"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "8765",
+            "help": "'Port to bind. Default: 8765.'"
+          }
+        },
+        {
+          "names": [
+            "--open"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Open in default browser.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/split_group_reviews.py",
+      "stem": "split_group_reviews",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/split_group_reviews.py",
+      "argumentCount": 4,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--output-dir"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Directory to write per-group DiffGR files.'"
+          }
+        },
+        {
+          "names": [
+            "--include-empty"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Also emit files for empty groups.'"
+          }
+        },
+        {
+          "names": [
+            "--manifest"
+          ],
+          "kwargs": {
+            "default": "'manifest.json'",
+            "help": "'Manifest file name under output-dir (default: manifest.json).'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/summarize_diffgr.py",
+      "stem": "summarize_diffgr",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/summarize_diffgr.py",
+      "argumentCount": 2,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input DiffGR JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Output JSON summary only.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/summarize_diffgr_state.py",
+      "stem": "summarize_diffgr_state",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/summarize_diffgr_state.py",
+      "argumentCount": 2,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input state JSON path.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Output JSON summary only.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/summarize_reviewability.py",
+      "stem": "summarize_reviewability",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/summarize_reviewability.py",
+      "argumentCount": 2,
+      "arguments": [
+        {
+          "names": [
+            "--input"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Input .diffgr.json path.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "dest": "'as_json'",
+            "action": "'store_true'",
+            "help": "'Output as JSON.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/verify_review_bundle.py",
+      "stem": "verify_review_bundle",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/verify_review_bundle.py",
+      "argumentCount": 6,
+      "arguments": [
+        {
+          "names": [
+            "--bundle"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Path to bundle.diffgr.json.'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Path to review.state.json.'"
+          }
+        },
+        {
+          "names": [
+            "--manifest"
+          ],
+          "kwargs": {
+            "required": "True",
+            "help": "'Path to review.manifest.json.'"
+          }
+        },
+        {
+          "names": [
+            "--expected-head"
+          ],
+          "kwargs": {
+            "help": "'Expected source head SHA/ref.'"
+          }
+        },
+        {
+          "names": [
+            "--require-approvals"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Require all groups to be approved.'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "dest": "'as_json'",
+            "action": "'store_true'",
+            "help": "'Output JSON report.'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/view_diffgr.py",
+      "stem": "view_diffgr",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/view_diffgr.py",
+      "argumentCount": 8,
+      "arguments": [
+        {
+          "names": [
+            "path"
+          ],
+          "kwargs": {
+            "help": "'Path to .diffgr.json'"
+          }
+        },
+        {
+          "names": [
+            "--group"
+          ],
+          "kwargs": {
+            "help": "'Filter by group id'"
+          }
+        },
+        {
+          "names": [
+            "--chunk"
+          ],
+          "kwargs": {
+            "help": "'Show detail of one chunk id'"
+          }
+        },
+        {
+          "names": [
+            "--status"
+          ],
+          "kwargs": {
+            "choices": "sorted(VALID_STATUSES)",
+            "help": "'Filter by review status'"
+          }
+        },
+        {
+          "names": [
+            "--file"
+          ],
+          "kwargs": {
+            "dest": "'file_contains'",
+            "help": "'Filter chunks by file path substring'"
+          }
+        },
+        {
+          "names": [
+            "--max-lines"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "120",
+            "help": "'Max lines in chunk detail view'"
+          }
+        },
+        {
+          "names": [
+            "--show-patch"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Show optional patch field'"
+          }
+        },
+        {
+          "names": [
+            "--json"
+          ],
+          "kwargs": {
+            "dest": "'as_json'",
+            "action": "'store_true'",
+            "help": "'Output filtered view as JSON'"
+          }
+        }
+      ]
+    },
+    {
+      "script": "scripts/view_diffgr_app.py",
+      "stem": "view_diffgr_app",
+      "nativeWrapperPs1": true,
+      "nativeWrapperSh": true,
+      "compatPython": "compat/python/scripts/view_diffgr_app.py",
+      "argumentCount": 5,
+      "arguments": [
+        {
+          "names": [
+            "path"
+          ],
+          "kwargs": {
+            "help": "'Path to .diffgr.json'"
+          }
+        },
+        {
+          "names": [
+            "--state"
+          ],
+          "kwargs": {
+            "help": "'Optional external state JSON to overlay before opening.'"
+          }
+        },
+        {
+          "names": [
+            "--page-size"
+          ],
+          "kwargs": {
+            "type": "int",
+            "default": "15",
+            "help": "'Number of chunks per list page (default: 15).'"
+          }
+        },
+        {
+          "names": [
+            "--once"
+          ],
+          "kwargs": {
+            "action": "'store_true'",
+            "help": "'Print dashboard and first page only, then exit.'"
+          }
+        },
+        {
+          "names": [
+            "--ui"
+          ],
+          "kwargs": {
+            "choices": "['textual', 'prompt']",
+            "default": "'textual'",
+            "help": "'Viewer mode (default: textual).'"
+          }
+        }
+      ]
+    }
+  ]
+}

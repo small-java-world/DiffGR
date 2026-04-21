@@ -1,0 +1,116 @@
+{
+  "checks": [
+    {
+      "details": {
+        "missingCompat": [],
+        "missingPs1": [],
+        "missingSh": [],
+        "ok": true,
+        "scriptCount": 31,
+        "wrapperCount": 62
+      },
+      "name": "python manifest and wrappers",
+      "ok": true
+    },
+    {
+      "details": {
+        "excludedCacheFileCount": 99,
+        "sourceFileCount": 163
+      },
+      "name": "strict compat source inventory",
+      "ok": true
+    },
+    {
+      "details": {
+        "functionalScenarioCount": 31,
+        "scriptCount": 31,
+        "uniquePythonOptionCount": 80
+      },
+      "name": "native command/option parity",
+      "ok": true
+    },
+    {
+      "details": {
+        "scenarioCount": 31
+      },
+      "name": "functional scenario matrix",
+      "ok": true
+    },
+    {
+      "details": {
+        "expectedMarkerCount": 53,
+        "markerCount": 53,
+        "missingMarkers": [],
+        "ok": true,
+        "visibleCacheKey": {
+          "constructorOnly": [],
+          "structOnly": []
+        }
+      },
+      "name": "GUI completion and responsiveness",
+      "ok": true
+    },
+    {
+      "details": {
+        "minimumRustTestCount": 1180,
+        "rustTests": 1177
+      },
+      "name": "UT matrix threshold",
+      "ok": true
+    },
+    {
+      "details": {
+        "categoryCount": 16,
+        "minimumRustTestCount": 1180,
+        "ok": true,
+        "totalRustTests": 1177
+      },
+      "name": "utMatrix",
+      "ok": true
+    },
+    {
+      "details": {
+        "functionalScenarioCount": 31,
+        "ok": true,
+        "scriptCount": 31,
+        "uniquePythonOptionCount": 80
+      },
+      "name": "nativeParity",
+      "ok": true
+    },
+    {
+      "details": {
+        "ok": true,
+        "scenarioCount": 31
+      },
+      "name": "functionalStatic",
+      "ok": true
+    },
+    {
+      "details": {
+        "excludedCacheFileCount": 99,
+        "ok": true,
+        "scriptCount": 31,
+        "sourceFileCount": 163
+      },
+      "name": "pythonCompat",
+      "ok": true
+    }
+  ],
+  "format": "diffgr-self-review-result",
+  "ok": true,
+  "remainingRisks": [
+    "This static gate does not replace cargo test --all-targets.",
+    "Native Rust output is not promised byte-for-byte identical to Python; use compat mode for exact legacy behavior."
+  ],
+  "summary": {
+    "compatSources": 163,
+    "functionalScenarios": 31,
+    "guiMarkers": 53,
+    "guiMarkersExpected": 53,
+    "nativePythonOptions": 80,
+    "pythonScripts": 31,
+    "rustTests": 1177,
+    "wrappers": 62
+  }
+}

@@ -1,0 +1,439 @@
+{
+  "format": "diffgr-native-python-parity-audit-result",
+  "ok": true,
+  "scriptCount": 31,
+  "uniquePythonOptionCount": 80,
+  "functionalScenarioCount": 31,
+  "commands": [
+    {
+      "stem": "apply_diffgr_layout",
+      "script": "scripts/apply_diffgr_layout.py",
+      "nativeAliasesFound": [
+        "apply-diffgr-layout",
+        "apply-layout",
+        "apply_diffgr_layout"
+      ],
+      "pythonOptionCount": 3,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "apply_diffgr_state",
+      "script": "scripts/apply_diffgr_state.py",
+      "nativeAliasesFound": [
+        "apply-diffgr-state",
+        "apply-state",
+        "apply_diffgr_state"
+      ],
+      "pythonOptionCount": 3,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "apply_diffgr_state_diff",
+      "script": "scripts/apply_diffgr_state_diff.py",
+      "nativeAliasesFound": [
+        "apply-diffgr-state-diff",
+        "apply-state-diff",
+        "apply_diffgr_state_diff"
+      ],
+      "pythonOptionCount": 9,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "apply_slice_patch",
+      "script": "scripts/apply_slice_patch.py",
+      "nativeAliasesFound": [
+        "apply-slice-patch",
+        "apply_slice_patch"
+      ],
+      "pythonOptionCount": 3,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "approve_virtual_pr",
+      "script": "scripts/approve_virtual_pr.py",
+      "nativeAliasesFound": [
+        "approve",
+        "approve-virtual-pr",
+        "approve_virtual_pr"
+      ],
+      "pythonOptionCount": 5,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "autoslice_diffgr",
+      "script": "scripts/autoslice_diffgr.py",
+      "nativeAliasesFound": [
+        "autoslice",
+        "autoslice-diffgr",
+        "autoslice_diffgr"
+      ],
+      "pythonOptionCount": 10,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "check_virtual_pr_approval",
+      "script": "scripts/check_virtual_pr_approval.py",
+      "nativeAliasesFound": [
+        "check-approval",
+        "check-virtual-pr-approval",
+        "check_virtual_pr_approval"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "check_virtual_pr_coverage",
+      "script": "scripts/check_virtual_pr_coverage.py",
+      "nativeAliasesFound": [
+        "check-virtual-pr-coverage",
+        "check_virtual_pr_coverage",
+        "coverage"
+      ],
+      "pythonOptionCount": 5,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "diff_diffgr_state",
+      "script": "scripts/diff_diffgr_state.py",
+      "nativeAliasesFound": [
+        "diff-diffgr-state",
+        "diff-state",
+        "diff_diffgr_state"
+      ],
+      "pythonOptionCount": 4,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "export_diffgr_html",
+      "script": "scripts/export_diffgr_html.py",
+      "nativeAliasesFound": [
+        "export-diffgr-html",
+        "export-html",
+        "export_diffgr_html"
+      ],
+      "pythonOptionCount": 10,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "export_review_bundle",
+      "script": "scripts/export_review_bundle.py",
+      "nativeAliasesFound": [
+        "export-bundle",
+        "export-review-bundle",
+        "export_review_bundle"
+      ],
+      "pythonOptionCount": 4,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "extract_diffgr_state",
+      "script": "scripts/extract_diffgr_state.py",
+      "nativeAliasesFound": [
+        "extract-diffgr-state",
+        "extract-state",
+        "extract_diffgr_state"
+      ],
+      "pythonOptionCount": 2,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "generate_diffgr",
+      "script": "scripts/generate_diffgr.py",
+      "nativeAliasesFound": [
+        "generate",
+        "generate-diffgr",
+        "generate_diffgr"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "impact_report",
+      "script": "scripts/impact_report.py",
+      "nativeAliasesFound": [
+        "impact-report",
+        "impact_report"
+      ],
+      "pythonOptionCount": 7,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "merge_diffgr_state",
+      "script": "scripts/merge_diffgr_state.py",
+      "nativeAliasesFound": [
+        "merge-diffgr-state",
+        "merge-state",
+        "merge_diffgr_state"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "merge_group_reviews",
+      "script": "scripts/merge_group_reviews.py",
+      "nativeAliasesFound": [
+        "merge-group-reviews",
+        "merge_group_reviews"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "prepare_review",
+      "script": "scripts/prepare_review.py",
+      "nativeAliasesFound": [
+        "prepare",
+        "prepare-review",
+        "prepare_review"
+      ],
+      "pythonOptionCount": 9,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "preview_rebased_merge",
+      "script": "scripts/preview_rebased_merge.py",
+      "nativeAliasesFound": [
+        "preview-rebased-merge",
+        "preview_rebased_merge"
+      ],
+      "pythonOptionCount": 5,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "rebase_diffgr_state",
+      "script": "scripts/rebase_diffgr_state.py",
+      "nativeAliasesFound": [
+        "rebase-diffgr-state",
+        "rebase-state",
+        "rebase_diffgr_state"
+      ],
+      "pythonOptionCount": 8,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "rebase_reviews",
+      "script": "scripts/rebase_reviews.py",
+      "nativeAliasesFound": [
+        "rebase-reviews",
+        "rebase_reviews"
+      ],
+      "pythonOptionCount": 13,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "refine_slices",
+      "script": "scripts/refine_slices.py",
+      "nativeAliasesFound": [
+        "refine",
+        "refine-slices",
+        "refine_slices"
+      ],
+      "pythonOptionCount": 4,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "request_changes",
+      "script": "scripts/request_changes.py",
+      "nativeAliasesFound": [
+        "request-changes",
+        "request_changes"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "run_agent_cli",
+      "script": "scripts/run_agent_cli.py",
+      "nativeAliasesFound": [
+        "run-agent",
+        "run-agent-cli",
+        "run_agent_cli"
+      ],
+      "pythonOptionCount": 8,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "serve_diffgr_report",
+      "script": "scripts/serve_diffgr_report.py",
+      "nativeAliasesFound": [
+        "serve-diffgr-report",
+        "serve-html",
+        "serve_diffgr_report"
+      ],
+      "pythonOptionCount": 9,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "split_group_reviews",
+      "script": "scripts/split_group_reviews.py",
+      "nativeAliasesFound": [
+        "split-group-reviews",
+        "split_group_reviews"
+      ],
+      "pythonOptionCount": 4,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "summarize_diffgr",
+      "script": "scripts/summarize_diffgr.py",
+      "nativeAliasesFound": [
+        "summarize",
+        "summarize-diffgr",
+        "summarize_diffgr"
+      ],
+      "pythonOptionCount": 2,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "summarize_diffgr_state",
+      "script": "scripts/summarize_diffgr_state.py",
+      "nativeAliasesFound": [
+        "summarize-diffgr-state",
+        "summarize-state",
+        "summarize_diffgr_state"
+      ],
+      "pythonOptionCount": 2,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "summarize_reviewability",
+      "script": "scripts/summarize_reviewability.py",
+      "nativeAliasesFound": [
+        "reviewability",
+        "summarize-reviewability",
+        "summarize_reviewability"
+      ],
+      "pythonOptionCount": 2,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "verify_review_bundle",
+      "script": "scripts/verify_review_bundle.py",
+      "nativeAliasesFound": [
+        "verify-bundle",
+        "verify-review-bundle",
+        "verify_review_bundle"
+      ],
+      "pythonOptionCount": 6,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "view_diffgr",
+      "script": "scripts/view_diffgr.py",
+      "nativeAliasesFound": [
+        "view",
+        "view-diffgr",
+        "view_diffgr"
+      ],
+      "pythonOptionCount": 7,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    },
+    {
+      "stem": "view_diffgr_app",
+      "script": "scripts/view_diffgr_app.py",
+      "nativeAliasesFound": [
+        "view-app",
+        "view-diffgr-app",
+        "view_diffgr_app"
+      ],
+      "pythonOptionCount": 4,
+      "missingNativeOptions": [],
+      "wrapperPs1": true,
+      "wrapperSh": true,
+      "compatPython": true
+    }
+  ],
+  "missingNativeOptions": [],
+  "compatVerifier": null,
+  "cargoCheck": null
+}

@@ -1,0 +1,239 @@
+{
+  "format": "diffgr-ut-depth-audit-result",
+  "markerChecks": [
+    {
+      "file": "UT_MATRIX.json",
+      "missing": [],
+      "ok": true
+    },
+    {
+      "file": "src/app.rs",
+      "missing": [],
+      "ok": true
+    },
+    {
+      "file": "src/vpr.rs",
+      "missing": [],
+      "ok": true
+    },
+    {
+      "file": "src/bin/diffgrctl.rs",
+      "missing": [],
+      "ok": true
+    }
+  ],
+  "matrix": {
+    "categories": [
+      {
+        "minimumTestCount": 90,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "model workflow and GUI startup",
+        "ok": true,
+        "testCount": 98
+      },
+      {
+        "minimumTestCount": 14,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "layout state coverage parity",
+        "ok": true,
+        "testCount": 14
+      },
+      {
+        "minimumTestCount": 95,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "generation and patch operations",
+        "ok": true,
+        "testCount": 102
+      },
+      {
+        "minimumTestCount": 10,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "state diff merge selection",
+        "ok": true,
+        "testCount": 10
+      },
+      {
+        "minimumTestCount": 9,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "reports bundle split merge",
+        "ok": true,
+        "testCount": 9
+      },
+      {
+        "minimumTestCount": 12,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "approval impact rebase",
+        "ok": true,
+        "testCount": 12
+      },
+      {
+        "minimumTestCount": 185,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "python parity gates and wrappers",
+        "ok": true,
+        "testCount": 187
+      },
+      {
+        "minimumTestCount": 14,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "diffgrctl CLI behavior",
+        "ok": true,
+        "testCount": 14
+      },
+      {
+        "minimumTestCount": 120,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "deep native CLI option surface",
+        "ok": true,
+        "testCount": 121
+      },
+      {
+        "minimumTestCount": 40,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "windows shell wrapper contracts",
+        "ok": true,
+        "testCount": 41
+      },
+      {
+        "minimumTestCount": 39,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "render scroll responsiveness",
+        "ok": true,
+        "testCount": 46
+      },
+      {
+        "minimumTestCount": 160,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "quality self review and GUI completion",
+        "ok": true,
+        "testCount": 177
+      },
+      {
+        "minimumTestCount": 55,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "diff readability and review ergonomics",
+        "ok": true,
+        "testCount": 64
+      },
+      {
+        "minimumTestCount": 60,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "word-level diff viewer",
+        "ok": true,
+        "testCount": 73
+      },
+      {
+        "minimumTestCount": 95,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "virtual PR review gate",
+        "ok": true,
+        "testCount": 111
+      },
+      {
+        "minimumTestCount": 310,
+        "missingFiles": [],
+        "missingKeywords": [],
+        "name": "expanded UT depth regression guards",
+        "ok": true,
+        "testCount": 310
+      }
+    ],
+    "duplicateTestNames": [],
+    "fileCounts": {
+      "src/app.rs": 7,
+      "src/bin/diffgrctl.rs": 0,
+      "src/diff_words.rs": 4,
+      "src/lib.rs": 0,
+      "src/main.rs": 0,
+      "src/model.rs": 11,
+      "src/ops.rs": 3,
+      "src/vpr.rs": 4,
+      "tests/cli_behavior_ut.rs": 12,
+      "tests/cli_surface_deep_ut.rs": 121,
+      "tests/cli_wrapper_ci_contract_more_ut.rs": 70,
+      "tests/diff_readability_ut.rs": 64,
+      "tests/functional_parity_gate.rs": 2,
+      "tests/gui_review_flow_contract_more_ut.rs": 80,
+      "tests/layout_state_coverage.rs": 8,
+      "tests/model_edge_ut.rs": 33,
+      "tests/model_regression_more_ut.rs": 42,
+      "tests/model_workflow.rs": 3,
+      "tests/native_parity_gate.rs": 1,
+      "tests/ops_edge_ut.rs": 41,
+      "tests/ops_generation_ut.rs": 8,
+      "tests/ops_layout_validation_ut.rs": 6,
+      "tests/ops_parity.rs": 6,
+      "tests/ops_regression_more_ut.rs": 44,
+      "tests/ops_reporting_bundle_ut.rs": 9,
+      "tests/ops_state_ut.rs": 10,
+      "tests/parity_assets_ut.rs": 6,
+      "tests/python_compat_manifest.rs": 2,
+      "tests/python_parity_cli.rs": 2,
+      "tests/quality_self_review_ut.rs": 170,
+      "tests/rebase_approval_ut.rs": 12,
+      "tests/render_responsiveness_ut.rs": 39,
+      "tests/review_report.rs": 4,
+      "tests/startup_args.rs": 5,
+      "tests/ut_depth_quality_more_ut.rs": 90,
+      "tests/virtual_pr_regression_more_ut.rs": 70,
+      "tests/vpr_review_ut.rs": 100,
+      "tests/word_level_diff_ut.rs": 62,
+      "tests/wrapper_contract_deep_ut.rs": 41
+    },
+    "minimumRustTestCount": 1180,
+    "missingFiles": [],
+    "ok": true,
+    "totalRustTests": 1192
+  },
+  "matrixOk": true,
+  "minimumNewRustTests": 310,
+  "minimumRustTestCount": 1180,
+  "newRustTests": 310,
+  "newTestFiles": [
+    {
+      "exists": true,
+      "file": "tests/ut_depth_quality_more_ut.rs",
+      "minimum": 90,
+      "ok": true,
+      "testCount": 90
+    },
+    {
+      "exists": true,
+      "file": "tests/gui_review_flow_contract_more_ut.rs",
+      "minimum": 80,
+      "ok": true,
+      "testCount": 80
+    },
+    {
+      "exists": true,
+      "file": "tests/virtual_pr_regression_more_ut.rs",
+      "minimum": 70,
+      "ok": true,
+      "testCount": 70
+    },
+    {
+      "exists": true,
+      "file": "tests/cli_wrapper_ci_contract_more_ut.rs",
+      "minimum": 70,
+      "ok": true,
+      "testCount": 70
+    }
+  ],
+  "ok": true,
+  "totalRustTests": 1192
+}

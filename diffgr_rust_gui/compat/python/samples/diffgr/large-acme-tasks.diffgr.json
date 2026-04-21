@@ -1,0 +1,6498 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    }
+  },
+  "groups": [
+    {
+      "id": "g-auth",
+      "name": "認証・認可 (Auth)",
+      "order": 1,
+      "tags": [
+        "auth",
+        "security"
+      ]
+    },
+    {
+      "id": "g-api",
+      "name": "API / Routes / Services",
+      "order": 2,
+      "tags": [
+        "backend",
+        "api"
+      ]
+    },
+    {
+      "id": "g-db",
+      "name": "DB / マイグレーション",
+      "order": 3,
+      "tags": [
+        "db",
+        "prisma"
+      ]
+    },
+    {
+      "id": "g-frontend",
+      "name": "フロントエンド (React)",
+      "order": 4,
+      "tags": [
+        "frontend",
+        "react"
+      ]
+    },
+    {
+      "id": "g-config",
+      "name": "設定・環境変数",
+      "order": 5,
+      "tags": [
+        "config"
+      ]
+    },
+    {
+      "id": "g-infra",
+      "name": "CI / Infra / Deploy",
+      "order": 6,
+      "tags": [
+        "ci",
+        "infra"
+      ]
+    },
+    {
+      "id": "g-monitoring",
+      "name": "ロギング・エラーハンドリング",
+      "order": 7,
+      "tags": [
+        "monitoring",
+        "logging"
+      ]
+    },
+    {
+      "id": "g-tests",
+      "name": "テスト (Integration)",
+      "order": 8,
+      "tags": [
+        "tests"
+      ]
+    },
+    {
+      "id": "g-docs",
+      "name": "ドキュメント・ADR",
+      "order": 9,
+      "tags": [
+        "docs"
+      ]
+    },
+    {
+      "id": "g-mobile",
+      "name": "モバイル (Expo/RN)",
+      "order": 10,
+      "tags": [
+        "mobile"
+      ]
+    },
+    {
+      "id": "g-tools",
+      "name": "開発ツール・スクリプト",
+      "order": 11,
+      "tags": [
+        "tools"
+      ]
+    },
+    {
+      "id": "g-perf",
+      "name": "パフォーマンス改善",
+      "order": 12,
+      "tags": [
+        "perf",
+        "backend"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b",
+      "filePath": "src/auth/jwt.ts",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import jwt from 'jsonwebtoken';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { env } from '../config/env';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "delete",
+          "text": "const SECRET = process.env.JWT_SECRET!;",
+          "oldLine": 4,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "const SECRET = env.jwtSecret;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "const EXPIRY = env.jwtExpirySeconds;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 5,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function signToken(payload: object): string {",
+          "oldLine": 6,
+          "newLine": 7
+        },
+        {
+          "kind": "delete",
+          "text": "  return jwt.sign(payload, SECRET, { expiresIn: 3600 });",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  return jwt.sign(payload, SECRET, { expiresIn: EXPIRY });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "9e7540f796964be48c43492366d0de651556f639c0c6a92f871bfffa7bd34322",
+        "strong": "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b"
+      },
+      "header": "signToken"
+    },
+    {
+      "id": "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177",
+      "filePath": "src/auth/jwt.ts",
+      "old": {
+        "start": 20,
+        "count": 6
+      },
+      "new": {
+        "start": 22,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export function verifyToken(token: string): object | null {",
+          "oldLine": 20,
+          "newLine": 22
+        },
+        {
+          "kind": "context",
+          "text": "  try {",
+          "oldLine": 21,
+          "newLine": 23
+        },
+        {
+          "kind": "delete",
+          "text": "    return jwt.verify(token, SECRET) as object;",
+          "oldLine": 22,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    const decoded = jwt.verify(token, SECRET) as object;",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    return decoded;",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "  } catch (e) {",
+          "oldLine": 23,
+          "newLine": 26
+        },
+        {
+          "kind": "delete",
+          "text": "    return null;",
+          "oldLine": 24,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    logger.warn('jwt verify failed', { err: e });",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "    return null;",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 25,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 26,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "8137b0c65ac327635de103b070b76c7136d0a93766a6042e1528c0b5a1c63aa2",
+        "strong": "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177"
+      },
+      "header": "verifyToken"
+    },
+    {
+      "id": "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d",
+      "filePath": "src/auth/middleware.ts",
+      "old": {
+        "start": 1,
+        "count": 5
+      },
+      "new": {
+        "start": 1,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "import { verifyToken } from './jwt';",
+          "oldLine": 1,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "import { verifyToken } from './jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { logger } from '../lib/logger';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "import { Request, Response, NextFunction } from 'express';",
+          "oldLine": 2,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "export function authMiddleware(req: Request, res: Response, next: NextFunction) {",
+          "oldLine": 4,
+          "newLine": 5
+        }
+      ],
+      "fingerprints": {
+        "stable": "0576ab00a43b0e235b508906950b67cf0f5d8904ebe93ef341ad7b3cc4f67a16",
+        "strong": "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d"
+      },
+      "header": "authMiddleware"
+    },
+    {
+      "id": "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5",
+      "filePath": "src/auth/middleware.ts",
+      "old": {
+        "start": 10,
+        "count": 7
+      },
+      "new": {
+        "start": 12,
+        "count": 9
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  const token = req.headers.authorization?.split(' ')[1];",
+          "oldLine": 10,
+          "newLine": 12
+        },
+        {
+          "kind": "context",
+          "text": "  if (!token) return res.status(401).json({ error: 'Unauthorized' });",
+          "oldLine": 11,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "  const payload = verifyToken(token);",
+          "oldLine": 12,
+          "newLine": 14
+        },
+        {
+          "kind": "delete",
+          "text": "  if (!payload) return res.status(401).json({ error: 'Invalid token' });",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  if (!payload) {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    logger.warn('invalid token attempt', { ip: req.ip });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    return res.status(401).json({ error: 'Invalid token' });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "  req.user = payload;",
+          "oldLine": 14,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "  next();",
+          "oldLine": 15,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "c98691a5294a6eb828517484a41a0d60eedfcc371ada8c62868c8ce6710719b4",
+        "strong": "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5"
+      },
+      "header": "authMiddleware"
+    },
+    {
+      "id": "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab",
+      "filePath": "src/auth/refresh.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { signToken, verifyToken } from './jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../db/client';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "export async function refreshAccessToken(refreshToken: string): Promise<string | null> {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  const payload = verifyToken(refreshToken);",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  if (!payload || typeof payload !== 'object') return null;",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const userId = (payload as any).sub;",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const stored = await db.refreshTokens.findUnique({ where: { token: refreshToken } });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  if (!stored || stored.revokedAt) return null;",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  return signToken({ sub: userId, type: 'access' });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "export async function revokeRefreshToken(token: string): Promise<void> {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  await db.refreshTokens.update({",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    where: { token },",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    data: { revokedAt: new Date() },",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "f139365274e392a452d85def0961175fb4dbbb6a0cb056521f8047b739fee81b",
+        "strong": "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab"
+      },
+      "header": "refreshAccessToken"
+    },
+    {
+      "id": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d",
+      "filePath": "src/auth/__tests__/jwt.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { signToken, verifyToken } from '../jwt';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "describe('jwt', () => {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  it('signs and verifies a token', () => {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    const token = signToken({ sub: 'u1', type: 'access' });",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    expect(typeof token).toBe('string');",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    const payload = verifyToken(token);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    expect(payload).not.toBeNull();",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns null for invalid token', () => {",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    expect(verifyToken('bad.token.here')).toBeNull();",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns null for expired token', async () => {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    const token = signToken({ sub: 'u2' });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    // expiry is controlled by env; test with mocked clock",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    expect(verifyToken(token)).not.toBeNull();",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "4483318d275e74cc5d5cbe08f71acaa472db778b41c398871664b58729f2d56a",
+        "strong": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d"
+      }
+    },
+    {
+      "id": "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 6
+      },
+      "new": {
+        "start": 1,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { Router } from 'express';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { authMiddleware } from '../auth/middleware';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { validate } from '../lib/validate';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { taskSchema } from '../schemas/task';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "import * as TaskService from '../services/task';",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "const router = Router();",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "router.use(authMiddleware);",
+          "oldLine": 6,
+          "newLine": 8
+        }
+      ],
+      "fingerprints": {
+        "stable": "6d6a4625ca0a03979a1e65ffaffc8026e752b6712a17243d55471b239c11ee84",
+        "strong": "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546"
+      },
+      "header": "tasks router"
+    },
+    {
+      "id": "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 12,
+        "count": 6
+      },
+      "new": {
+        "start": 14,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.post('/', async (req, res) => {",
+          "oldLine": 12,
+          "newLine": 14
+        },
+        {
+          "kind": "delete",
+          "text": "  const task = await TaskService.create(req.body);",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const body = validate(taskSchema, req.body);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!body.ok) return res.status(400).json({ errors: body.errors });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  const task = await TaskService.create(body.data);",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "context",
+          "text": "  res.status(201).json(task);",
+          "oldLine": 14,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 15,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 16,
+          "newLine": 20
+        },
+        {
+          "kind": "delete",
+          "text": "router.get('/:id', async (req, res) => {",
+          "oldLine": 17,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "router.get('/:id', async (req, res) => {",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "context",
+          "text": "  const task = await TaskService.findById(req.params.id);",
+          "oldLine": 18,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "c7156a4c77683fe2b367af2e166c9d80e05c28c14829f6cd35267b4158958fb4",
+        "strong": "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6"
+      },
+      "header": "POST /"
+    },
+    {
+      "id": "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 25,
+        "count": 5
+      },
+      "new": {
+        "start": 29,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.delete('/:id', async (req, res) => {",
+          "oldLine": 25,
+          "newLine": 29
+        },
+        {
+          "kind": "delete",
+          "text": "  await TaskService.remove(req.params.id);",
+          "oldLine": 26,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const task = await TaskService.findById(req.params.id);",
+          "oldLine": null,
+          "newLine": 30
+        },
+        {
+          "kind": "add",
+          "text": "  if (!task) return res.status(404).json({ error: 'Not found' });",
+          "oldLine": null,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  if (task.ownerId !== req.user!.sub) return res.status(403).json({ error: 'Forbidden' });",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "  await TaskService.remove(req.params.id);",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "context",
+          "text": "  res.status(204).send();",
+          "oldLine": 27,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 28,
+          "newLine": 35
+        }
+      ],
+      "fingerprints": {
+        "stable": "b8a1129147e476d18183523e32c9b49572e05b0d44db064e0197e401d2caa2e2",
+        "strong": "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0"
+      },
+      "header": "DELETE /:id"
+    },
+    {
+      "id": "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 1,
+        "count": 5
+      },
+      "new": {
+        "start": 1,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { db } from '../db/client';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "import { Task } from '@prisma/client';",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { logger } from '../lib/logger';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { TaskCreateInput } from '../schemas/task';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "export async function findAll(userId: string): Promise<Task[]> {",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "  return db.task.findMany({ where: { ownerId: userId } });",
+          "oldLine": 5,
+          "newLine": 7
+        }
+      ],
+      "fingerprints": {
+        "stable": "87869b612c90a8b7825647603a6de879675fc07d4a4697bb02181ff23d0a3723",
+        "strong": "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2"
+      },
+      "header": "findAll"
+    },
+    {
+      "id": "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 15,
+        "count": 6
+      },
+      "new": {
+        "start": 17,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function create(input: TaskCreateInput): Promise<Task> {",
+          "oldLine": 15,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  logger.info('create task', { title: input.title });",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "  return db.task.create({",
+          "oldLine": 16,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "    data: {",
+          "oldLine": 17,
+          "newLine": 20
+        },
+        {
+          "kind": "delete",
+          "text": "      ...input,",
+          "oldLine": 18,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      title: input.title,",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      description: input.description ?? null,",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      dueAt: input.dueAt ?? null,",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "      createdAt: new Date(),",
+          "oldLine": 19,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "    },",
+          "oldLine": 20,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "  });",
+          "oldLine": 21,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "cb31a981401aeecac97c1b47321cb48b25ecde6a59b55f46f7b27f86ff79769a",
+        "strong": "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e"
+      },
+      "header": "create"
+    },
+    {
+      "id": "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 30,
+        "count": 4
+      },
+      "new": {
+        "start": 34,
+        "count": 8
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function remove(id: string): Promise<void> {",
+          "oldLine": 30,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "  logger.info('remove task', { id });",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "delete",
+          "text": "  await db.task.delete({ where: { id } });",
+          "oldLine": 31,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  await db.task.delete({ where: { id } });",
+          "oldLine": null,
+          "newLine": 36
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 32,
+          "newLine": 37
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 33,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "export async function updateStatus(id: string, status: string): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "  return db.task.update({ where: { id }, data: { status } });",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 41
+        }
+      ],
+      "fingerprints": {
+        "stable": "ae775cedb6a12b3f02ff950a9fc93ce18ea8e0318fcb2141630308241349d39f",
+        "strong": "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386"
+      },
+      "header": "remove"
+    },
+    {
+      "id": "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154",
+      "filePath": "src/schemas/task.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { z } from 'zod';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export const taskSchema = z.object({",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  title: z.string().min(1).max(200),",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  description: z.string().max(2000).optional(),",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  dueAt: z.string().datetime().optional(),",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  status: z.enum(['open', 'in_progress', 'done']).default('open'),",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  tags: z.array(z.string()).max(10).default([]),",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "export type TaskCreateInput = z.infer<typeof taskSchema>;",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "export const taskUpdateSchema = taskSchema.partial().extend({",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  status: z.enum(['open', 'in_progress', 'done']).optional(),",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "export type TaskUpdateInput = z.infer<typeof taskUpdateSchema>;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "e867b0c73e37c740cdf0fb5bd86f71742e08e77e8d3c5f088b6dbdd6ae6beac2",
+        "strong": "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154"
+      }
+    },
+    {
+      "id": "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "generator client {",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  provider = \"prisma-client-js\"",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "datasource db {",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "  provider = \"postgresql\"",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "delete",
+          "text": "  url      = env(\"DATABASE_URL\")",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  url      = env(\"DATABASE_URL\")",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  directUrl = env(\"DATABASE_DIRECT_URL\")",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 9,
+          "newLine": 10
+        }
+      ],
+      "fingerprints": {
+        "stable": "b6d07d45f0622d7bd857b93f870ddaa4377e2a7828883d0bc9c1f967b01589bc",
+        "strong": "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848"
+      },
+      "header": "datasource db"
+    },
+    {
+      "id": "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 20,
+        "count": 8
+      },
+      "new": {
+        "start": 22,
+        "count": 16
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "model Task {",
+          "oldLine": 20,
+          "newLine": 22
+        },
+        {
+          "kind": "context",
+          "text": "  id        String   @id @default(cuid())",
+          "oldLine": 21,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "  title     String",
+          "oldLine": 22,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "  description String?",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "  status    String   @default(\"open\")",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "  tags      String[]",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "  dueAt     DateTime?",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "  ownerId   String",
+          "oldLine": 23,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "  owner     User     @relation(fields: [ownerId], references: [id])",
+          "oldLine": 24,
+          "newLine": 30
+        },
+        {
+          "kind": "context",
+          "text": "  createdAt DateTime @default(now())",
+          "oldLine": 25,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  updatedAt DateTime @updatedAt",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 26,
+          "newLine": 33
+        }
+      ],
+      "fingerprints": {
+        "stable": "6f4caffa096f23bc451ff46abf6a05ba5dd281b1aa623e695731c6c10e11e9e9",
+        "strong": "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f"
+      },
+      "header": "model Task"
+    },
+    {
+      "id": "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536",
+      "filePath": "prisma/schema.prisma",
+      "old": {
+        "start": 35,
+        "count": 0
+      },
+      "new": {
+        "start": 40,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "model RefreshToken {",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  id        String   @id @default(cuid())",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "  token     String   @unique",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "  userId    String",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "  user      User     @relation(fields: [userId], references: [id])",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  revokedAt DateTime?",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "  createdAt DateTime @default(now())",
+          "oldLine": null,
+          "newLine": 47
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 48
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 49
+        }
+      ],
+      "fingerprints": {
+        "stable": "961da90ca9a26aa21f17613123df49d7924e1f29aac2355acce311eb4aa01f40",
+        "strong": "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536"
+      }
+    },
+    {
+      "id": "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3",
+      "filePath": "prisma/migrations/20260314_add_task_fields/migration.sql",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "-- Migration: add description, status, tags, dueAt to Task",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "-- add_task_fields",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"description\" TEXT;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"status\" TEXT NOT NULL DEFAULT 'open';",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"tags\" TEXT[] NOT NULL DEFAULT '{}';",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"dueAt\" TIMESTAMP(3);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"Task\" ADD COLUMN \"updatedAt\" TIMESTAMP(3) NOT NULL DEFAULT NOW();",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "CREATE INDEX \"Task_status_idx\" ON \"Task\"(\"status\");",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "CREATE INDEX \"Task_ownerId_status_idx\" ON \"Task\"(\"ownerId\", \"status\");",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "-- RefreshToken table",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "CREATE TABLE \"RefreshToken\" (",
+          "oldLine": null,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "1dfa2dce7d628e795ba2b8111ec5c5660c6ad48c9517767cd1532ec15e357638",
+        "strong": "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3"
+      }
+    },
+    {
+      "id": "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca",
+      "filePath": "prisma/migrations/20260314_add_task_fields/migration.sql",
+      "old": {
+        "start": 14,
+        "count": 0
+      },
+      "new": {
+        "start": 14,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "  \"id\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  \"token\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  \"userId\" TEXT NOT NULL,",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  \"revokedAt\" TIMESTAMP(3),",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  \"createdAt\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  CONSTRAINT \"RefreshToken_pkey\" PRIMARY KEY (\"id\")",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": ");",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "CREATE UNIQUE INDEX \"RefreshToken_token_key\" ON \"RefreshToken\"(\"token\");",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "ALTER TABLE \"RefreshToken\" ADD CONSTRAINT \"RefreshToken_userId_fkey\" FOREIGN KEY (\"userId\") REFERENCES \"User\"(\"id\") ON DELETE CASCADE ON UPDATE CASCADE;",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "72e65342dbaa1c069ad98c7e9342bf4edc68491805ca44d34a12f3da0e0f9cb0",
+        "strong": "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca"
+      }
+    },
+    {
+      "id": "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e",
+      "filePath": "src/db/client.ts",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import { PrismaClient } from '@prisma/client';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "export const db = new PrismaClient();",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export const db =",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  globalForPrisma.prisma ?? new PrismaClient({ log: ['warn', 'error'] });",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "export default db;",
+          "oldLine": 5,
+          "newLine": 10
+        }
+      ],
+      "fingerprints": {
+        "stable": "c2f38a300f9da9fa83819ed3bb402ff61051ae43728c3ee7210310346db5e73b",
+        "strong": "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e"
+      },
+      "header": "db client"
+    },
+    {
+      "id": "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324",
+      "filePath": "frontend/src/api/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "const BASE = '/api/tasks';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export async function fetchTasks(): Promise<Task[]> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(BASE, { credentials: 'include' });",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error('Failed to fetch tasks');",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "export async function createTask(input: TaskCreateInput): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(BASE, {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    method: 'POST',",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    headers: { 'Content-Type': 'application/json' },",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    body: JSON.stringify(input),",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    credentials: 'include',",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) {",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    const err = await res.json().catch(() => ({}));",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    throw new Error(err.error ?? 'Failed to create task');",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "45a62621e384e0ac0be3aeb50092c244475c5ba33fe40273e227899b2e2cb441",
+        "strong": "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324"
+      }
+    },
+    {
+      "id": "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723",
+      "filePath": "frontend/src/components/TaskList.tsx",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import React, { useEffect, useState } from 'react';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { useQuery } from '@tanstack/react-query';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "import { fetchTasks } from '../api/tasks';",
+          "oldLine": 2,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "import { TaskCard } from './TaskCard';",
+          "oldLine": 3,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "import { Spinner } from './ui/Spinner';",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function TaskList() {",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "delete",
+          "text": "  const [tasks, setTasks] = useState([]);",
+          "oldLine": 6,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "  useEffect(() => { fetchTasks().then(setTasks); }, []);",
+          "oldLine": 7,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const { data: tasks, isLoading, error } = useQuery({",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    queryKey: ['tasks'],",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    queryFn: fetchTasks,",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 8,
+          "newLine": 12
+        }
+      ],
+      "fingerprints": {
+        "stable": "59c86732b4c0bc779ed5bc4d8fe12a973d1c1a8e9882bb66a833455245c50230",
+        "strong": "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723"
+      },
+      "header": "TaskList"
+    },
+    {
+      "id": "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a",
+      "filePath": "frontend/src/components/TaskList.tsx",
+      "old": {
+        "start": 12,
+        "count": 6
+      },
+      "new": {
+        "start": 16,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  return (",
+          "oldLine": 12,
+          "newLine": 16
+        },
+        {
+          "kind": "delete",
+          "text": "    <div>",
+          "oldLine": 13,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "      {tasks.map((t) => <TaskCard key={t.id} task={t} />)}",
+          "oldLine": 14,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "    </div>",
+          "oldLine": 15,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    <div className=\"task-list\">",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      {isLoading && <Spinner />}",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      {error && <p className=\"error\">{String(error)}</p>}",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "      {tasks?.map((t) => (",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "        <TaskCard key={t.id} task={t} />",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      ))}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      {tasks?.length === 0 && <p>No tasks yet.</p>}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "context",
+          "text": "    </div>",
+          "oldLine": 16,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "  );",
+          "oldLine": 17,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 18,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "11b57760b6de735e456fdc01ad476d4fb9a2aafc1cb3c0e81aac6f4ad6e889ff",
+        "strong": "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a"
+      },
+      "header": "return"
+    },
+    {
+      "id": "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3",
+      "filePath": "frontend/src/components/TaskForm.tsx",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import React, { useState } from 'react';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { useMutation, useQueryClient } from '@tanstack/react-query';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { createTask } from '../api/tasks';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export function TaskForm() {",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const qc = useQueryClient();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const [title, setTitle] = useState('');",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const [desc, setDesc] = useState('');",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  const mut = useMutation({",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    mutationFn: createTask,",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); setTitle(''); setDesc(''); },",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  return (",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    <form onSubmit={(e) => { e.preventDefault(); mut.mutate({ title, description: desc }); }}>",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder=\"Task title\" required />",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder=\"Description\" />",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      <button type=\"submit\" disabled={mut.isPending}>Add</button>",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      {mut.isError && <p className=\"error\">{String(mut.error)}</p>}",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    </form>",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  );",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 21
+        }
+      ],
+      "fingerprints": {
+        "stable": "15d98c4cecbb8a94c856b9c875db8b57a4ba2a0cae4cf917e414a32fe89538bc",
+        "strong": "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3"
+      }
+    },
+    {
+      "id": "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd",
+      "filePath": "frontend/src/components/TaskCard.tsx",
+      "old": {
+        "start": 5,
+        "count": 6
+      },
+      "new": {
+        "start": 5,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "interface Props { task: Task; }",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "export function TaskCard({ task }: Props) {",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  return (",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "delete",
+          "text": "    <div className=\"card\">",
+          "oldLine": 9,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    <div className={`card card--${task.status}`}>",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "      <h3>{task.title}</h3>",
+          "oldLine": 10,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      {task.description && <p>{task.description}</p>}",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      <span className=\"badge\">{task.status}</span>",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      {task.dueAt && <time>{new Date(task.dueAt).toLocaleDateString()}</time>}",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "    </div>",
+          "oldLine": 11,
+          "newLine": 14
+        },
+        {
+          "kind": "context",
+          "text": "  );",
+          "oldLine": 12,
+          "newLine": 15
+        }
+      ],
+      "fingerprints": {
+        "stable": "7e5ffa4a919c196621dcae0276be2a7b8a71a588229ae590d6746a008f829787",
+        "strong": "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd"
+      },
+      "header": "TaskCard"
+    },
+    {
+      "id": "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b",
+      "filePath": "frontend/src/styles/tasks.css",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": ".task-list { display: flex; flex-direction: column; gap: 12px; padding: 16px; }",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": ".card {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  border: 1px solid #e2e8f0;",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  border-radius: 8px;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  padding: 16px;",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  background: #fff;",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  box-shadow: 0 1px 3px rgba(0,0,0,.06);",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": ".card--in_progress { border-left: 4px solid #3b82f6; }",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": ".card--done { border-left: 4px solid #22c55e; opacity: 0.7; }",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": ".badge {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  display: inline-block;",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  font-size: 11px;",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  padding: 2px 8px;",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  border-radius: 12px;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  background: #f1f5f9;",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": ".error { color: #ef4444; font-size: 13px; margin-top: 4px; }",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "2b1ba981dba8fb6b735052e4de87d7f3e2b3e36b57fb5b1ae22665aea03b8b8d",
+        "strong": "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b"
+      }
+    },
+    {
+      "id": "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a",
+      "filePath": "src/config/env.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { z } from 'zod';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "const envSchema = z.object({",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  PORT: z.coerce.number().default(3000),",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  DATABASE_URL: z.string().url(),",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  DATABASE_DIRECT_URL: z.string().url().optional(),",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  JWT_SECRET: z.string().min(32),",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  JWT_EXPIRY_SECONDS: z.coerce.number().default(900),",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "const parsed = envSchema.safeParse(process.env);",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "if (!parsed.success) {",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  console.error('Invalid environment variables:', parsed.error.flatten());",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  process.exit(1);",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "export const env = {",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  ...parsed.data,",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "  jwtSecret: parsed.data.JWT_SECRET,",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "  jwtExpirySeconds: parsed.data.JWT_EXPIRY_SECONDS,",
+          "oldLine": null,
+          "newLine": 22
+        }
+      ],
+      "fingerprints": {
+        "stable": "cf7d74a13940780442d85f87a81bdef8411cecdef9497909731663c8afd81f24",
+        "strong": "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a"
+      }
+    },
+    {
+      "id": "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd",
+      "filePath": "src/config/env.ts",
+      "old": {
+        "start": 22,
+        "count": 0
+      },
+      "new": {
+        "start": 23,
+        "count": 3
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "};",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "export type Env = typeof env;",
+          "oldLine": null,
+          "newLine": 25
+        }
+      ],
+      "fingerprints": {
+        "stable": "31d5b96f284646bf6c3765cc0e4c996527f2a8c57ec1a6f41323a1dd8a6a77f0",
+        "strong": "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd"
+      }
+    },
+    {
+      "id": "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976",
+      "filePath": ".env.example",
+      "old": {
+        "start": 1,
+        "count": 6
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "NODE_ENV=development",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "PORT=3000",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "DATABASE_URL=postgresql://localhost:5432/acme_tasks",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "DATABASE_DIRECT_URL=postgresql://localhost:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 5
+        },
+        {
+          "kind": "delete",
+          "text": "JWT_SECRET=changeme",
+          "oldLine": 5,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "# generate with: openssl rand -base64 48",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "JWT_SECRET=REPLACE_WITH_STRONG_SECRET_MIN_32_CHARS",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "JWT_EXPIRY_SECONDS=900",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "LOG_LEVEL=info",
+          "oldLine": 6,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "3726f4d10daf04b8bd7e8963adcae2288f1caa082f0785f77383a97f18c2dd2b",
+        "strong": "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976"
+      },
+      "header": ".env.example"
+    },
+    {
+      "id": "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526",
+      "filePath": "docker-compose.yml",
+      "old": {
+        "start": 1,
+        "count": 15
+      },
+      "new": {
+        "start": 1,
+        "count": 22
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "version: '3.9'",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "services:",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  db:",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    image: postgres:16-alpine",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "    environment:",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_DB: acme_tasks",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_USER: acme",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "      POSTGRES_PASSWORD: acme",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "    ports:",
+          "oldLine": 9,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "      - \"5432:5432\"",
+          "oldLine": 10,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    volumes:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      - pgdata:/var/lib/postgresql/data",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    healthcheck:",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      test: [\"CMD-SHELL\", \"pg_isready -U acme\"]",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      interval: 5s",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      timeout: 5s",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      retries: 5",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "context",
+          "text": "  app:",
+          "oldLine": 11,
+          "newLine": 18
+        },
+        {
+          "kind": "context",
+          "text": "    build: .",
+          "oldLine": 12,
+          "newLine": 19
+        },
+        {
+          "kind": "context",
+          "text": "    ports:",
+          "oldLine": 13,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "655d7683eb45b913f51aabf77afa3834a5320697205be81a7db17eb4fa3b689a",
+        "strong": "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526"
+      },
+      "header": "services"
+    },
+    {
+      "id": "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711",
+      "filePath": "docker-compose.yml",
+      "old": {
+        "start": 16,
+        "count": 3
+      },
+      "new": {
+        "start": 23,
+        "count": 7
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "    environment:",
+          "oldLine": 16,
+          "newLine": 23
+        },
+        {
+          "kind": "delete",
+          "text": "      DATABASE_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": 17,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      DATABASE_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "      DATABASE_DIRECT_URL: postgresql://acme:acme@db:5432/acme_tasks",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "      JWT_SECRET: ${JWT_SECRET}",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "      JWT_EXPIRY_SECONDS: ${JWT_EXPIRY_SECONDS:-900}",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "    depends_on:",
+          "oldLine": 18,
+          "newLine": 28
+        },
+        {
+          "kind": "delete",
+          "text": "      - db",
+          "oldLine": 19,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      db:",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "        condition: service_healthy",
+          "oldLine": null,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "6595f41fe8702ef2676f109beca339cb3bddf6ae705c28d501ebe517296904da",
+        "strong": "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711"
+      },
+      "header": "app env"
+    },
+    {
+      "id": "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "name: CI",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "on:",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  push:",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    branches: [main]",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "  pull_request:",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "jobs:",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  test:",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "    runs-on: ubuntu-latest",
+          "oldLine": 9,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    services:",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      postgres:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "        image: postgres:16-alpine",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 13
+        }
+      ],
+      "fingerprints": {
+        "stable": "f0883f1773a2c0aa8b37b4656229b7998bb23a67eab606a26367bf7e2d872878",
+        "strong": "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8"
+      },
+      "header": "test job"
+    },
+    {
+      "id": "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 10,
+        "count": 8
+      },
+      "new": {
+        "start": 18,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "    steps:",
+          "oldLine": 10,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_DB: acme_tasks_test",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_USER: acme",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "          POSTGRES_PASSWORD: acme",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "        ports:",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "          - 5432:5432",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "        options: >-",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "          --health-cmd pg_isready --health-interval 5s --health-retries 5",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    steps:",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "      - uses: actions/checkout@v4",
+          "oldLine": 11,
+          "newLine": 26
+        },
+        {
+          "kind": "context",
+          "text": "      - uses: actions/setup-node@v4",
+          "oldLine": 12,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "        with:",
+          "oldLine": 13,
+          "newLine": 28
+        },
+        {
+          "kind": "context",
+          "text": "          node-version: 20",
+          "oldLine": 14,
+          "newLine": 29
+        },
+        {
+          "kind": "context",
+          "text": "          cache: npm",
+          "oldLine": 15,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "42a11fec33113aedbfe75830c55de8f2ff667aa037a1a6d0b09e387d3d1dbe7b",
+        "strong": "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918"
+      },
+      "header": "steps"
+    },
+    {
+      "id": "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3",
+      "filePath": ".github/workflows/ci.yml",
+      "old": {
+        "start": 20,
+        "count": 5
+      },
+      "new": {
+        "start": 34,
+        "count": 9
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "      - run: npm ci",
+          "oldLine": 20,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run lint",
+          "oldLine": 21,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run typecheck",
+          "oldLine": 22,
+          "newLine": 36
+        },
+        {
+          "kind": "delete",
+          "text": "      - run: npm test",
+          "oldLine": 23,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npx prisma migrate deploy",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "          DATABASE_URL: postgresql://acme:acme@localhost:5432/acme_tasks_test",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm test",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "context",
+          "text": "      - run: npm run build",
+          "oldLine": 24,
+          "newLine": 41
+        }
+      ],
+      "fingerprints": {
+        "stable": "63a6aa448eb5945bfa423af266cbc8bb2f2773fe8e8e8b1bd77c68c3e83f385e",
+        "strong": "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3"
+      },
+      "header": "test steps"
+    },
+    {
+      "id": "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c",
+      "filePath": ".github/workflows/deploy.yml",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "name: Deploy",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "on:",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "  push:",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "    branches: [main]",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    paths-ignore: ['**.md', 'docs/**']",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "jobs:",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  deploy:",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    runs-on: ubuntu-latest",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    environment: production",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    steps:",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      - uses: actions/checkout@v4",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      - uses: actions/setup-node@v4",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "        with:",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "          node-version: 20",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "          cache: npm",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm ci",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      - run: npm run build",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      - name: Deploy to Fly.io",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "        uses: superfly/flyctl-actions/setup-flyctl@master",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "      - run: flyctl deploy --remote-only",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "        env:",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "092f4b2e1986d429a480df52a5eb112bfb31aa6627fefcc25bfd75d23c823674",
+        "strong": "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c"
+      }
+    },
+    {
+      "id": "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575",
+      "filePath": "src/lib/logger.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import pino from 'pino';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { env } from '../config/env';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "export const logger = pino({",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  level: env.LOG_LEVEL,",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  ...(env.NODE_ENV === 'production'",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    ? {}  // structured JSON in prod",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    : { transport: { target: 'pino-pretty', options: { colorize: true } } }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  ),",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "export function requestLogger() {",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  return (req: any, res: any, next: any) => {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    const start = Date.now();",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    res.on('finish', () => {",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      logger.info({ method: req.method, url: req.url, status: res.statusCode, ms: Date.now() - start });",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    next();",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "  };",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "01aba21c3c9edd598f2b46070f3bedcf7a384ae8632f525555c72f6bf518c8fa",
+        "strong": "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575"
+      }
+    },
+    {
+      "id": "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b",
+      "filePath": "src/lib/errors.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "export class AppError extends Error {",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "  constructor(public statusCode: number, message: string) {",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "    super(message);",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "    this.name = 'AppError';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "export function errorHandler(err: any, req: any, res: any, next: any) {",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "  if (err instanceof AppError) {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    return res.status(err.statusCode).json({ error: err.message });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  logger.error({ err }, 'unhandled error');",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "  res.status(500).json({ error: 'Internal server error' });",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "006705546745a2d529ce11b1fcdc1296c49fde78ba949f3865988ea2655f5e34",
+        "strong": "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b"
+      }
+    },
+    {
+      "id": "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd",
+      "filePath": "src/app.ts",
+      "old": {
+        "start": 1,
+        "count": 10
+      },
+      "new": {
+        "start": 1,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "import express from 'express';",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { requestLogger } from './lib/logger';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { errorHandler } from './lib/errors';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "import { tasksRouter } from './routes/tasks';",
+          "oldLine": 2,
+          "newLine": 4
+        },
+        {
+          "kind": "context",
+          "text": "import { authRouter } from './routes/auth';",
+          "oldLine": 3,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "const app = express();",
+          "oldLine": 5,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "app.use(express.json());",
+          "oldLine": 6,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "app.use(requestLogger());",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "context",
+          "text": "app.use('/api/tasks', tasksRouter);",
+          "oldLine": 7,
+          "newLine": 10
+        },
+        {
+          "kind": "context",
+          "text": "app.use('/api/auth', authRouter);",
+          "oldLine": 8,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "app.use(errorHandler);",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "context",
+          "text": "export default app;",
+          "oldLine": 9,
+          "newLine": 13
+        }
+      ],
+      "fingerprints": {
+        "stable": "6f6fb5d5847be9fca9da4e36010bb0f7ce62f8e1d2a3cbec6d12e38bb82aa150",
+        "strong": "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd"
+      },
+      "header": "app setup"
+    },
+    {
+      "id": "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275",
+      "filePath": "src/routes/__tests__/tasks.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 30
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import request from 'supertest';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import app from '../../app';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../../db/client';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "import { signToken } from '../../auth/jwt';",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "beforeAll(async () => { await db.$connect(); });",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "afterAll(async () => { await db.$disconnect(); });",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "afterEach(async () => { await db.task.deleteMany(); });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "const token = signToken({ sub: 'test-user', type: 'access' });",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "const auth = { Authorization: `Bearer ${token}` };",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "describe('GET /api/tasks', () => {",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns empty array when no tasks', async () => {",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).get('/api/tasks').set(auth);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(200);",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body).toEqual([]);",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "describe('POST /api/tasks', () => {",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "  it('creates a task', async () => {",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).post('/api/tasks').set(auth).send({ title: 'Buy milk' });",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(201);",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body.title).toBe('Buy milk');",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.body.status).toBe('open');",
+          "oldLine": null,
+          "newLine": 26
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 27
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 28
+        },
+        {
+          "kind": "add",
+          "text": "  it('rejects missing title', async () => {",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).post('/api/tasks').set(auth).send({});",
+          "oldLine": null,
+          "newLine": 30
+        }
+      ],
+      "fingerprints": {
+        "stable": "ee80f0e9d2661eeadd6516da8bb67aed39d3acdbaee47ade184b9c81a45685e4",
+        "strong": "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275"
+      }
+    },
+    {
+      "id": "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73",
+      "filePath": "src/routes/__tests__/tasks.test.ts",
+      "old": {
+        "start": 30,
+        "count": 0
+      },
+      "new": {
+        "start": 31,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(400);",
+          "oldLine": null,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "describe('DELETE /api/tasks/:id', () => {",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "add",
+          "text": "  it('deletes own task', async () => {",
+          "oldLine": null,
+          "newLine": 36
+        },
+        {
+          "kind": "add",
+          "text": "    const task = await db.task.create({ data: { title: 'tmp', ownerId: 'test-user' } });",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).delete(`/api/tasks/${task.id}`).set(auth);",
+          "oldLine": null,
+          "newLine": 38
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(204);",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  it('rejects deletion of another user task', async () => {",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "    const task = await db.task.create({ data: { title: 'tmp', ownerId: 'other-user' } });",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "    const res = await request(app).delete(`/api/tasks/${task.id}`).set(auth);",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "    expect(res.status).toBe(403);",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 47
+        }
+      ],
+      "fingerprints": {
+        "stable": "dd12c632eeee083cb47c95075c5f8806cfe1019c1156213e3ad9645db67d0a59",
+        "strong": "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73"
+      }
+    },
+    {
+      "id": "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1",
+      "filePath": "src/services/__tests__/task.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { create, findAll, remove, updateStatus } from '../task';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { db } from '../../db/client';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "jest.mock('../../db/client');",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "const mockDb = db as jest.Mocked<typeof db>;",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "describe('TaskService', () => {",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  describe('create', () => {",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    it('calls db.task.create with correct data', async () => {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "      mockDb.task.create.mockResolvedValueOnce({ id: '1', title: 'Test' } as any);",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "      const result = await create({ title: 'Test', status: 'open', tags: [] });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      expect(mockDb.task.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ title: 'Test' }) }));",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      expect(result.id).toBe('1');",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  describe('updateStatus', () => {",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    it('calls db.task.update', async () => {",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "      mockDb.task.update.mockResolvedValueOnce({ id: '1', status: 'done' } as any);",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "      await updateStatus('1', 'done');",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "      expect(mockDb.task.update).toHaveBeenCalledWith({ where: { id: '1' }, data: { status: 'done' } });",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "    });",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "});",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "93ac3bde8933a46f97f619e09126bfa884a0b6889aa49e70ee948cc2c3544506",
+        "strong": "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1"
+      }
+    },
+    {
+      "id": "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca",
+      "filePath": "README.md",
+      "old": {
+        "start": 1,
+        "count": 15
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "delete",
+          "text": "# Acme Tasks",
+          "oldLine": 1,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "# Acme Tasks — API + Frontend monorepo",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "Simple task management app.",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "Full-stack task management app built with Express, Prisma, and React.",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "## Features",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "- JWT authentication with refresh tokens",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "- Task CRUD with validation (Zod)",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "- Status tracking (open / in_progress / done)",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "- Tags and due dates",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "- Structured logging (pino)",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "- Integration tests (Supertest + Prisma)",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "## Getting Started",
+          "oldLine": 5,
+          "newLine": 14
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 6,
+          "newLine": 15
+        },
+        {
+          "kind": "context",
+          "text": "```",
+          "oldLine": 7,
+          "newLine": 16
+        },
+        {
+          "kind": "context",
+          "text": "cp .env.example .env",
+          "oldLine": 8,
+          "newLine": 17
+        }
+      ],
+      "fingerprints": {
+        "stable": "37951fe7751a97b414d28b1c6e3da55ff8f374aa8b5359c550e5b59cedd23715",
+        "strong": "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca"
+      },
+      "header": "README"
+    },
+    {
+      "id": "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843",
+      "filePath": "README.md",
+      "old": {
+        "start": 18,
+        "count": 5
+      },
+      "new": {
+        "start": 32,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "npm install",
+          "oldLine": 18,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "npx prisma migrate dev",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "context",
+          "text": "npm run dev",
+          "oldLine": 19,
+          "newLine": 34
+        },
+        {
+          "kind": "context",
+          "text": "```",
+          "oldLine": 20,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 21,
+          "newLine": 36
+        },
+        {
+          "kind": "delete",
+          "text": "## Endpoints",
+          "oldLine": 22,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "## API",
+          "oldLine": null,
+          "newLine": 37
+        },
+        {
+          "kind": "context",
+          "text": "",
+          "oldLine": 23,
+          "newLine": 38
+        },
+        {
+          "kind": "delete",
+          "text": "- GET /health",
+          "oldLine": 24,
+          "newLine": null
+        },
+        {
+          "kind": "delete",
+          "text": "- GET /api/tasks",
+          "oldLine": 25,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/auth/login`",
+          "oldLine": null,
+          "newLine": 39
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/auth/refresh`",
+          "oldLine": null,
+          "newLine": 40
+        },
+        {
+          "kind": "add",
+          "text": "- `GET /api/tasks`",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "- `POST /api/tasks`",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "- `DELETE /api/tasks/:id`",
+          "oldLine": null,
+          "newLine": 43
+        }
+      ],
+      "fingerprints": {
+        "stable": "4e28836ffbbd93d2deed27a218918095e3cf7e86c3fdbb21e9445f23263acd05",
+        "strong": "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843"
+      },
+      "header": "API section"
+    },
+    {
+      "id": "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a",
+      "filePath": "docs/architecture.md",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 24
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "# Architecture",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "## Overview",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "```",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "Browser → React SPA → Express API → PostgreSQL (Prisma)",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "```",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "## Auth Flow",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "1. `POST /api/auth/login` — returns `accessToken` (15 min) + `refreshToken` (7 days)",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "2. Client stores `refreshToken` in httpOnly cookie",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "3. On 401, client calls `POST /api/auth/refresh` to get new `accessToken`",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "4. `POST /api/auth/logout` revokes the `refreshToken`",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "## Data Model",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "- `User` — id, email, passwordHash",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "- `Task` — id, title, description, status, tags, dueAt, ownerId, createdAt, updatedAt",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "- `RefreshToken` — id, token, userId, revokedAt, createdAt",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "## Logging",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "Structured JSON via pino in production. pino-pretty in development.",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "414d7fa1e311d43b479aa147efa287146684f96473907b48b7f4f5b57197a3a1",
+        "strong": "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a"
+      }
+    },
+    {
+      "id": "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a",
+      "filePath": "docs/adr/001-use-zod-for-validation.md",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 18
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "# ADR 001 — Use Zod for request validation",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "**Status:** Accepted",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "## Context",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "Previously, request body validation was ad-hoc (manual `if` checks). This led to inconsistent error responses and missing fields silently passing through.",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "## Decision",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "Use Zod to define schemas for all request inputs. A thin `validate()` wrapper converts `ZodError` into a standardized `{ errors: FieldError[] }` response.",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "## Consequences",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "- Request shape is self-documenting and co-located with types",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "- 400 errors are consistent across all routes",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "- Runtime type safety from the boundary inward",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 18
+        }
+      ],
+      "fingerprints": {
+        "stable": "674ef8376aeb473aa518f9efb6e9561e47bbaa50d7959cafd8fc008df4b86117",
+        "strong": "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a"
+      }
+    },
+    {
+      "id": "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4",
+      "filePath": "mobile/src/screens/TaskListScreen.tsx",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 26
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import React, { useEffect, useState } from 'react';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import { FlatList, Text, View, StyleSheet, ActivityIndicator } from 'react-native';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "import { fetchTasks } from '../api/tasks';",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "export function TaskListScreen() {",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const [tasks, setTasks] = useState<Task[]>([]);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const [loading, setLoading] = useState(true);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  const [error, setError] = useState<string | null>(null);",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  useEffect(() => {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    fetchTasks()",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "      .then(setTasks)",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "      .catch((e) => setError(String(e)))",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      .finally(() => setLoading(false));",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  }, []);",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  if (loading) return <ActivityIndicator style={styles.center} />;",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  if (error) return <Text style={styles.error}>{error}</Text>;",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  return (",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "    <FlatList",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "      data={tasks}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "      keyExtractor={(t) => t.id}",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "      renderItem={({ item }) => <Text>{item.title}</Text>}",
+          "oldLine": null,
+          "newLine": 24
+        },
+        {
+          "kind": "add",
+          "text": "    />",
+          "oldLine": null,
+          "newLine": 25
+        },
+        {
+          "kind": "add",
+          "text": "  );",
+          "oldLine": null,
+          "newLine": 26
+        }
+      ],
+      "fingerprints": {
+        "stable": "bdcbfc0d1a7c7b9ad8752e33215f081d88ecc41a414a5d2a2c4d10e997df40c4",
+        "strong": "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4"
+      }
+    },
+    {
+      "id": "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab",
+      "filePath": "mobile/src/api/tasks.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 16
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { API_BASE_URL } from '../config';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export async function fetchTasks(): Promise<Task[]> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(`${API_BASE_URL}/tasks`, { credentials: 'include' });",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error(`HTTP ${res.status}`);",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  return res.json();",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "export async function createTask(input: { title: string }): Promise<Task> {",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  const res = await fetch(`${API_BASE_URL}/tasks`, {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    method: 'POST',",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    headers: { 'Content-Type': 'application/json' },",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    body: JSON.stringify(input),",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    credentials: 'include',",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  if (!res.ok) throw new Error(`HTTP ${res.status}`);",
+          "oldLine": null,
+          "newLine": 16
+        }
+      ],
+      "fingerprints": {
+        "stable": "0ebb6dae3e33881a44bbc171d01a4c72358c20dbd904eeda5e6a108a0873810c",
+        "strong": "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab"
+      }
+    },
+    {
+      "id": "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1",
+      "filePath": "mobile/app.json",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 10
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "{",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  \"expo\": {",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "delete",
+          "text": "    \"name\": \"AcmeTasks\",",
+          "oldLine": 3,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"name\": \"Acme Tasks\",",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "context",
+          "text": "    \"slug\": \"acme-tasks\",",
+          "oldLine": 4,
+          "newLine": 4
+        },
+        {
+          "kind": "delete",
+          "text": "    \"version\": \"1.0.0\",",
+          "oldLine": 5,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"version\": \"1.1.0\",",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    \"runtimeVersion\": { \"policy\": \"appVersion\" },",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "    \"orientation\": \"portrait\"",
+          "oldLine": 6,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 7,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 8,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "ed8799fff46893d4fbceb6f0b142217b58b5b391271ae6fc8b5c1f540e98f3c4",
+        "strong": "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1"
+      }
+    },
+    {
+      "id": "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415",
+      "filePath": "scripts/seed.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { db } from '../src/db/client';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import bcrypt from 'bcryptjs';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "async function seed() {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  console.log('Seeding...');",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const hash = await bcrypt.hash('password123', 10);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const user = await db.user.upsert({",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    where: { email: 'alice@example.com' },",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    update: {},",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    create: { email: 'alice@example.com', passwordHash: hash },",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  await db.task.createMany({",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    data: [",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Review PR #42', status: 'in_progress', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Write migration for task fields', status: 'done', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Update README', status: 'open', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Add refresh token support', status: 'done', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Set up Fly.io deployment', status: 'open', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    ],",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "  console.log('Done.');",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "seed().catch(console.error).finally(() => db.$disconnect());",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "1b4fa984af3ed3aa2c46f076adbecb4b92f1119115c4626ed73eb90b087b1790",
+        "strong": "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415"
+      }
+    },
+    {
+      "id": "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e",
+      "filePath": "package.json",
+      "old": {
+        "start": 5,
+        "count": 8
+      },
+      "new": {
+        "start": 5,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  \"scripts\": {",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "    \"dev\": \"ts-node-dev src/index.ts\",",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "    \"build\": \"tsc\",",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "    \"start\": \"node dist/index.js\",",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "delete",
+          "text": "    \"test\": \"jest\"",
+          "oldLine": 9,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"test\": \"jest --runInBand\",",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    \"test:watch\": \"jest --watch\",",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    \"lint\": \"eslint src --ext .ts\",",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    \"typecheck\": \"tsc --noEmit\",",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    \"seed\": \"ts-node scripts/seed.ts\",",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "    \"migrate\": \"prisma migrate dev\"",
+          "oldLine": 10,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "0220eb5225fcd7782fb567eb27204a91dc66b6c66c84e93bb1d64ab9ef5ff4e8",
+        "strong": "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e"
+      },
+      "header": "scripts"
+    },
+    {
+      "id": "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e",
+      "filePath": "package.json",
+      "old": {
+        "start": 20,
+        "count": 8
+      },
+      "new": {
+        "start": 24,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  \"dependencies\": {",
+          "oldLine": 20,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "    \"@prisma/client\": \"^5.10.0\",",
+          "oldLine": 21,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "    \"bcryptjs\": \"^2.4.3\",",
+          "oldLine": 22,
+          "newLine": 26
+        },
+        {
+          "kind": "context",
+          "text": "    \"express\": \"^4.18.3\",",
+          "oldLine": 23,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "    \"jsonwebtoken\": \"^9.0.2\",",
+          "oldLine": 24,
+          "newLine": 28
+        },
+        {
+          "kind": "add",
+          "text": "    \"pino\": \"^9.0.0\",",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "    \"pino-pretty\": \"^11.0.0\",",
+          "oldLine": null,
+          "newLine": 30
+        },
+        {
+          "kind": "context",
+          "text": "    \"zod\": \"^3.22.4\"",
+          "oldLine": 25,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  },",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "  \"devDependencies\": {",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "add",
+          "text": "    \"@types/supertest\": \"^6.0.2\",",
+          "oldLine": null,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "    \"supertest\": \"^7.0.0\"",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 26,
+          "newLine": 36
+        }
+      ],
+      "fingerprints": {
+        "stable": "82467324a6222902338af7449f9a65df59c94151d78cfab98fbbfb81702cde52",
+        "strong": "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e"
+      },
+      "header": "dependencies"
+    },
+    {
+      "id": "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364",
+      "filePath": ".eslintrc.json",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "{",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  \"extends\": [\"plugin:@typescript-eslint/recommended\"],",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  \"parser\": \"@typescript-eslint/parser\",",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "delete",
+          "text": "  \"rules\": {}",
+          "oldLine": 4,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  \"rules\": {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    \"@typescript-eslint/no-explicit-any\": \"warn\",",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    \"@typescript-eslint/no-unused-vars\": [\"error\", { \"argsIgnorePattern\": \"^_\" }],",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    \"no-console\": [\"warn\", { \"allow\": [\"error\"] }]",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 5,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "8d7fe0c6f6d1912f5374c980d1756acce0b2147e0681bf853c605694b0357e90",
+        "strong": "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364"
+      }
+    },
+    {
+      "id": "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a",
+      "filePath": "src/services/task.ts",
+      "old": {
+        "start": 40,
+        "count": 5
+      },
+      "new": {
+        "start": 44,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "export async function findAll(userId: string): Promise<Task[]> {",
+          "oldLine": 40,
+          "newLine": 44
+        },
+        {
+          "kind": "delete",
+          "text": "  return db.task.findMany({ where: { ownerId: userId } });",
+          "oldLine": 41,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  return db.task.findMany({",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "    where: { ownerId: userId },",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "add",
+          "text": "    orderBy: { createdAt: 'desc' },",
+          "oldLine": null,
+          "newLine": 47
+        },
+        {
+          "kind": "add",
+          "text": "    take: 100,",
+          "oldLine": null,
+          "newLine": 48
+        },
+        {
+          "kind": "add",
+          "text": "    select: {",
+          "oldLine": null,
+          "newLine": 49
+        },
+        {
+          "kind": "add",
+          "text": "      id: true, title: true, description: true,",
+          "oldLine": null,
+          "newLine": 50
+        },
+        {
+          "kind": "add",
+          "text": "      status: true, tags: true, dueAt: true, createdAt: true,",
+          "oldLine": null,
+          "newLine": 51
+        },
+        {
+          "kind": "add",
+          "text": "    },",
+          "oldLine": null,
+          "newLine": 52
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 53
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 42,
+          "newLine": 54
+        }
+      ],
+      "fingerprints": {
+        "stable": "3e9cc0ad0950017fe9463786943b082005878cf1bbb76a640144b76e11527ed6",
+        "strong": "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a"
+      },
+      "header": "findAll with pagination"
+    },
+    {
+      "id": "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d",
+      "filePath": "src/routes/tasks.ts",
+      "old": {
+        "start": 35,
+        "count": 6
+      },
+      "new": {
+        "start": 40,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "router.get('/', async (req, res) => {",
+          "oldLine": 35,
+          "newLine": 40
+        },
+        {
+          "kind": "delete",
+          "text": "  const tasks = await TaskService.findAll(req.user!.sub);",
+          "oldLine": 36,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  const { status, tag, page } = req.query;",
+          "oldLine": null,
+          "newLine": 41
+        },
+        {
+          "kind": "add",
+          "text": "  const tasks = await TaskService.findAll(req.user!.sub, {",
+          "oldLine": null,
+          "newLine": 42
+        },
+        {
+          "kind": "add",
+          "text": "    status: typeof status === 'string' ? status : undefined,",
+          "oldLine": null,
+          "newLine": 43
+        },
+        {
+          "kind": "add",
+          "text": "    tag: typeof tag === 'string' ? tag : undefined,",
+          "oldLine": null,
+          "newLine": 44
+        },
+        {
+          "kind": "add",
+          "text": "    page: typeof page === 'string' ? parseInt(page, 10) : 1,",
+          "oldLine": null,
+          "newLine": 45
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 46
+        },
+        {
+          "kind": "context",
+          "text": "  res.json(tasks);",
+          "oldLine": 37,
+          "newLine": 47
+        },
+        {
+          "kind": "context",
+          "text": "});",
+          "oldLine": 38,
+          "newLine": 48
+        }
+      ],
+      "fingerprints": {
+        "stable": "78241c8703162514ed26b2f05204c35111d5398a4c85b2d0f75004e59d124539",
+        "strong": "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d"
+      },
+      "header": "GET / with filters"
+    },
+    {
+      "id": "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5",
+      "filePath": "src/lib/cache.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "type CacheEntry<T> = { value: T; expiresAt: number };",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "export class TTLCache<K, V> {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  private store = new Map<K, CacheEntry<V>>();",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  set(key: K, value: V, ttlMs: number) {",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    this.store.set(key, { value, expiresAt: Date.now() + ttlMs });",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  get(key: K): V | undefined {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    const entry = this.store.get(key);",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    if (!entry) return undefined;",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    if (Date.now() > entry.expiresAt) { this.store.delete(key); return undefined; }",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "    return entry.value;",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "  delete(key: K) { this.store.delete(key); }",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "  size() { return this.store.size; }",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 19
+        }
+      ],
+      "fingerprints": {
+        "stable": "9af02bc7e04b71007024eaa2499aa2b218d46da0d18cec9ea1e71a047a5e2f06",
+        "strong": "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5"
+      }
+    },
+    {
+      "id": "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40",
+      "filePath": "src/lib/__tests__/cache.test.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 20
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { TTLCache } from '../cache';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "describe('TTLCache', () => {",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns cached value within TTL', () => {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, number>();",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('k', 42, 1000);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('k')).toBe(42);",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "  it('returns undefined after TTL expires', () => {",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, number>();",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('k', 99, 0);",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('k')).toBeUndefined();",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "  it('deletes key explicitly', () => {",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "    const c = new TTLCache<string, string>();",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "    c.set('x', 'hello', 5000);",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    c.delete('x');",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "    expect(c.get('x')).toBeUndefined();",
+          "oldLine": null,
+          "newLine": 20
+        }
+      ],
+      "fingerprints": {
+        "stable": "ddf48b86f150078c92eb76a11b2ed4cd10af35c09f13088708f172a8a15ab0ae",
+        "strong": "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40"
+      }
+    }
+  ],
+  "assignments": {
+    "g-auth": [
+      "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b",
+      "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177",
+      "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d",
+      "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5",
+      "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab",
+      "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d"
+    ],
+    "g-api": [
+      "916483d2577c8210cbc7a0bc83d4225b299e6a2d8bfc39abb838ff2138687546",
+      "3598101a0f5f8d309a79bf0b5c983deb31223329c1c9df0a4e47c9ec3d3ab4b6",
+      "97e7a434430e0b3de6d99bfad9911b205d7ae9a140f0125a2e800fbe1ce516f0",
+      "8b709e61113d10b103a5e38261ce3573a82ad0b998fafd3663a5ebea474178b2",
+      "8342ade73e691fe13ee082c9207408db7741312e0dcae7c1359032e05da0a15e",
+      "b90b20affaf87414611e22f4514363cd70e471800f9380dd5831225a2dfd4386",
+      "6b9c3c796258858103c7a6b059f0991c63c25da96eb7322beabddab0f7120154"
+    ],
+    "g-db": [
+      "ab80c3e82b26cdee19be905215d2319bd24891c4ac0cd1c5d0867b0ebcfff848",
+      "a71e9d0bcebea421ebd456ec1ba5582ba430faf57be35362b722ea1abc57fa9f",
+      "dfe4dae2197e6b7454e05b6b10212de5ed8452aab415257ca1ccc29c30f60536",
+      "03a8651dbb533883a8b4531f9cad7ce30cdb5ed2f3734724c01a1994372417a3",
+      "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca",
+      "1e87240255be2ef6f9a3c9e55a7d073a21d75fdb6c140a389139bb2342f8893e"
+    ],
+    "g-frontend": [
+      "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324",
+      "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723",
+      "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a",
+      "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3",
+      "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd",
+      "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b"
+    ],
+    "g-config": [
+      "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a",
+      "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd",
+      "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976",
+      "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526",
+      "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711"
+    ],
+    "g-infra": [
+      "9d7e794a0c12527d02e76150195f50997ab3b841c2cc79b957cd42a9274ee8c8",
+      "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918",
+      "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3",
+      "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c"
+    ],
+    "g-monitoring": [
+      "313df106ad18d0277052727ad84d5dddb3c7099faa64acc200398104cd86a575",
+      "84752442075914d499cc845a6c3cbaced89f14a91ed6cba2b10ec64f91db591b",
+      "b40ba604b5488a49db8a447d131b93241b070f48c588d5dce589207a25fe28bd"
+    ],
+    "g-tests": [
+      "8839b219e50ed511e8910f0a5df0e03cc4529dd650ce4f005d58d5e60702e275",
+      "7d3da154b634a4cfad542713264e45bfa8f22da53b7d1f7a88cd71c0051ffc73",
+      "914843d754844a3b3d92e805fb7a99243367dc8cdc53f682812f8588f94431b1"
+    ],
+    "g-docs": [
+      "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca",
+      "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843",
+      "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a",
+      "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a"
+    ],
+    "g-mobile": [
+      "71c45111c6f399bd3196be3df87c4a8b3062c6e094e89c015139acb620e6fcc4",
+      "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab",
+      "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1"
+    ],
+    "g-tools": [
+      "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415",
+      "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e",
+      "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e",
+      "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364"
+    ],
+    "g-perf": [
+      "0011616f14531b78553f2b74a32b91d15e47ef08c8032c6741ea6b81d2c7966a",
+      "521b64954e73125ed6758b7e576b71a2de31da92b3ceb368e49ef0cb1dec4b7d",
+      "2236809e12b27561978d8289e6aa3ea591307ec2e3ec4472678584bd0f6088d5",
+      "f02c1755e4d08234cf434fda2af8530fec57e2c108e0ace88e3663681a44dd40"
+    ]
+  },
+  "reviews": {
+    "898a7f0e4932cf230cfae6129b1c4ee7e0789f4560a2a201d08aa7ae06f90526": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "a7299c2d2017c472061b44ad2b35bfb68dad5a3abeb9626947c4ac53ae42c177": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "bc1be7b2d353d7cbbb65aab7d365b7a7766e7bb931c4d53abcf56d3a0330b918": {
+      "lineComments": [
+        {
+          "oldLine": null,
+          "newLine": 24,
+          "lineType": "add",
+          "comment": "sss",
+          "updatedAt": "2026-03-15T14:01:51Z"
+        }
+      ],
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:01:58Z"
+    },
+    "65d029a30441dda46f537df7e792aeed02fd20cf942f3fe7dc9a220803db53e3": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:02Z"
+    },
+    "feffd63103e1150245c6701278f57348d8a741a054442cb256c71af29a97175c": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:02Z"
+    },
+    "d42092655b699f9a4a15876f794987df83f525bbcd7788b2e0f8ddd19d6579ca": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "961db922895cbdc1a6e20370cf63dce858c04d01ce312581b458d181b1986843": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:03Z"
+    },
+    "e6d3b39eecb7921f8f27fb58ea201deb70e9cfd23a10e970f1d8a1cf944f5711": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:04Z"
+    },
+    "1f17a9541e10da25459dccf102c8b48c74ed068fe7da4e0b35f3315199895d9a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:04Z"
+    },
+    "11b1f832556690a07fd31fae00acc750b3b7f1ab7813a14dc04987ad79961d0a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "60dc7f8b05b50ae1a5e346d016507de457702777161d491ee8baf6540b2f0324": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "90597e5e93b340ef07cd3608cc3840d66cfb4e47edb982d8e4ac95cd92518ffd": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:05Z"
+    },
+    "44d95a9f3d34c12408532fa0b16cf411a3ac373857da0ec571d4b0f6db0748d3": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "0fb00bc8d31aee58e10f877e3c8f7a8b1b32fb683f2d75b7c3d2a3471d2e1723": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "fcb901b7e79c6fd23b1d01886f6cdab2e0fa6056b78c8f468469064dff839d2a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:06Z"
+    },
+    "f8f17abfdca08d9877e3e5a3c78fa4d8fedcc3fe8fcb087aee7aa32f2fef800b": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:07Z"
+    },
+    "80db32d11375b99df4a6a205428723a0a5bb23049cef00c860b15cf5a72a6cf1": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:08Z"
+    },
+    "5c51da145185f04f64b005be7164f407ab5a61482578be8d681b546af58e1bab": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:02:08Z"
+    },
+    "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:57:17Z"
+    },
+    "1995321c5d5822e2d29236135f2fad13f53abc68f3c2bdf9eefa456f09b8582b": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "f057e2b74459974ea35ddcbd9e5bd9e124da896eb8daf8e21e002084afbc853d": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "8548dd438d9b0495be8f9be145009d1d7dce06f7d12adf8eead41bdc4d8a34d5": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:14Z"
+    },
+    "c299b8d12774c2f8d0c3114b55bb297264a82ec2f183bad8558fcbd96a118fab": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:03:15Z"
+    },
+    "fb6a95a97b0725be1c133a70b547fad4617a6c80de2b71eddc9b9a68701c74ca": {
+      "status": "unreviewed",
+      "reviewedAt": "2026-03-15T14:13:12Z"
+    },
+    "4e0b78804441fc2025fe67828eabea5d7e6bebbbc85dbdb735e5c6cf04f02976": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:37:15Z"
+    },
+    "e260b5f999a0734c8cff211c3db0e265bbabfd3cd6c8af2da8f985363b321b3a": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:57:16Z"
+    },
+    "16ea27357621ebaa149109ce9ab1b3fd4910e5823f98ebdd76788c2d9949f8fd": {
+      "status": "reviewed",
+      "reviewedAt": "2026-03-15T14:37:16Z"
+    }
+  },
+  "groupBriefs": {
+    "g-auth": {
+      "status": "ready",
+      "summary": "JWT の設定を env 変数経由に統一し、リフレッシュトークン機構を新規実装しました。SECRET を process.env の直接参照から型安全な env.jwtSecret に変更し、有効期限も JWT_EXPIRY_SECONDS で外部設定できるようにしています。",
+      "focusPoints": [
+        "signToken の expiresIn がハードコード(3600)から env.jwtExpirySeconds に変更 — デフォルト900秒(15分)が要件と合っているか確認をお願いします",
+        "verifyToken の失敗時に logger.warn を追加。以前はサイレントに null を返していたため、不正アクセス試行の可視性が向上しています",
+        "authMiddleware の 401 分岐に IP ログを追加 — ブルートフォース検知の基盤になります",
+        "refresh.ts は新規ファイル。refreshToken の存在確認と revokedAt チェックを DB で行います"
+      ],
+      "testEvidence": [
+        "jwt.test.ts で sign/verify/invalid token の3ケースをカバー済み",
+        "expired token のテストは現在モック未使用のため、実際の期限切れシナリオはカバーできていません（コメントに記載）"
+      ],
+      "knownTradeoffs": [
+        "RefreshToken の有効性確認はリクエストのたびに DB を参照するため、高頻度アクセス時はインメモリキャッシュの検討が必要になる可能性があります",
+        "revoke は物理削除ではなく revokedAt フラグ方式のため、失効済みトークンがテーブルに蓄積します。定期的な purge job が将来必要です"
+      ],
+      "questionsForReviewer": [
+        "JWT_EXPIRY_SECONDS のデフォルト値 900秒（15分）は UX 要件と合っていますか？",
+        "RefreshToken テーブルへの外部キーは User に対して CASCADE DELETE 設定ですが、要件通りか確認をお願いします"
+      ],
+      "approval": {
+        "state": "approved",
+        "approved": true,
+        "approvedAt": "2026-03-15T23:33:51Z",
+        "approvedBy": "f.kawano",
+        "approvalFingerprint": "9a92ff323b9fb3477a0d27fa56ec438f944f096df487ea1bed719025d1309521",
+        "sourceHead": "bbb0000000000000000000000000000000000002",
+        "decisionAt": "2026-03-15T23:33:51Z",
+        "reviewedCount": 5,
+        "totalCount": 6
+      }
+    },
+    "g-api": {
+      "status": "ready",
+      "summary": "タスクの作成・削除エンドポイントに Zod バリデーションと権限チェックを追加しました。また updateStatus 関数を新規追加し、タスクのステータス変更を単独で行える API 基盤を整えています。",
+      "focusPoints": [
+        "POST / に validate(taskSchema, req.body) を追加。バリデーションエラーは 400 + errors 配列で返します。以前は req.body をそのまま DB に渡していました",
+        "DELETE /:id に所有者チェックを追加（task.ownerId !== req.user.sub → 403 Forbidden）。以前は他ユーザのタスクも削除できる状態でした",
+        "taskSchema は src/schemas/task.ts に新規定義。title(max200)/description(max2000)/dueAt(ISO datetime)/status(enum)/tags(max10) の制約があります",
+        "updateStatus は現時点でルートから呼ばれていません。将来の PATCH エンドポイント用の下準備です"
+      ],
+      "testEvidence": [
+        "バリデーションと権限チェックのルートテストは g-tests グループで追加済み"
+      ],
+      "knownTradeoffs": [
+        "taskUpdateSchema は定義済みですが、対応する PATCH /:id ルートはまだ未実装です"
+      ],
+      "questionsForReviewer": [
+        "status の enum 値（open / in_progress / done）は要件と合っていますか？追加が必要な状態があれば教えてください",
+        "tags のバリデーションは現在 max10/文字列のみです。長さ制限や許可値の制約は必要ですか？"
+      ],
+      "approval": {
+        "state": "changesRequested",
+        "approved": false,
+        "changesRequestedAt": "2026-03-15T15:14:23Z",
+        "changesRequestedBy": "f.kawano",
+        "decisionAt": "2026-03-15T15:14:23Z"
+      }
+    },
+    "g-db": {
+      "status": "ready",
+      "summary": "Prisma スキーマに Task の新フィールド（description/status/tags/dueAt/updatedAt）と RefreshToken モデルを追加しました。対応するマイグレーション SQL も同梱しています。また Prisma クライアントをシングルトン化して開発時の接続過多を防いでいます。",
+      "focusPoints": [
+        "Task に status/tags/dueAt/updatedAt/description を追加。既存レコードは status='open'、tags='{}'、updatedAt=NOW() がデフォルト値として適用されます",
+        "Task_status_idx と Task_ownerId_status_idx の2インデックスを追加。フィルタリングクエリのパフォーマンスに直結します",
+        "RefreshToken テーブルを新規作成。token カラムに UNIQUE インデックスあり",
+        "datasource に directUrl を追加。Prisma Accelerate や PgBouncer 経由のマイグレーション用です",
+        "db/client.ts のシングルトン化により、Next.js/ts-node-dev のホットリロード時に接続が増殖する問題を回避しています"
+      ],
+      "testEvidence": [
+        "マイグレーション SQL は手動で確認済みの想定（自動テストなし）",
+        "RefreshToken の外部キー制約は CASCADE DELETE 設定"
+      ],
+      "knownTradeoffs": [
+        "tags は TEXT[] 型（PostgreSQL 配列）のため、他の DB エンジンへの移植性は低いです",
+        "updatedAt は @updatedAt（Prisma 管理）のため、Prisma 経由以外の更新では自動更新されません"
+      ],
+      "questionsForReviewer": [
+        "directUrl の設定は本番環境で必要ですか？PgBouncer / Prisma Accelerate の利用有無を確認させてください"
+      ]
+    },
+    "g-frontend": {
+      "status": "ready",
+      "summary": "フロントエンドに API クライアント層を新設し、TaskList を React Query ベースに書き直しました。また TaskForm（タスク作成フォーム）と TaskCard の status/description 表示を追加しています。",
+      "focusPoints": [
+        "TaskList を useState + useEffect から useQuery に移行。ローディング・エラー状態が明示的に扱えるようになりました",
+        "TaskForm は useMutation + useQueryClient.invalidateQueries で作成後に自動リフレッシュします",
+        "TaskCard に status バッジ・description・dueAt 表示を追加。card--{status} クラスで色分けしています",
+        "fetchTasks/createTask のエラー時は res.json() のエラーメッセージをそのまま throw するため、API のエラーレスポンス形式に依存します"
+      ],
+      "testEvidence": [
+        "フロントエンドのユニットテストは今回未追加です"
+      ],
+      "knownTradeoffs": [
+        "TaskList は現在ページネーションなし。バックエンドの take:100 制限と合わせて、100件を超えると古いタスクが表示されません",
+        "React Query の staleTime が未設定のため、フォーカス復帰のたびにリフェッチが発生します"
+      ],
+      "questionsForReviewer": [
+        "Spinner コンポーネント（ui/Spinner）は既存のものを想定していますが、実装はありますか？",
+        "タスク削除ボタンは今回未実装です。追加しますか？"
+      ],
+      "approval": {
+        "state": "approved",
+        "approved": true,
+        "approvedAt": "2026-03-15T23:33:46Z",
+        "approvedBy": "f.kawano",
+        "approvalFingerprint": "e3c70022ae1c578dddb1a92ee3651172500e3e01a0f30f484d350a3cec738a3b",
+        "sourceHead": "bbb0000000000000000000000000000000000002",
+        "decisionAt": "2026-03-15T23:33:46Z",
+        "reviewedCount": 6,
+        "totalCount": 6
+      }
+    },
+    "g-config": {
+      "status": "ready",
+      "summary": "env 変数の管理を Zod スキーマで型安全に行う env.ts を新設しました。不正な環境変数があれば起動時に即座に終了します。docker-compose の app サービスにも新しい env 変数と DB ヘルスチェックを追加しています。",
+      "focusPoints": [
+        "env.ts は起動時に process.env を safeParse し、失敗したら process.exit(1)。設定ミスを実行前に検出できます",
+        "JWT_SECRET は z.string().min(32) の制約あり。32文字未満では起動しません",
+        ".env.example の JWT_SECRET を 'changeme' から REPLACE_WITH_STRONG_SECRET_MIN_32_CHARS に変更済み",
+        "docker-compose の app サービスが depends_on: db: condition: service_healthy に変更。DB 起動前に app が立ち上がる問題を防ぎます"
+      ],
+      "testEvidence": [
+        "env バリデーションの自動テストは未追加。起動時の動作確認で代替しています"
+      ],
+      "knownTradeoffs": [
+        "DATABASE_DIRECT_URL は optional ですが、Prisma マイグレーション時に必要な環境では設定が必要です"
+      ],
+      "questionsForReviewer": [
+        "LOG_LEVEL のデフォルト値は 'info' にしていますが、開発環境では 'debug' が望ましいですか？"
+      ]
+    },
+    "g-infra": {
+      "status": "acknowledged",
+      "summary": "CI に PostgreSQL サービスコンテナを追加し、マイグレーションを実行してから統合テストを走らせるフローに変更しました。また main push 時に Fly.io へ自動デプロイする deploy.yml を新規作成しています。",
+      "focusPoints": [
+        "ci.yml に postgres:16-alpine サービスを追加。ヘルスチェック付きで、DB が ready になるまでテストが待機します",
+        "テスト前に npx prisma migrate deploy を実行。DATABASE_URL はテスト用の acme_tasks_test DB を指しています",
+        "deploy.yml は main ブランチへの push のみトリガー。md/docs の変更は paths-ignore で除外しています",
+        "Fly.io デプロイには FLY_API_TOKEN シークレットが必要です（GitHub Secrets への登録が必要）"
+      ],
+      "testEvidence": [
+        "CI パイプライン自体の動作確認は push 後に実施が必要です"
+      ],
+      "knownTradeoffs": [
+        "deploy.yml は CI 通過を待たずに deploy を実行します。CI と deploy を直列にしたい場合は workflow_run トリガーへの変更が必要です"
+      ],
+      "questionsForReviewer": [
+        "FLY_API_TOKEN は GitHub リポジトリの Secrets に設定済みですか？",
+        "deploy 前の CI 成功を必須にしますか？（workflow_run トリガーへの変更が必要です）"
+      ]
+    },
+    "g-monitoring": {
+      "status": "ready",
+      "summary": "pino によるストラクチャードロギングを導入し、リクエストログとエラーハンドリングを app.ts に組み込みました。本番環境では JSON、開発環境では pino-pretty でカラー表示されます。",
+      "focusPoints": [
+        "logger は env.LOG_LEVEL で制御。本番は JSON 出力、開発は pino-pretty でカラー表示",
+        "requestLogger は res.on('finish') で method/url/status/ms をログ出力します",
+        "AppError クラスを導入。throw new AppError(404, 'Not found') で統一的なエラーレスポンスを返せます",
+        "errorHandler は AppError 以外の例外を 500 として処理し、logger.error でスタックトレースを記録します"
+      ],
+      "testEvidence": [
+        "logger/errors のユニットテストは未追加。統合テストで間接的にカバーされています"
+      ],
+      "knownTradeoffs": [
+        "pino-pretty は devDependencies でなく dependencies に含まれています。本番 bundle サイズを気にする場合は移動を検討してください"
+      ],
+      "questionsForReviewer": []
+    },
+    "g-tests": {
+      "status": "ready",
+      "summary": "Supertest を使ったルートレベルの統合テストを追加しました。実際の DB（テスト用）に接続して GET/POST/DELETE のシナリオをカバーしています。TaskService のユニットテストも jest.mock で追加しています。",
+      "focusPoints": [
+        "afterEach で db.task.deleteMany() を実行してテスト間のデータ汚染を防いでいます",
+        "DELETE の権限チェックテスト（403）を追加。ownerId が異なるタスクへの削除が拒否されることを確認しています",
+        "TaskService ユニットテストは jest.mock で DB をモック化。create と updateStatus をカバー"
+      ],
+      "testEvidence": [
+        "GET /api/tasks — 空配列返却",
+        "POST /api/tasks — タスク作成成功・title なし時の 400",
+        "DELETE /api/tasks/:id — 所有者の削除成功・他ユーザの削除 403"
+      ],
+      "knownTradeoffs": [
+        "統合テストは実 DB が必要なため、CI 外のローカル実行には PostgreSQL が必要です",
+        "refreshToken 関連のルートテストは未追加です"
+      ],
+      "questionsForReviewer": [
+        "テスト用 DB の初期化（migrate）は CI では npx prisma migrate deploy で行いますが、ローカルでは別途 npm run migrate が必要です。手順を README に追記しますか？"
+      ]
+    },
+    "g-docs": {
+      "status": "ready",
+      "summary": "README をフルスタックアプリとしての内容に刷新し、アーキテクチャドキュメントと ADR（Zod 採用の意思決定記録）を新規追加しました。",
+      "focusPoints": [
+        "README に Features セクションを追加。今回のリリースで追加された機能（JWT/Zod/pino/テスト）を明記しています",
+        "docs/architecture.md に認証フロー・データモデル・ロギングの概要を記載",
+        "ADR 001 として Zod 採用の背景・決定・影響を記録しています"
+      ],
+      "testEvidence": [],
+      "knownTradeoffs": [],
+      "questionsForReviewer": [
+        "API エンドポイントのリストに POST /api/auth/login と POST /api/auth/refresh を記載していますが、これらの実装は今回のスコープに含まれていますか？"
+      ]
+    },
+    "g-mobile": {
+      "status": "ready",
+      "summary": "Expo/React Native 向けに TaskListScreen と API クライアントを新規追加しました。Web 版の fetch ベース実装を RN 用に移植しています。あわせて app.json のバージョンを 1.1.0 に更新しています。",
+      "focusPoints": [
+        "TaskListScreen は useState + useEffect ベースのシンプルな実装。Web の React Query 版とは異なります",
+        "mobile/src/api/tasks.ts は API_BASE_URL を config から参照しています。config ファイル自体は今回未追加です",
+        "app.json に runtimeVersion: { policy: 'appVersion' } を追加。OTA アップデートの管理方式が変わります"
+      ],
+      "testEvidence": [
+        "モバイルのテストは未追加です"
+      ],
+      "knownTradeoffs": [
+        "TaskListScreen のレンダリングは Text のみで、スタイルが未適用です。UI は今後の作業です",
+        "config.ts（API_BASE_URL の定義）が未実装のためビルドが通らない状態です"
+      ],
+      "questionsForReviewer": [
+        "config.ts の API_BASE_URL は環境変数から取得しますか？expo-constants 経由での設定を想定していますか？",
+        "runtimeVersion を appVersion ポリシーにすると、バージョン番号が違う端末には OTA 配信されません。意図した設定か確認をお願いします"
+      ]
+    },
+    "g-tools": {
+      "status": "ready",
+      "summary": "開発用の seed スクリプトを追加し、package.json のスクリプト定義を整理しました。lint・typecheck・test:watch など開発体験向上のコマンドを追加しています。ESLint のルールも具体化しました。",
+      "focusPoints": [
+        "seed.ts は alice@example.com ユーザーとサンプルタスク5件を upsert で作成します。何度実行しても冪等です",
+        "jest を --runInBand に変更。統合テストで DB 接続の競合を防ぐためです",
+        "ESLint に no-explicit-any(warn) と no-unused-vars(error) を追加。コードベース全体に影響します"
+      ],
+      "testEvidence": [],
+      "knownTradeoffs": [
+        "--runInBand はテストの並列実行を無効化するため、テスト数が増えると実行時間が長くなります",
+        "seed スクリプトのパスワードは平文でソースに含まれています（開発専用）"
+      ],
+      "questionsForReviewer": [
+        "ESLint の no-explicit-any を warn にしていますが、既存コードに any が多い場合は一時的に off にする必要があります。現状の any の多さを確認してください"
+      ]
+    },
+    "g-perf": {
+      "status": "ready",
+      "summary": "findAll クエリに orderBy・take・select を追加して取得件数と転送データ量を制限しました。GET / に status/tag/page のクエリフィルタを追加し、汎用の TTLCache クラスも実装しています。",
+      "focusPoints": [
+        "findAll は take:100 でハードリミット。101件目以降は取得されません。ページネーション対応は page パラメータが渡されていますが、実際のオフセット計算は現時点で未実装です",
+        "select で必要なフィールドのみ取得。createdAt まで含めて7フィールドに絞っています",
+        "TTLCache は汎用の Map ベース実装。現時点でプロダクションコードからは未使用です（将来の認証トークンキャッシュ等を想定）",
+        "GET / の status/tag フィルタは findAll の引数に渡していますが、findAll 側の where 句への反映は未実装です"
+      ],
+      "testEvidence": [
+        "TTLCache のユニットテストを3ケース追加（TTL内取得・TTL後取得・明示削除）"
+      ],
+      "knownTradeoffs": [
+        "page パラメータを受け取っていますが、skip 計算が findAll に実装されていないため現状は未機能です",
+        "TTLCache はプロセス内キャッシュのため、マルチプロセス・マルチインスタンス環境では共有されません"
+      ],
+      "questionsForReviewer": [
+        "findAll の page パラメータを実装しますか？今回スコープに含めるか確認をお願いします",
+        "status/tag フィルタの where 句への反映も今回スコープですか？"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-auth",
+    "filterText": "",
+    "selectedChunkId": "f344689f51489bb5afbf49c752d66f211b9ce41e39e2f6f59e8fe5503338c95d",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {
+    "selectedLineAnchor": {
+      "anchorKey": "add::1",
+      "oldLine": null,
+      "newLine": 1,
+      "lineType": "add"
+    }
+  }
+}

@@ -1,0 +1,342 @@
+{
+  "format": "diffgr-ut-matrix",
+  "version": 8,
+  "minimumRustTestCount": 1180,
+  "categories": [
+    {
+      "name": "model workflow and GUI startup",
+      "files": [
+        "src/model.rs",
+        "tests/model_workflow.rs",
+        "tests/review_report.rs",
+        "tests/startup_args.rs",
+        "tests/model_edge_ut.rs",
+        "tests/model_regression_more_ut.rs"
+      ],
+      "minimumTestCount": 90,
+      "keywords": [
+        "DiffgrDocument",
+        "StartupArgs",
+        "ReviewStatus",
+        "load_from_path",
+        "line_comment",
+        "approval_report_json",
+        "normalize_state_payload",
+        "write_full_document",
+        "coverage_fix_prompt"
+      ]
+    },
+    {
+      "name": "layout state coverage parity",
+      "files": [
+        "tests/layout_state_coverage.rs",
+        "tests/ops_layout_validation_ut.rs"
+      ],
+      "minimumTestCount": 14,
+      "keywords": [
+        "apply_layout",
+        "coverage",
+        "groupBrief"
+      ]
+    },
+    {
+      "name": "generation and patch operations",
+      "files": [
+        "src/ops.rs",
+        "tests/ops_generation_ut.rs",
+        "tests/ops_parity.rs",
+        "tests/ops_edge_ut.rs",
+        "tests/ops_regression_more_ut.rs"
+      ],
+      "minimumTestCount": 95,
+      "keywords": [
+        "build_diffgr_from_diff_text",
+        "apply_slice_patch",
+        "split_chunk_by_change_blocks",
+        "build_html_report_with_options",
+        "rebase_state_with_options",
+        "apply_layout",
+        "export_review_bundle_to_paths",
+        "format_impact_report_markdown",
+        "RebaseOptions"
+      ]
+    },
+    {
+      "name": "state diff merge selection",
+      "files": [
+        "tests/ops_state_ut.rs"
+      ],
+      "minimumTestCount": 10,
+      "keywords": [
+        "merge_review_states",
+        "selection",
+        "summarize_state"
+      ]
+    },
+    {
+      "name": "reports bundle split merge",
+      "files": [
+        "tests/ops_reporting_bundle_ut.rs"
+      ],
+      "minimumTestCount": 9,
+      "keywords": [
+        "verify_review_bundle",
+        "split_document_by_group",
+        "build_html_report"
+      ]
+    },
+    {
+      "name": "approval impact rebase",
+      "files": [
+        "tests/rebase_approval_ut.rs"
+      ],
+      "minimumTestCount": 12,
+      "keywords": [
+        "approve_groups",
+        "rebase_state",
+        "impact_report"
+      ]
+    },
+    {
+      "name": "python parity gates and wrappers",
+      "files": [
+        "tests/functional_parity_gate.rs",
+        "tests/native_parity_gate.rs",
+        "tests/python_compat_manifest.rs",
+        "tests/python_parity_cli.rs",
+        "tests/parity_assets_ut.rs",
+        "tests/cli_behavior_ut.rs",
+        "tests/wrapper_contract_deep_ut.rs",
+        "tests/cli_surface_deep_ut.rs"
+      ],
+      "minimumTestCount": 185,
+      "keywords": [
+        "PYTHON_PARITY_MANIFEST",
+        "NATIVE_FUNCTIONAL_PARITY_SCENARIOS",
+        "CompatPython",
+        "CARGO_BIN_EXE_diffgrctl",
+        "check-virtual-pr-coverage",
+        "view-diffgr-app",
+        "wrapper_contract_for_generate_diffgr",
+        "cli_surface_contains_option_input",
+        "diffgrctl.ps1"
+      ]
+    },
+    {
+      "name": "diffgrctl CLI behavior",
+      "files": [
+        "tests/cli_behavior_ut.rs",
+        "tests/python_parity_cli.rs"
+      ],
+      "minimumTestCount": 14,
+      "keywords": [
+        "CARGO_BIN_EXE_diffgrctl",
+        "summarize-diffgr",
+        "apply-diffgr-state",
+        "merge-diffgr-state"
+      ]
+    },
+    {
+      "name": "deep native CLI option surface",
+      "files": [
+        "src/bin/diffgrctl.rs",
+        "tests/cli_surface_deep_ut.rs"
+      ],
+      "minimumTestCount": 120,
+      "keywords": [
+        "--keep-new-groups",
+        "--save-state-url",
+        "run-agent-cli",
+        "cli_surface_exposes_command_rebase_reviews"
+      ]
+    },
+    {
+      "name": "windows shell wrapper contracts",
+      "files": [
+        "tests/wrapper_contract_deep_ut.rs",
+        "scripts/README.md",
+        "diffgrctl.ps1",
+        "diffgrctl.sh",
+        "windows/ut-matrix-windows.ps1"
+      ],
+      "minimumTestCount": 40,
+      "keywords": [
+        "CompatPython",
+        "DIFFGR_COMPAT_PYTHON",
+        "ExecutionPolicy",
+        "verify_ut_matrix.py"
+      ]
+    },
+    {
+      "name": "render scroll responsiveness",
+      "files": [
+        "src/app.rs",
+        "windows/run-windows.ps1",
+        "run.ps1",
+        "tests/render_responsiveness_ut.rs",
+        "Run Smooth.cmd"
+      ],
+      "minimumTestCount": 39,
+      "keywords": [
+        "PendingDocumentLoad",
+        "PendingStateSave",
+        "smooth_scroll_repaint",
+        "filter_apply_deadline",
+        "draw_virtual_text",
+        "clip_for_display",
+        "-Smooth",
+        "DIFFGR_SMOOTH_SCROLL",
+        "DiffLineIndexCache",
+        "changed_line_indices"
+      ]
+    },
+    {
+      "name": "quality self review and GUI completion",
+      "files": [
+        "src/app.rs",
+        "src/bin/diffgrctl.rs",
+        "tools/verify_self_review.py",
+        "tools/verify_gui_completion.py",
+        "tests/quality_self_review_ut.rs",
+        "SELF_REVIEW.md",
+        "SELF_REVIEW_AUDIT.json",
+        "GUI_COMPLETION_AUDIT.json",
+        "self-review.sh",
+        "quality-review.sh",
+        "completion-review.sh",
+        "windows/self-review-windows.ps1",
+        "windows/quality-review-windows.ps1",
+        "windows/gui-completion-verify-windows.ps1"
+      ],
+      "minimumTestCount": 160,
+      "keywords": [
+        "自己レビュー / 品質ゲート",
+        "quality-review",
+        "cmd_quality_review",
+        "verify_self_review.py",
+        "verify_gui_completion.py",
+        "SELF_REVIEW_AUDIT",
+        "GUI_COMPLETION_AUDIT",
+        "copy_self_review_report",
+        "save_self_review_report",
+        "draw_diagnostics_panel",
+        "draw_performance_overlay",
+        "MAX_CHUNK_ROW_CACHE",
+        "prune_chunk_row_cache_around",
+        "diffgr-self-review-result",
+        "diffgr-gui-completion-verify-result"
+      ]
+    },
+    {
+      "name": "diff readability and review ergonomics",
+      "files": [
+        "tests/diff_readability_ut.rs"
+      ],
+      "minimumTestCount": 55,
+      "keywords": [
+        "DiffViewMode",
+        "DiffContextMode",
+        "SideBySideDiffRow",
+        "DiffContextIndexCache",
+        "DiffSideBySideCache",
+        "draw_side_by_side_diff_lines",
+        "visible_diff_line_indices",
+        "context_line_indices",
+        "side_by_side_rows",
+        "diff_line_background",
+        "line_matches_diff_search",
+        "select_changed_line_relative",
+        "select_diff_search_match",
+        "copy_visible_diff_text",
+        "copy_selected_diff_line",
+        "表示中diffコピー",
+        "選択行コピー",
+        "統合/左右比較",
+        "変更周辺",
+        "行内差分",
+        "賢く対応付け",
+        "word_diff_enabled",
+        "build_diff_layout_job"
+      ]
+    },
+    {
+      "name": "word-level diff viewer",
+      "files": [
+        "src/diff_words.rs",
+        "src/app.rs",
+        "tests/word_level_diff_ut.rs"
+      ],
+      "minimumTestCount": 60,
+      "keywords": [
+        "word_level_segments",
+        "tokenize_for_word_diff",
+        "line_similarity",
+        "match_delete_add_pairs",
+        "DiffTextSegment",
+        "word_diff_enabled",
+        "word_diff_smart_pairing",
+        "DiffWordPairCache",
+        "DiffWordSegmentCache",
+        "build_diff_layout_job",
+        "word_diff_background",
+        "行内差分",
+        "賢く対応付け"
+      ]
+    },
+    {
+      "name": "virtual PR review gate",
+      "files": [
+        "src/vpr.rs",
+        "src/app.rs",
+        "src/bin/diffgrctl.rs",
+        "tests/vpr_review_ut.rs"
+      ],
+      "minimumTestCount": 95,
+      "keywords": [
+        "VirtualPrReviewReport",
+        "analyze_virtual_pr",
+        "virtual_pr_report_json_value",
+        "virtual_pr_report_markdown",
+        "virtual_pr_reviewer_prompt_markdown",
+        "draw_virtual_pr_panel",
+        "仮想PRレビューゲート",
+        "高リスクレビューqueue",
+        "Group readiness",
+        "File hotspots",
+        "virtual-pr-review",
+        "--fail-on-blockers",
+        "--max-items"
+      ]
+    },
+    {
+      "name": "expanded UT depth regression guards",
+      "files": [
+        "tests/ut_depth_quality_more_ut.rs",
+        "tests/gui_review_flow_contract_more_ut.rs",
+        "tests/virtual_pr_regression_more_ut.rs",
+        "tests/cli_wrapper_ci_contract_more_ut.rs",
+        "tools/verify_ut_depth.py",
+        "ut-depth.sh",
+        "ut-depth.ps1",
+        "windows/ut-depth-windows.ps1",
+        "UT_DEPTH_AUDIT.json"
+      ],
+      "minimumTestCount": 310,
+      "keywords": [
+        "ut_depth_quality_more_ut",
+        "gui_review_flow_contract_more_ut",
+        "virtual_pr_regression_more_ut",
+        "cli_wrapper_ci_contract_more_ut",
+        "diffgr-ut-depth-audit-result",
+        "verify_ut_depth.py",
+        "UT_DEPTH_AUDIT",
+        "draw_virtual_pr_panel",
+        "cmd_virtual_pr_review",
+        "windows\\ut-depth-windows.ps1",
+        "gui review flow contract",
+        "virtual PR regression matrix",
+        "cli wrapper ci contract"
+      ]
+    }
+  ]
+}

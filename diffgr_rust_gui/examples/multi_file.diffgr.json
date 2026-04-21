@@ -1,0 +1,54 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR multi-file sample"
+  },
+  "groups": [
+    {"id": "g-ui", "name": "UI", "order": 1, "tags": ["egui", "review"]},
+    {"id": "g-win", "name": "Windows", "order": 2, "tags": ["powershell", "build"]}
+  ],
+  "chunks": [
+    {
+      "id": "ui-0001",
+      "filePath": "src/app.rs",
+      "old": {"start": 10, "count": 2},
+      "new": {"start": 10, "count": 3},
+      "lines": [
+        {"kind": "context", "text": "fn draw_toolbar(&mut self, ui: &mut Ui) {", "oldLine": 10, "newLine": 10},
+        {"kind": "add", "text": "    ui.button(\"サマリ保存…\");", "oldLine": null, "newLine": 11},
+        {"kind": "context", "text": "}", "oldLine": 11, "newLine": 12}
+      ]
+    },
+    {
+      "id": "ui-0002",
+      "filePath": "src/model.rs",
+      "old": {"start": 80, "count": 1},
+      "new": {"start": 80, "count": 2},
+      "lines": [
+        {"kind": "context", "text": "pub struct Metrics {", "oldLine": 80, "newLine": 80},
+        {"kind": "add", "text": "    pub ignored: usize,", "oldLine": null, "newLine": 81},
+        {"kind": "context", "text": "}", "oldLine": 81, "newLine": 82}
+      ]
+    },
+    {
+      "id": "win-0001",
+      "filePath": "windows/doctor-windows.ps1",
+      "old": {"start": 1, "count": 0},
+      "new": {"start": 1, "count": 3},
+      "lines": [
+        {"kind": "add", "text": "[CmdletBinding()]", "oldLine": null, "newLine": 1},
+        {"kind": "add", "text": "param([switch]$Deep)", "oldLine": null, "newLine": 2},
+        {"kind": "add", "text": "Write-Host 'DiffGR Review Doctor'", "oldLine": null, "newLine": 3}
+      ]
+    }
+  ],
+  "assignments": {
+    "g-ui": ["ui-0001", "ui-0002"],
+    "g-win": ["win-0001"]
+  },
+  "reviews": {
+    "ui-0001": {"status": "reviewed", "comment": "Toolbar looks fine"},
+    "win-0001": {"status": "needsReReview", "comment": "Check PowerShell quoting on Windows"}
+  }
+}

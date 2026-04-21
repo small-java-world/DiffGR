@@ -1,0 +1,499 @@
+{
+  "format": "diffgr",
+  "version": 1,
+  "meta": {
+    "title": "DiffGR large sample: Acme Tasks v1.1 — Auth + API + Frontend + Mobile [開発ツール・スクリプト]",
+    "createdAt": "2026-03-14T00:00:00Z",
+    "source": {
+      "type": "git_compare",
+      "base": "aaa0000000000000000000000000000000000001",
+      "head": "bbb0000000000000000000000000000000000002",
+      "baseSha": "aaa0000000000000000000000000000000000001",
+      "headSha": "bbb0000000000000000000000000000000000002",
+      "mergeBaseSha": "aaa0000000000000000000000000000000000001",
+      "description": "Generated as a large DiffGR sample (synthetic)"
+    },
+    "x-sample": {
+      "kind": "large-synthetic",
+      "project": "acme-tasks-v1.1",
+      "note": "Synthetic large sample with 12 groups and 60+ chunks."
+    },
+    "x-reviewSplit": {
+      "groupId": "g-tools",
+      "groupName": "開発ツール・スクリプト",
+      "chunkCount": 4
+    }
+  },
+  "groups": [
+    {
+      "id": "g-tools",
+      "name": "開発ツール・スクリプト",
+      "order": 11,
+      "tags": [
+        "tools"
+      ]
+    }
+  ],
+  "chunks": [
+    {
+      "id": "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415",
+      "filePath": "scripts/seed.ts",
+      "old": {
+        "start": 1,
+        "count": 0
+      },
+      "new": {
+        "start": 1,
+        "count": 28
+      },
+      "lines": [
+        {
+          "kind": "add",
+          "text": "import { db } from '../src/db/client';",
+          "oldLine": null,
+          "newLine": 1
+        },
+        {
+          "kind": "add",
+          "text": "import bcrypt from 'bcryptjs';",
+          "oldLine": null,
+          "newLine": 2
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 3
+        },
+        {
+          "kind": "add",
+          "text": "async function seed() {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "  console.log('Seeding...');",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "  const hash = await bcrypt.hash('password123', 10);",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "  const user = await db.user.upsert({",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "    where: { email: 'alice@example.com' },",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "add",
+          "text": "    update: {},",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    create: { email: 'alice@example.com', passwordHash: hash },",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "  await db.task.createMany({",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    data: [",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Review PR #42', status: 'in_progress', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 14
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Write migration for task fields', status: 'done', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 15
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Update README', status: 'open', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 16
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Add refresh token support', status: 'done', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 17
+        },
+        {
+          "kind": "add",
+          "text": "      { title: 'Set up Fly.io deployment', status: 'open', ownerId: user.id },",
+          "oldLine": null,
+          "newLine": 18
+        },
+        {
+          "kind": "add",
+          "text": "    ],",
+          "oldLine": null,
+          "newLine": 19
+        },
+        {
+          "kind": "add",
+          "text": "  });",
+          "oldLine": null,
+          "newLine": 20
+        },
+        {
+          "kind": "add",
+          "text": "  console.log('Done.');",
+          "oldLine": null,
+          "newLine": 21
+        },
+        {
+          "kind": "add",
+          "text": "}",
+          "oldLine": null,
+          "newLine": 22
+        },
+        {
+          "kind": "add",
+          "text": "",
+          "oldLine": null,
+          "newLine": 23
+        },
+        {
+          "kind": "add",
+          "text": "seed().catch(console.error).finally(() => db.$disconnect());",
+          "oldLine": null,
+          "newLine": 24
+        }
+      ],
+      "fingerprints": {
+        "stable": "1b4fa984af3ed3aa2c46f076adbecb4b92f1119115c4626ed73eb90b087b1790",
+        "strong": "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415"
+      }
+    },
+    {
+      "id": "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e",
+      "filePath": "package.json",
+      "old": {
+        "start": 5,
+        "count": 8
+      },
+      "new": {
+        "start": 5,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  \"scripts\": {",
+          "oldLine": 5,
+          "newLine": 5
+        },
+        {
+          "kind": "context",
+          "text": "    \"dev\": \"ts-node-dev src/index.ts\",",
+          "oldLine": 6,
+          "newLine": 6
+        },
+        {
+          "kind": "context",
+          "text": "    \"build\": \"tsc\",",
+          "oldLine": 7,
+          "newLine": 7
+        },
+        {
+          "kind": "context",
+          "text": "    \"start\": \"node dist/index.js\",",
+          "oldLine": 8,
+          "newLine": 8
+        },
+        {
+          "kind": "delete",
+          "text": "    \"test\": \"jest\"",
+          "oldLine": 9,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "    \"test\": \"jest --runInBand\",",
+          "oldLine": null,
+          "newLine": 9
+        },
+        {
+          "kind": "add",
+          "text": "    \"test:watch\": \"jest --watch\",",
+          "oldLine": null,
+          "newLine": 10
+        },
+        {
+          "kind": "add",
+          "text": "    \"lint\": \"eslint src --ext .ts\",",
+          "oldLine": null,
+          "newLine": 11
+        },
+        {
+          "kind": "add",
+          "text": "    \"typecheck\": \"tsc --noEmit\",",
+          "oldLine": null,
+          "newLine": 12
+        },
+        {
+          "kind": "add",
+          "text": "    \"seed\": \"ts-node scripts/seed.ts\",",
+          "oldLine": null,
+          "newLine": 13
+        },
+        {
+          "kind": "context",
+          "text": "    \"migrate\": \"prisma migrate dev\"",
+          "oldLine": 10,
+          "newLine": 14
+        }
+      ],
+      "fingerprints": {
+        "stable": "0220eb5225fcd7782fb567eb27204a91dc66b6c66c84e93bb1d64ab9ef5ff4e8",
+        "strong": "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e"
+      },
+      "header": "scripts"
+    },
+    {
+      "id": "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e",
+      "filePath": "package.json",
+      "old": {
+        "start": 20,
+        "count": 8
+      },
+      "new": {
+        "start": 24,
+        "count": 14
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "  \"dependencies\": {",
+          "oldLine": 20,
+          "newLine": 24
+        },
+        {
+          "kind": "context",
+          "text": "    \"@prisma/client\": \"^5.10.0\",",
+          "oldLine": 21,
+          "newLine": 25
+        },
+        {
+          "kind": "context",
+          "text": "    \"bcryptjs\": \"^2.4.3\",",
+          "oldLine": 22,
+          "newLine": 26
+        },
+        {
+          "kind": "context",
+          "text": "    \"express\": \"^4.18.3\",",
+          "oldLine": 23,
+          "newLine": 27
+        },
+        {
+          "kind": "context",
+          "text": "    \"jsonwebtoken\": \"^9.0.2\",",
+          "oldLine": 24,
+          "newLine": 28
+        },
+        {
+          "kind": "add",
+          "text": "    \"pino\": \"^9.0.0\",",
+          "oldLine": null,
+          "newLine": 29
+        },
+        {
+          "kind": "add",
+          "text": "    \"pino-pretty\": \"^11.0.0\",",
+          "oldLine": null,
+          "newLine": 30
+        },
+        {
+          "kind": "context",
+          "text": "    \"zod\": \"^3.22.4\"",
+          "oldLine": 25,
+          "newLine": 31
+        },
+        {
+          "kind": "add",
+          "text": "  },",
+          "oldLine": null,
+          "newLine": 32
+        },
+        {
+          "kind": "add",
+          "text": "  \"devDependencies\": {",
+          "oldLine": null,
+          "newLine": 33
+        },
+        {
+          "kind": "add",
+          "text": "    \"@types/supertest\": \"^6.0.2\",",
+          "oldLine": null,
+          "newLine": 34
+        },
+        {
+          "kind": "add",
+          "text": "    \"supertest\": \"^7.0.0\"",
+          "oldLine": null,
+          "newLine": 35
+        },
+        {
+          "kind": "context",
+          "text": "  }",
+          "oldLine": 26,
+          "newLine": 36
+        }
+      ],
+      "fingerprints": {
+        "stable": "82467324a6222902338af7449f9a65df59c94151d78cfab98fbbfb81702cde52",
+        "strong": "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e"
+      },
+      "header": "dependencies"
+    },
+    {
+      "id": "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364",
+      "filePath": ".eslintrc.json",
+      "old": {
+        "start": 1,
+        "count": 8
+      },
+      "new": {
+        "start": 1,
+        "count": 12
+      },
+      "lines": [
+        {
+          "kind": "context",
+          "text": "{",
+          "oldLine": 1,
+          "newLine": 1
+        },
+        {
+          "kind": "context",
+          "text": "  \"extends\": [\"plugin:@typescript-eslint/recommended\"],",
+          "oldLine": 2,
+          "newLine": 2
+        },
+        {
+          "kind": "context",
+          "text": "  \"parser\": \"@typescript-eslint/parser\",",
+          "oldLine": 3,
+          "newLine": 3
+        },
+        {
+          "kind": "delete",
+          "text": "  \"rules\": {}",
+          "oldLine": 4,
+          "newLine": null
+        },
+        {
+          "kind": "add",
+          "text": "  \"rules\": {",
+          "oldLine": null,
+          "newLine": 4
+        },
+        {
+          "kind": "add",
+          "text": "    \"@typescript-eslint/no-explicit-any\": \"warn\",",
+          "oldLine": null,
+          "newLine": 5
+        },
+        {
+          "kind": "add",
+          "text": "    \"@typescript-eslint/no-unused-vars\": [\"error\", { \"argsIgnorePattern\": \"^_\" }],",
+          "oldLine": null,
+          "newLine": 6
+        },
+        {
+          "kind": "add",
+          "text": "    \"no-console\": [\"warn\", { \"allow\": [\"error\"] }]",
+          "oldLine": null,
+          "newLine": 7
+        },
+        {
+          "kind": "add",
+          "text": "  }",
+          "oldLine": null,
+          "newLine": 8
+        },
+        {
+          "kind": "context",
+          "text": "}",
+          "oldLine": 5,
+          "newLine": 9
+        }
+      ],
+      "fingerprints": {
+        "stable": "8d7fe0c6f6d1912f5374c980d1756acce0b2147e0681bf853c605694b0357e90",
+        "strong": "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364"
+      }
+    }
+  ],
+  "assignments": {
+    "g-tools": [
+      "21d0a60ea56109bd397f1900a7c7d4ec758d29fa00913fa3a4082e329f610415",
+      "29099d0006273e6a565a12469f72b71f2cd970c7acf0d159c72d51c73a3b717e",
+      "47ad0d50bdc25d233d1ac26905a72b063cd20a29e6020737650597c46886538e",
+      "06e9c4ac71f2be746d52015384f96df5e0bb93f2da2e0a3beed59f8a01f98364"
+    ]
+  },
+  "reviews": {},
+  "groupBriefs": {
+    "g-tools": {
+      "status": "ready",
+      "summary": "開発用の seed スクリプトを追加し、package.json のスクリプト定義を整理しました。lint・typecheck・test:watch など開発体験向上のコマンドを追加しています。ESLint のルールも具体化しました。",
+      "focusPoints": [
+        "seed.ts は alice@example.com ユーザーとサンプルタスク5件を upsert で作成します。何度実行しても冪等です",
+        "jest を --runInBand に変更。統合テストで DB 接続の競合を防ぐためです",
+        "ESLint に no-explicit-any(warn) と no-unused-vars(error) を追加。コードベース全体に影響します"
+      ],
+      "testEvidence": [],
+      "knownTradeoffs": [
+        "--runInBand はテストの並列実行を無効化するため、テスト数が増えると実行時間が長くなります",
+        "seed スクリプトのパスワードは平文でソースに含まれています（開発専用）"
+      ],
+      "questionsForReviewer": [
+        "ESLint の no-explicit-any を warn にしていますが、既存コードに any が多い場合は一時的に off にする必要があります。現状の any の多さを確認してください"
+      ]
+    }
+  },
+  "analysisState": {
+    "currentGroupId": "g-tools",
+    "filterText": "",
+    "groupReportMode": false,
+    "chunkDetailViewMode": "compact",
+    "showContextLines": true,
+    "leftPanePct": 31,
+    "diffOldRatio": 0.5
+  },
+  "threadState": {}
+}
