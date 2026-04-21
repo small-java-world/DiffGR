@@ -45,6 +45,28 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def verify_compat_source_inventory(root: Path, source: dict[str, Any]) -> dict[str, Any]:
+    missing = []
+    size_mismatches = []
+    for entry in source.get("entries", []):
+        rel = str(entry.get("compatPath", ""))
+        if not rel:
+            missing.append("<empty compatPath>")
+            continue
+        path = root / rel
+        if not path.exists():
+            missing.append(rel)
+            continue
+        expected_size = entry.get("size")
+        if expected_size is not None and path.stat().st_size != int(expected_size):
+            size_mismatches.append(rel)
+    return {
+        "ok": not missing and not size_mismatches,
+        "missing": missing,
+        "sizeMismatches": size_mismatches,
+    }
+
+
 def count_tests(root: Path) -> int:
     total = 0
     for path in (root / "tests").glob("*.rs"):
@@ -139,12 +161,13 @@ def run(root: Path, strict: bool = False) -> dict[str, Any]:
     native = load_json(root / "NATIVE_PYTHON_PARITY_AUDIT.json")
     functional = load_json(root / "NATIVE_FUNCTIONAL_PARITY_SCENARIOS.json")
     source = load_json(root / "COMPLETE_PYTHON_SOURCE_AUDIT.json")
+    compat_inventory = verify_compat_source_inventory(root, source)
     ut_matrix = load_json(root / "UT_MATRIX.json")
     gui = verify_gui(root)
     rust_tests = count_tests(root)
     checks = [
         {"name": "python manifest and wrappers", "ok": manifest["ok"], "details": manifest},
-        {"name": "strict compat source inventory", "ok": int(source.get("sourceFileCount", 0)) >= EXPECTED_COMPAT_SOURCES, "details": {"sourceFileCount": source.get("sourceFileCount"), "excludedCacheFileCount": source.get("excludedCacheFileCount")}},
+        {"name": "strict compat source inventory", "ok": int(source.get("sourceFileCount", 0)) >= EXPECTED_COMPAT_SOURCES and compat_inventory["ok"], "details": {"sourceFileCount": source.get("sourceFileCount"), "excludedCacheFileCount": source.get("excludedCacheFileCount"), **compat_inventory}},
         {"name": "native command/option parity", "ok": bool(native.get("ok")) and native.get("scriptCount") == EXPECTED_PYTHON_SCRIPTS and native.get("uniquePythonOptionCount", 0) >= EXPECTED_PYTHON_OPTIONS, "details": {"scriptCount": native.get("scriptCount"), "uniquePythonOptionCount": native.get("uniquePythonOptionCount"), "functionalScenarioCount": native.get("functionalScenarioCount")}},
         {"name": "functional scenario matrix", "ok": len(functional.get("scenarios", [])) == EXPECTED_FUNCTIONAL_SCENARIOS, "details": {"scenarioCount": len(functional.get("scenarios", []))}},
         {"name": "GUI completion and responsiveness", "ok": gui["ok"], "details": gui},
@@ -173,10 +196,12 @@ def run(root: Path, strict: bool = False) -> dict[str, Any]:
             "scenarioCount": len(functional.get("scenarios", [])),
         }
         subgates["pythonCompat"] = {
-            "ok": int(source.get("sourceFileCount", 0)) >= EXPECTED_COMPAT_SOURCES and manifest.get("ok", True),
+            "ok": int(source.get("sourceFileCount", 0)) >= EXPECTED_COMPAT_SOURCES and manifest.get("ok", True) and compat_inventory["ok"],
             "sourceFileCount": source.get("sourceFileCount"),
             "excludedCacheFileCount": source.get("excludedCacheFileCount"),
             "scriptCount": manifest.get("scriptCount"),
+            "missing": compat_inventory["missing"],
+            "sizeMismatches": compat_inventory["sizeMismatches"],
         }
         for name, value in subgates.items():
             checks.append({"name": name, "ok": bool(value.get("ok")), "details": value})

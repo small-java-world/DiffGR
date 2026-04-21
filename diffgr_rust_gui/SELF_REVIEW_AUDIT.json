@@ -15,6 +15,9 @@
     {
       "details": {
         "excludedCacheFileCount": 99,
+        "missing": [],
+        "ok": true,
+        "sizeMismatches": [],
         "sourceFileCount": 163
       },
       "name": "strict compat source inventory",
@@ -53,7 +56,7 @@
     {
       "details": {
         "minimumRustTestCount": 1180,
-        "rustTests": 1177
+        "rustTests": 1194
       },
       "name": "UT matrix threshold",
       "ok": true
@@ -63,7 +66,7 @@
         "categoryCount": 16,
         "minimumRustTestCount": 1180,
         "ok": true,
-        "totalRustTests": 1177
+        "totalRustTests": 1194
       },
       "name": "utMatrix",
       "ok": true
@@ -89,8 +92,10 @@
     {
       "details": {
         "excludedCacheFileCount": 99,
+        "missing": [],
         "ok": true,
         "scriptCount": 31,
+        "sizeMismatches": [],
         "sourceFileCount": 163
       },
       "name": "pythonCompat",
@@ -110,7 +115,7 @@
     "guiMarkersExpected": 53,
     "nativePythonOptions": 80,
     "pythonScripts": 31,
-    "rustTests": 1177,
+    "rustTests": 1194,
     "wrappers": 62
   }
 }

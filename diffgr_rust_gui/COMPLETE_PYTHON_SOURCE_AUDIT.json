@@ -13,8 +13,8 @@
       "sha256": "78a6d43110d4a1d49b9f63891c3dc4d78d01e272aac2ef49c9196d8c9dd641a4"
     },
     {
-      "sourcePath": "DiffGR_v1_?+????.md",
-      "compatPath": "compat/python/DiffGR_v1_?+????.md",
+      "sourcePath": "DiffGR_v1_compat_source.md",
+      "compatPath": "compat/python/DiffGR_v1_compat_source.md",
       "size": 15315,
       "sha256": "e482b620d81bf99c4721b75279889185b441be26a19a30396de0b9906a914de9"
     },
@@ -235,8 +235,8 @@
       "sha256": "92dc815d360ce2e3a63e7d5e5914b6f9339d5837fd72c41dc8bbfa7706a55c23"
     },
     {
-      "sourcePath": "docs/??????????????+??????.md",
-      "compatPath": "compat/python/docs/??????????????+??????.md",
+      "sourcePath": "docs/legacy_japanese_workflow_doc.md",
+      "compatPath": "compat/python/docs/legacy_japanese_workflow_doc.md",
       "size": 29338,
       "sha256": "309fab50573e99bd3b0e66f448d04ed63f8ec90757c9f81682ecc58d3e2816b8"
     },
