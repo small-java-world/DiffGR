@@ -302,7 +302,9 @@
 
 ---
 
-### Task 1: 右ペインのレイアウト再設計【最優先】
+## 🔴 最高優先度
+
+### Task 1: 右ペインのレイアウト再設計
 
 **現状：** Diffタブ・Reviewタブが別タブに分離。差分を見ながらコメントを書けない。
 
@@ -329,19 +331,7 @@
 
 ---
 
-### Task 3: チャンクリストに `header` 列を追加
-
-**現状：** チャンク行にステータス・ID・サイズ・ファイルパスのみ。関数名等が見えない。
-
-**目標：** チャンク行に `Chunk.header`（hunk header: `class Auth:` / `def login():` 等）を小テキストで表示。
-
-**実装箇所：** `draw_chunks()` (app.rs:2767) のチャンク行描画部分。
-`Chunk` 構造体（model.rs）に `header: Option<String>` フィールドがあるか確認。
-`ui.small(header)` をファイルパスの下に追加。
-
----
-
-### Task 4: ペイン幅をドラッグで変更できるようにする
+### Task 3: ペイン幅をドラッグで変更できるようにする
 
 **現状：** Groups列 260px・Chunks列 380px 固定（定数 `GROUPS_COLUMN_WIDTH` / `CHUNKS_COLUMN_WIDTH`）。
 
@@ -354,41 +344,53 @@
 
 ---
 
-### Task 5: トップバーの整理（チェックボックスを設定モーダルへ移動）
+### Task 4: GroupBriefを構造化フォームで編集
 
-**現状：** トップバー3行目に9個のチェックボックスが横並び。
+**現状：** summary/focusPoints/testEvidence等が1テキストエリアに混在。構造が失われ記入しにくい。
 
-**目標：** トップバー3行目を廃止し、設定ボタン（⚙）1つに集約。クリックで設定モーダルを開く。
-モーダル内容：
-- editorMode: ComboBox（auto/vscode/cursor/default-app/custom）
-- customEditorCommand: TextEdit
-- diffSyntax: Checkbox（シンタックスハイライトON/OFF）※Task 7実装後
-- uiDensity: ComboBox（compact/normal）
-- autoWrap: Checkbox
-- state自動保存: Checkbox
-- レビュー済みで次へ: Checkbox
-- 読込/保存を別スレッド: Checkbox（上級者向け）
+**目標：** フィールドごとに分けたフォームで編集できるようにする。
 
-**実装箇所：** `draw_top_bar()` の3行目を削除し、`draw_settings_modal()` を新規実装。
-`AppConfig` に `editor_mode`, `custom_editor_cmd` を追加。
+| フィールド | UI部品 |
+|-----------|--------|
+| status | ComboBox（draft/ready/acknowledged/stale）|
+| summary | TextEdit（3行）|
+| focusPoints | TextEdit（複数行、1行1項目）|
+| testEvidence | TextEdit（複数行、1行1項目）|
+| knownTradeoffs | TextEdit（複数行、1行1項目）|
+| questionsForReviewer | TextEdit（複数行、1行1項目）|
+| mentions | TextEdit（1行、スペース区切り）|
+
+**実装箇所：** `draw_group_brief_editor()` を全面改修。
+`GroupBriefDraft` 構造体（model.rs）のフィールドを確認し、不足があれば追加。
 
 ---
 
-### Task 6: タブを6個以下に削減
+### Task 5: シンタックスハイライト（差分表示）
 
-**現状：** 12タブ（Diff/Review/Handoff/Layout/Coverage/Impact/Approval/VirtualPr/Tools/診断/概要/State）。
+**現状：** 差分は緑/赤の単色のみ。言語構文が見えない。
 
-**目標：** Task 1でDiff+Reviewを統合後、残りのタブを整理する。
+**目標：** ファイル拡張子からシンタックスハイライトを適用する。
 
-推奨構成（6タブ）：
-1. **レビュー**（旧Diff+Review統合）
-2. **Handoff**（グループブリーフ）
-3. **承認**（旧Approval）
-4. **分析**（旧Coverage+Impact+VirtualPrを1タブ内でセクション分け）
-5. **概要**（旧Summary）
-6. **Tools**（旧Tools+Diagnostics+State）
+**依存ライブラリ：** `syntect`（Rustのシンタックスハイライトクレート）を `Cargo.toml` に追加。
+または軽量な `tree-sitter` ベースのハイライト。
 
-**実装箇所：** `draw_detail()` (app.rs:2838) のタブ列挙と `DetailTab` enum (app.rs:202)。
+**実装箇所：** `draw_diff_lines()` の行描画部分。
+`Chunk.file_path` の拡張子を見て言語を特定し、`syntect` でトークン化してegui の `RichText` にカラーを付ける。
+ハイライト結果はチャンク単位でキャッシュする（diffキャッシュに統合）。
+
+---
+
+## 🟠 高優先度
+
+### Task 6: チャンクリストに `header` 列を追加
+
+**現状：** チャンク行にステータス・ID・サイズ・ファイルパスのみ。関数名等が見えない。
+
+**目標：** チャンク行に `Chunk.header`（hunk header: `class Auth:` / `def login():` 等）を小テキストで表示。
+
+**実装箇所：** `draw_chunks()` (app.rs:2767) のチャンク行描画部分。
+`Chunk` 構造体（model.rs）に `header: Option<String>` フィールドがあるか確認。
+`ui.small(header)` をファイルパスの下に追加。
 
 ---
 
@@ -415,7 +417,47 @@
 
 ---
 
-### Task 8: 行番号指定でエディタを開く
+### Task 8: トップバーの整理（チェックボックスを設定モーダルへ移動）
+
+**現状：** トップバー3行目に9個のチェックボックスが横並び。
+
+**目標：** トップバー3行目を廃止し、設定ボタン（⚙）1つに集約。クリックで設定モーダルを開く。
+モーダル内容：
+- editorMode: ComboBox（auto/vscode/cursor/default-app/custom）
+- customEditorCommand: TextEdit
+- diffSyntax: Checkbox（シンタックスハイライトON/OFF）※Task 5実装後
+- uiDensity: ComboBox（compact/normal）
+- autoWrap: Checkbox
+- state自動保存: Checkbox
+- レビュー済みで次へ: Checkbox
+- 読込/保存を別スレッド: Checkbox（上級者向け）
+
+**実装箇所：** `draw_top_bar()` の3行目を削除し、`draw_settings_modal()` を新規実装。
+`AppConfig` に `editor_mode`, `custom_editor_cmd` を追加。
+
+---
+
+### Task 9: タブを6個以下に削減
+
+**現状：** 12タブ（Diff/Review/Handoff/Layout/Coverage/Impact/Approval/VirtualPr/Tools/診断/概要/State）。
+
+**目標：** Task 1でDiff+Reviewを統合後、残りのタブを整理する。
+
+推奨構成（6タブ）：
+1. **レビュー**（旧Diff+Review統合）
+2. **Handoff**（グループブリーフ）
+3. **承認**（旧Approval）
+4. **分析**（旧Coverage+Impact+VirtualPrを1タブ内でセクション分け）
+5. **概要**（旧Summary）
+6. **Tools**（旧Tools+Diagnostics+State）
+
+**実装箇所：** `draw_detail()` (app.rs:2838) のタブ列挙と `DetailTab` enum (app.rs:202)。
+
+---
+
+## 🟡 中優先度
+
+### Task 10: 行番号指定でエディタを開く
 
 **現状：** 「実ファイルを開く」でファイルを開くが行番号指定なし。
 
@@ -425,11 +467,11 @@
 - デフォルト: そのまま（行番号指定不可）
 
 **実装箇所：** `draw_chunk_status_editor()` の「実ファイルを開く」ボタン処理（`ops::open_file`関連）。
-`AppConfig.editor_mode`（Task 5で追加）を参照してコマンドを切り替える。
+`AppConfig.editor_mode`（Task 8で追加）を参照してコマンドを切り替える。
 
 ---
 
-### Task 9: フィルタ入力欄を1行に統合
+### Task 11: フィルタ入力欄を1行に統合
 
 **現状：** Pathフィルタ・全文検索・ステータスドロップダウン・ソートComboBoxが2行。
 
@@ -439,42 +481,6 @@
 `status:reviewed` `file:auth` のようなプレフィックス構文でも可。ステータスドロップダウンは別途残してもよい。
 
 **実装箇所：** `draw_filters()` の入力欄統合。`apply_filter_inputs_now()` の統合フィルタロジック追加。
-
----
-
-### Task 10: シンタックスハイライト（差分表示）
-
-**現状：** 差分は緑/赤の単色のみ。言語構文が見えない。
-
-**目標：** ファイル拡張子からシンタックスハイライトを適用する。
-
-**依存ライブラリ：** `syntect`（Rustのシンタックスハイライトクレート）を `Cargo.toml` に追加。
-または軽量な `tree-sitter` ベースのハイライト。
-
-**実装箇所：** `draw_diff_lines()` の行描画部分。
-`Chunk.file_path` の拡張子を見て言語を特定し、`syntect` でトークン化してegui の `RichText` にカラーを付ける。
-ハイライト結果はチャンク単位でキャッシュする（diffキャッシュに統合）。
-
----
-
-### Task 11: GroupBriefを構造化フォームで編集
-
-**現状：** summary/focusPoints/testEvidence等が1テキストエリアに混在。
-
-**目標：** フィールドごとに分けたフォームで編集できるようにする。
-
-| フィールド | UI部品 |
-|-----------|--------|
-| status | ComboBox（draft/ready/acknowledged/stale）|
-| summary | TextEdit（3行）|
-| focusPoints | TextEdit（複数行、1行1項目）|
-| testEvidence | TextEdit（複数行、1行1項目）|
-| knownTradeoffs | TextEdit（複数行、1行1項目）|
-| questionsForReviewer | TextEdit（複数行、1行1項目）|
-| mentions | TextEdit（1行、スペース区切り）|
-
-**実装箇所：** `draw_group_brief_editor()` を全面改修。
-`GroupBriefDraft` 構造体（model.rs）のフィールドを確認し、不足があれば追加。
 
 ---
 
